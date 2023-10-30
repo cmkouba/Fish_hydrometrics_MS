@@ -50,6 +50,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   
   library(rgdal)
   library(rgeos)
+  library(sf)
   library(maptools)
   library(RANN)
   library(RColorBrewer)
@@ -85,7 +86,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
   
   # print figures for slides, yes or no?
-  save_figs_here = "C:/Users/Claire/Dropbox/Documents/UCD/Presentations_Talks_Workshops_miniprojects/2022.02.17 Peer Group presentation Ch. 1/figs"
+  save_figs_here = ms_dir#"C:/Users/Claire/Dropbox/Documents/UCD/Presentations_Talks_Workshops_miniprojects/2022.02.17 Peer Group presentation Ch. 1/figs"
   print_for_slides=F
   fig_i = 1
   
@@ -96,7 +97,6 @@ last_wy = 2021
 ```
 
 # Abstract
-<!-- ## Abstract -->
 
 In many rural areas in arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remains poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of the coho salmon (*Oncorhynchus kisutch*) run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge. Taking advantage of a nearly two-decade ecological monitoring dataset, we built linear models to predict coho salmon reproductive success using combinations of one and two hydrologic metric predictors. We used an ensemble of the three best linear models to formulate a Hydrologic Benefit function, summarizing the ecological services provided by the hydrology in different seasons into a single index value per water year. This method for empirically deriving the highest-priority hydrologic functions for a threatened species could be used in other watersheds (if sufficient ecological data records are available) to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
 
@@ -139,8 +139,7 @@ In many rural areas in arid and semi-arid regions, balancing agricultural and en
 <!-- * Chinook expectations. Don't need summer flows as much, since they don't rear in the summer; they migrate out asap. (really?) but would be more hammered by late fall flows. so would expect different weights than for coho. Maybe add chinook to chapter 1. -->
 <!-- * add scouring flows metric -->
 
-# 1. Introduction
-<!-- ## Introduction -->
+# Introduction
 
 Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, “novel” systems [@Moyle2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would embrace a role as earth system engineer, and would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwinton2005; @Arthington2014; @Acreman2014]. But critical knowledge gaps are abundant and make this dual objective seem intractable. In many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @Poff2010a; @Shenton2012; @Solans2016a], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@Poff2010b]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
 
@@ -150,8 +149,7 @@ One method for estimating ecological water needs is the functional flows framewo
 
 To learn if it is possible to empirically quantify a hydrologic regime that meets the ecological needs of coho salmon in the Scott River watershed, we examine correlations between several dozen hydrologic metrics and local salmon observations. We then use linear models to predict salmon outcomes based on potential combinations of hydrologic metric predictors. We use the best of these linear models to formulate a Hydrologic Benefit function, distilling the ecological services provided by hydrology in different seasons into a single index value per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives (as is explored further in Chapter 2 of this dissertation).
 
-# 2. Case study: setting and species of concern
-<!-- ## Case study: setting and species of concern -->
+# Case study: setting and species of concern
 
 Exploring the empirical relationship between river hydrology and an ecological response requires a study area with favorable geography and ecological monitoring data. Geographically, the ecological monitoring must be within an area that is plausibly affected by the hydrology at the point of river observation. Ecologically, in order to go beyond static snapshot analyses [@Wheeler2018], the species-level observations of life stages which are facilitated by specific flow rates (such as spawning and rearing for salmonids) must cover a wide range of dry to wet water year conditions, which usually means decades of time-intensive and costly aquatic data collection. 
 
@@ -167,8 +165,8 @@ Routine monitoring of spawning anadromous fish in this watershed and the broader
 replace_setting_fig = F
 if(replace_setting_fig == TRUE){save_setting_figure()}
 
-# knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "scott valley setting.png"))
-knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "scott valley setting_old2.png"))
+knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "scott valley setting.png"))
+# knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "scott valley setting_old2.png"))
 
 ```
 
@@ -856,20 +854,29 @@ corr_matrix_fig(corr_matrix = corr_matrix_pearson_coho, thresholds = thresh_for_
 
 if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
 
+```
+
+
+
+```{r corr_matrix_fig_chinook, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "coho corr matrix caption. \\label{fig:corr_matrix_fig_coho}"}
+
+
+# Code to determine which FFs to plot against chinook spawners
+
 
 corr_matrix_pearson_chinook = calc_corr_matrix(metrics_tab_ch, corr_method = "pearson", 
                                fish_outcome_cols = "chinook")
 corrplot( corr = as.matrix(corr_matrix_pearson_chinook))
 
+
 par(mfrow=c(2,3))
-for(i in 1:dim(metrics_tab_all)[2]){
-  plot(metrics_tab_all[,i], 
-       metrics_tab_all$chinook_juv_per_adult, 
+for(i in 1:dim(metrics_tab_all_yrs)[2]){
+  plot(metrics_tab_all_yrs[,i], 
+       metrics_tab_all_yrs$chinook_juv_per_adult, 
        pch = 19, col = i,
-       main = colnames(metrics_tab_all)[i])
+       main = colnames(metrics_tab_all_yrs)[i])
 }
 
-# Code to determine which FFs to plot against chinook spawners
 # 
 metrics_tab$rearing_year = metrics_tab$brood_year+1
 # fflows_chinook= merge(x = fflows, y = metrics_tab[,c(1:10,60)], by.x = "Water_Year", by.y = "rearing_year")

@@ -52,10 +52,10 @@ library(tidyr)
 library(readxl)
 library(geodata)
 library(sf)
-
+library(terra)
 
 #Directories and local file name update
-if(!exists("ms_dir")){ms_dir = ms_dir}
+if(!exists("ms_dir")){ms_dir = here::here()}
 local_data_dir = file.path(ms_dir, "Data")
 ### wl_dir = file.path(local_data_dir, "Wells and water levels")
 scratch_dir = file.path(ms_dir, "scratch_work")
@@ -342,8 +342,8 @@ m <- merge(dem123,
 dem_3310 = terra::project(x = m, y = crs("+init=epsg:3310"))
 
 # Generate hillshade
-wsh_30km = st_buffer(watershed, 3e4) # give it a buffer for figure backgrounds
-dem_watershed=terra::crop(dem_3310, wsh_30km)
+wsh_10km = st_buffer(watershed, 1e4) # give it a buffer for figure backgrounds
+dem_watershed=terra::crop(dem_3310, wsh_10km)
 dem_shade=gray(0:100 / 100)
 
 
@@ -357,15 +357,17 @@ if(!file.exists(file.path(scratch_dir, "hillshade_cropped_raster.tif"))){
                    angle = 45, direction = 0)
 
 
-  plot(hill_wsh, col = grey(c(0:100)/100), legend = F)
+  # plot(hill_wsh, col = grey(c(0:100)/100), legend = F)
 
   # plot(hill_wsh)
   # hill_wsh_spatRaster = hill_wsh
   # hill_wsh_raster = raster(hill_wsh_spatRaster)
   # hill_wsh_wrapped = wrap(hill_wsh_spatRaster)
-  terra::writeRaster(hill_wsh, filename = file.path(scratch_dir, "hillshade_cropped_raster.tif"), overwrite=T)
+  terra::writeRaster(hill_wsh, filename = file.path(data_dir, "hillshade_cropped_raster.tif"), overwrite=T)
 
 }
+
+
 
 # American Indian Areas ----------------------------------------------------
 tribal_url = "https://www2.census.gov/geo/tiger/TIGER2021/AIANNH/tl_2021_us_aiannh.zip"
