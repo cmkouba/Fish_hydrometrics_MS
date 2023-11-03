@@ -20,7 +20,7 @@ fig_caption: yes
 bibliography: library.bib
 ---
 
-```{r setup_dirs_load_data_ch1, include = FALSE}
+```{r setup_dirs_load_data, include = FALSE}
 
 
 if(!exists("full_dissertation_format")){ # if this has not been called from Full Dissertation
@@ -858,7 +858,7 @@ if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
 
 
 
-```{r corr_matrix_fig_chinook, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "coho corr matrix caption. \\label{fig:corr_matrix_fig_coho}"}
+```{r corr_matrix_fig_chinook, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "chinook corr matrix caption. \\label{fig:corr_matrix_fig_coho}"}
 
 
 # Code to determine which FFs to plot against chinook spawners
