@@ -206,3 +206,42 @@ axis(side=2, at= (1:9) * sort(rep(10^(0:5),9)), tck=-0.02, labels = NA)
 
 
 dev.off()
+
+
+# update land use file ----------------
+library(sf)
+# read in polygons table
+poly_path = "C:/Users/Claire/Documents/GitHub/SVIHM/Scenarios/basecase/polygons_table.txt"
+fields_path = "C:/Users/Claire/Documents/GitHub/SVIHM/SVIHM_Input_Files/reference_data/Landuse_20190219.shp"
+out_dir = "C:/Users/Claire/Dropbox/Documents/UCD/Postdoc Project starting 2022.07.05/misc"
+
+poly_tab = read.table(poly_path, header = T, comment.char = "!", fill=T)
+colnames(poly_tab)[colnames(poly_tab)=="X.ID"]="Poly_num"
+fields = st_read(fields_path)
+
+lu_df = data.frame(lu_code = c(25,2,3,4,6),
+                   descrip = c("Alfalfa","Pasture","ET_noIrr","noET_noIrr", "Water"),
+                   color = c("forestgreen","darkolivegreen2","wheat","red","dodgerblue"))
+
+wat_source = c(1,2,3,4,5,999)
+wat_source_descrip = c("SW","GW","Mixed", "Sub-irrigated","Dry","Unknown")
+wat_source_color = c("dodgerblue","firebrick2","darkorchid1","green","yellow","gray")
+wat_source_df = data.frame(ws_code = wat_source,
+                           descrip = wat_source_descrip,
+                           color = wat_source_color)
+
+irr_df = data.frame(irr_code = c(1,2,3,555,999),
+                  descrip = c("flood","wheel line", "center pivot","dry","unknown"))
+
+poly_tab$landuse_descrip = lu_df$descrip[match(poly_tab$Landuse, lu_df$lu_code)]
+poly_tab$watsource_descrip = wat_source_df$descrip[match(poly_tab$Water_Source,
+                                                         wat_source_df$ws_code)]
+poly_tab$irr_descrip = irr_df$descrip[match(poly_tab$Irrigation,
+                                            irr_df$irr_code)]
+
+fields$lu_2018 = poly_tab$landuse_descrip[match(fields$Polynmbr, poly_tab$Poly_num)]
+fields$ws_2018 = poly_tab$watsource_descrip[match(fields$Polynmbr, poly_tab$Poly_num)]
+fields$irr_2018 = poly_tab$irr_descrip[match(fields$Polynmbr, poly_tab$Poly_num)]
+fields$WL2CP_year = poly_tab$WL2CP_year[match(fields$Polynmbr, poly_tab$Poly_num)]
+
+st_write(fields,dsn = out_dir, layer = "Landuse_20190219_updated_20231109", driver = "ESRI shapefile")

@@ -197,7 +197,8 @@ ca_or_figure = function(include_legend = T){
 
 save_setting_figure = function(){
 
-  main_map =  tm_shape(hill_wsh) +
+  main_map =
+    tm_shape(hill_wsh) +
     tm_raster(palette = hillshade_palette_faded(20), legend.show = F) +
     tm_shape(watershed, name= "Watershed Boundary", is.master=T, unit=figure_units) + tm_borders (color_watershed, lwd = 2) +
     # tm_shape(basin, name = "Groundwater Basin") + tm_borders(color_basin, lwd = 2) +
@@ -223,9 +224,9 @@ save_setting_figure = function(){
     tm_add_legend( type = "line", lwd = c(2, 3, 2), col =  c(color_watershed, color_river, color_tribs),
                    labels = c("Watershed Boundary", "Scott River", "Major Tributaries")) +
     tm_add_legend(type="fill", col = color_qvir, border.lwd = 1, labels = "QVIR")+
-    tm_add_legend(type="symbol", col = color_cities, border.lwd = NA, size = 0.7, labels = "Town or Place")+
-    tm_add_legend(type="symbol", col = color_gauges, size = 0.8, labels = "Fort Jones Gauge")+
-    tm_add_legend(type="symbol", col = color_confluence, shape = 25, size = 1, labels = "Scott-Klamath Confluence")+
+    tm_add_legend(type="symbol", col = color_cities, border.lwd = NA, labels = "Town or Place")+ #size = 0.7,
+    tm_add_legend(type="symbol", col = color_gauges, labels = "Fort Jones Gauge")+ #size = 0.8,
+    tm_add_legend(type="symbol", col = color_confluence, shape = 25, size = 1, labels = "Scott-Klamath \n Confluence")+
     tm_add_legend(type = "line", lwd = c(2, 1.5), col = c(color_interstate, color_state_road),
                   labels = c("Interstate 5", "State Route 3")) +
     # legend for inset map
@@ -235,7 +236,8 @@ save_setting_figure = function(){
     tm_add_legend(type="fill", col = color_states, border.col = "gray10", labels = "Ore. and Calif.")+
     tm_add_legend(type="line", col = color_county, labels = "Siskiyou County", lwd=2)+
     # finish legend
-    tm_layout(legend.bg.color = "white", legend.frame = T, legend.text.size = .65)
+    # tm_layout(legend.bg.color = "white", legend.frame = T, legend.text.size = .7)
+    tm_layout(legend.bg.color = "white", legend.frame = T, legend.width=.28)
 
   inset_fig = ca_or_figure( include_legend = F)
 

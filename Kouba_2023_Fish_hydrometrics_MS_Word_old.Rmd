@@ -3,20 +3,10 @@ title: A watershed-specific formula to predict coho salmon reproduction using ri
 author: "Claire Kouba and Thomas Harter"
 date: "Nov. 2023"
 output:
-  word_document: default
-  pdf_document: default
-  toc: yes
-  html_document:
-    df_print: paged
-header-includes:
-- \usepackage[left]{lineno}
-- \linenumbers
-- \usepackage{setspace}\doublespacing
-- \usepackage{pdflscape}
-- \usepackage{rotating}
-- \newcommand{\blandscape}{\begin{landscape}}
-- \newcommand{\elandscape}{\end{landscape}}
-fig_caption: yes
+  bookdown::word_document2:
+  fig_caption: true    
+  number_sections: true
+  global_numbering: true
 bibliography: library.bib
 ---
 
@@ -70,6 +60,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   ms_dir = here::here()
   scratch_dir = file.path(ms_dir, "scratch_work")
   data_dir = file.path(ms_dir, "Data")
+  graphics_dir = file.path(ms_dir, "Graphics and Supplements")
   # Directory for postprocessed, tabulated results
   svihm_results_dir = file.path(ms_dir, "Data", "SVIHM Model Results")
   # Directories for SVIHM inputs and outputs, not yet postprocessed
@@ -85,9 +76,10 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
   source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
   
-  # print figures for slides, yes or no?
-  save_figs_here = ms_dir#"C:/Users/Claire/Dropbox/Documents/UCD/Presentations_Talks_Workshops_miniprojects/2022.02.17 Peer Group presentation Ch. 1/figs"
-  print_for_slides=F
+  # Save figures as images, yes or no?
+  save_figs_here = graphics_dir#"C:/Users/Claire/Dropbox/Documents/UCD/Presentations_Talks_Workshops_miniprojects/2022.02.17 Peer Group presentation Ch. 1/figs"
+  save_imgs=F
+  replace_setting_fig = F
   fig_i = 1
   
 }
@@ -96,7 +88,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
 last_wy = 2021
 ```
 
-# Abstract
+# Abstract {-}
 
 In many rural areas in arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remains poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of the coho (*Oncorhynchus kisutch*) and chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge. Taking advantage of a nearly two-decade ecological monitoring dataset, we built linear models to predict coho and chinook salmon reproductive success using combinations of one and two hydrologic metric predictors. We used an ensemble of the three best linear models to formulate a Hydrologic Benefit function, summarizing the ecological services provided by the hydrology in different seasons into a single index value per water year. This method for empirically deriving the highest-priority hydrologic functions for a threatened species could be used in other watersheds (if sufficient ecological data records are available) to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
 
@@ -153,52 +145,60 @@ To learn if it is possible to empirically quantify a hydrologic regime that meet
 
 Exploring the empirical relationship between river hydrology and an ecological response requires overlapping geography, and sufficient record length, in a study area's hydrologic and ecological monitoring data. Ecological data is typically more sparse in space and time than hydrologic flow monitoring and is usually the limiting factor. Geographically, the ecological monitoring must be within an area that is plausibly affected by the hydrology at the point of river observation. Temporally, in order to go beyond static snapshot analyses [e.g. @Wheeler2018], the species-level observations of life stages which are facilitated by specific flow rates (such as spawning and rearing for salmonids) must cover a wide range of dry to wet water year conditions, which usually means decades of time-intensive and costly aquatic data collection. 
 
-Both of these requirements are met in Scott Valley, where daily river flow monitoring has been ongoing since the 1940s at the USGS stream gauge downstream of the town of Fort Jones (Station ID #11519500, or the Fort Jones Gauge or FJ Gauge; \autoref{fig:scottWatershedMap}). The flow at this gauge is correlated with flow in tributary streams [@Foglia2013a], and though a single monitoring location may not be able represent flow status in the full stream system at all times, it has been used in recent water planning documents as an indicator of overall hydrologic conditions [Siskiyou County -@SiskiyouCounty2021]. Because most water use in Scott Valley occurs upgradient of this gauge, its measurements are used to inform water management decisions in the populated areas of the valley.
+Both of these requirements are met in Scott Valley, where daily river flow monitoring has been ongoing since the 1940s at the USGS stream gauge downstream of the town of Fort Jones (Station ID #11519500, or the Fort Jones Gauge or FJ Gauge; Figure \@ref(fig:ScottWatershedMap)). The flow at this gauge is correlated with flow in tributary streams [@Foglia2013a], and though a single monitoring location may not be able represent flow status in the full stream system at all times, it has been used in recent water planning documents as an indicator of overall hydrologic conditions [Siskiyou County -@SiskiyouCounty2021]. Because most water use in Scott Valley occurs upgradient of this gauge, its measurements are used to inform water management decisions in the populated areas of the valley.
 
 Routine monitoring of spawning anadromous fish in this watershed and the broader Klamath basin has been ongoing since at least 1978 [@Knechtle2012]. More in-depth monitoring of multiple salmonid life stages in the Scott River watershed has occurred since 2003 [e.g., @Maurer2003; @CDFW2021a]. In this study we will take advantage of this nearly two-decade record of adult spawner and juvenile salmon abundance observations to draw preliminary conclusions regarding this hydrology-ecology relationship.
 
 <!-- Local aquatic monitoring has included observations of steelhead and lamprey, but for purposes of this study we will focus on coho and Chinook salmon. -->
 
-```{r scott_watershed_map, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "The Scott River watershed, with regional geographic context (see inset) and local features. Scott River flows generally from south to north and joins the Klamath after flowing through a steep canyon. \\label{fig:scottWatershedMap}"}
+```{r ScottWatershedMap, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "The Scott River watershed, with regional geographic context (see inset) and local features. Scott River flows generally from south to north and joins the Klamath after flowing through a steep canyon. \\label{fig:ScottWatershedMap}"}
 
 # this stupid inset map thing made it not play nice with knitr. so have to include it as a png.
-replace_setting_fig = F
 if(replace_setting_fig == TRUE){save_setting_figure()}
 
-knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "scott valley setting.png"))
-# knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "scott valley setting_old2.png"))
+if(save_imgs==T){
+  file.copy(from = file.path(graphics_dir, "scott valley setting.png"),
+            to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
+knitr::include_graphics(file.path(graphics_dir, "scott valley setting.png"))
+# knitr::include_graphics(file.path(graphics_dir, "scott valley setting_old2.png"))
+
+fig_i = fig_i +1
 
 ```
 
 
-## 2.1 Scott River watershed setting and water use
+## Scott River watershed setting and water use
 
 ### Geography, climate and hydrology
 
-The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott Valley, and is a major tributary to the Klamath River, which drains an area spanning sections of Northern California and Southern Oregon (\autoref{fig:scott_watershed_map}). Scott Valley has a Mediterranean climate with distinctive seasons of cool, wet winters and warm, dry summers. This seasonality in water input creates highly seasonal flow in the Scott River and tributary streams (\autoref{fig:fj_flow_figure}). To accommodate this precipitation and runoff schedule, water years in California conventionally begin on Oct. 1; they are named for the year in which they end (e.g., water year 2021 begins Oct. 1, 2020 and runs through Sep. 30, 2021).
+The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott Valley, and is a major tributary to the Klamath River, which drains an area spanning sections of Northern California and Southern Oregon (Figure \@ref(fig:ScottWatershedMap)). Scott Valley has a Mediterranean climate with distinctive seasons of cool, wet winters and warm, dry summers. This seasonality in water input creates highly seasonal flow in the Scott River and tributary streams (Figure \@ref(fig:fjFlowFigure)). To accommodate this precipitation and runoff schedule, water years in California conventionally begin on Oct. 1; they are named for the year in which they end (e.g., water year 2021 begins Oct. 1, 2020 and runs through Sep. 30, 2021).
 
 In most dry-to-average water years, sections of the Scott River become seasonally dewatered [NCRWQCB -@NCRWQCB2005; Figure 5 in @Tolley2019]. This occurs when the elevation of the water table drops below the bottom of the river channel, as streams and groundwater are highly interconnected in the Scott River watershed. Tributary streams, particularly along their alluvial fan apeces, and the Scott River are sources of recharge to the aquifer [@Mack1958; @Harter2008a]. Groundwater discharge sustains streamflow in some areas, especially during the dry season of August through October or November [@Tolley2019].  
 
-```{r fj_flow_figure, echo=FALSE, fig.cap="\\label{fig:fj_flow_figure} The Mediterranean climate produces highly seasonal flows in the Scott River. Each translucent line traces one annual hydrograph measured at the Fort Jones gauge, and the darker lines illustrate the 30-day smoothed median daily flow in Dry, Below Average, Above Average, and Wet water year types, for water years 1942-2021. The water year type is defined by quartiles of the distribution of total annual flow." , fig.height=6, fig.width=7, warning=F}
+```{r fjFlowFigure, echo=FALSE, fig.cap="The Mediterranean climate produces highly seasonal flows in the Scott River. Each translucent line traces one annual hydrograph measured at the Fort Jones gauge, and the darker lines illustrate the 30-day smoothed median daily flow in Dry, Below Average, Above Average, and Wet water year types, for water years 1942-2021. The water year type is defined by quartiles of the distribution of total annual flow.", warning=F}
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 6, units = "in", res = 300)}
-
-fj_flow_figure(roll_window = 30)
-
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
-
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 6, units = "in", res = 300)
+  
+  fj_flow_figure(roll_window = 30)
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
 ```
 
 ### Human population
-<!-- #### Human population -->
 
-Two incorporated communities, the towns of Fort Jones and Etna, are located within the boundary of the watershed (\autoref{fig:scott_watershed_map}). The estimate of their population size in 2020 was 695 and 678, respectively [@USCensus2021]. Other communities in the watershed include the unincorporated communities of Callahan, Greenview, and the Quartz Valley Indian Reservation on tribal trust lands. 
+Two incorporated communities, the towns of Fort Jones and Etna, are located within the boundary of the watershed (Figure \@ref(fig:ScottWatershedMap)). The estimate of their population size in 2020 was 695 and 678, respectively [@USCensus2021]. Other communities in the watershed include the unincorporated communities of Callahan, Greenview, and the Quartz Valley Indian Reservation on tribal trust lands. 
 
 The region is largely rural, and many watershed residents live outside the incorporated community boundaries. Scott Valley is not a census-designated place and therefore does not have an official population estimate; however, census block-level population data, area-weighted according to the fraction of each block that overlaps with the watershed, indicate that in 2020 the population of the Scott River watershed was approximately 5,186 [@USCensus2021], including the populations of the two incorporated towns. 
 
 ### Water uses and management objectives
-<!-- #### Water uses and management objectives -->
 
 Water in Scott Valley is used for agricultural, domestic, and municipal supply. It also facilitates recreation and provides Native American cultural services, among other designated beneficial uses [NCRWQCB -@NCRWQCB2006b]. Because the watershed is undammed, managers and water users influence Scott River flow primarily via diversion of surface waters and pumping of groundwater. Consequently the most powerful tool available to manage Scott River water flow is regulation of land use and thus water demand [Siskiyou County -@SiskiyouCounty2021]. 
 
@@ -207,49 +207,40 @@ Historically, local regulation of land use has focused on maintaining the rural 
 All of the regulatory and management programs in this region, including recommended instream flows [CDFW -@CDFW2017], recent emergency drought measures [SWRCB -@SWRCB2022], and legal rights governing surface water diversion [@SuperiorCourtofSiskiyouCounty1980], are tabulated in units of cubic feet per second (cfs). For consistency, this document will also use primarily cfs units.
 
 
-## 2.2 Species of concern: coho salmon, *Oncorhynchus kisutch*
-<!-- ### Species of concern: coho salmon, *Oncorhynchus kisutch* -->
+## Species of concern
 
-Coho salmon in the Scott Valley are listed as threatened under the federal and California Endangered Species Acts (ESAs). They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU), which was listed as threatened under the federal and state ESAs in 1997 and 2005, respectively. State-wide, coho populations have declined more than 90% since the 1940s [@Brown1994]. Of course, factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions; in this study, because we are interested only in the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system, such as number of coho smolt produced per female spawner.
+Coho salmon in the Scott Valley are listed as threatened under the federal and California Endangered Species Acts (ESAs). They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU), which was listed as threatened under the federal and state ESAs in 1997 and 2005, respectively. State-wide, coho populations have declined more than 90% since the 1940s [@Brown1994]. 
 
-### Coho salmon life cycle
-<!-- #### Coho salmon life cycle -->
+As of 2013 the SONCC Chinook population was stable and becoming more complex [@Wainwright2013], though ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@Welch2021].
 
-Returning adult coho spawn in natal streams between November and January [@Moyle2002; @McMahon1983], and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts. Their habitat needs are somewhat different during summer and winter: in summer, coho are found most commonly in cool pools, more than 1 meter deep, with abundant cover (e.g., woody debris or undercut banks) [@Moyle2002; @Giannico2007; @Nickelson1992]. In winter, coho are most abundant in areas with flow refugia, such as alcoves and beaver ponds [@Nickelson1992] or riverine ponds [@Peterson1982], and complex cover such as low velocities, shade, and complex woody debris [@McMahon1989; @Bustard1975]. In winter, without such refugia, juvenile coho risk being swept downstream or out to sea by storm flows before they are physiologically ready to live in ocean conditions [@McMahon1983]. 
-
-Coho salmon can be harmed by acute or chronic thermal stress, by exposure to suspended solids, and (at a population level) by hatchery effects. Critical thermal maxima of coho (the temperature at which acute exposure is fatal) has been measured between 28.21 and 29.23 ºC [@Konecki1995]. Below critical thermal maxima, chronic exposure to elevated temperatures (above a threshold of approximately 16º-18ºC) can increase prevalence of disease and reduce survival rates [@Miller2014]; however, if sufficient food resources are available to sustain the faster growth that takes place at higher temperatures, chronic thermal stresses may be mitigated [@Lusardi2020]. Similarly, juvenile coho exposed to high levels (2-3 g/L) of suspended solids have exhibited higher stress levels, lower feeding rates, and lower resistances to disease [@Redding1987]. Additionally, hatchery fish tend to have lower fitness than wild-reared fish, and releasing them into wild populations can negatively impact wild coho salmon populations [@Quinones2014a]; one proposed cause is that the lack of sexual selection in hatchery fish populations leads to a higher number of less fit individuals competing for resources [@Theriault2011].
-
-In previous studies, the strongest predictor of juvenile coho abundance in a stream system was spatial habitat [@Bradford2016; @Nickelson1992; @Bustard1975], although adequate food and cover were also important [@McMahon1983]. The primary mechanism for spatial constraints on abundance appears to be that juvenile coho become more territorial as they grow, and those that cannot hold a territory typically emigrate downstream or all the way to the ocean in their first summer or spring. These early migrators are not well suited to ocean conditions and are much less likely to return as spawning adults [@McMahon1983], though there is evidence that some of these fish may be able to rear in non-natal habitats [@Gorman2016].
-
-An average coho life cycle is illustrated in \autoref{fig:coho_life_cycle_figure}. Some coho salmon return to spawn at age 2 as grilse, but the majority (e.g., 92.4% in 2020) return after more than one year in the ocean, giving the Scott coho salmon run its characteristic 3-year cohort return interval [@CDFW2021a].
-
-```{r coho_life_cycle_figure, echo = F, message = F, warning =F, out.height= "90%", fig.align="center", fig.cap = "Typical life stage progression of coho salmon in the Scott River watershed.\\label{fig:coho_life_cycle_figure}"}
+Factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions. In this study, because we are interested only in the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system, such as number of coho smolt produced per female spawner.
 
 
-knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "coho life cycle table_2022.02.03.jpg"))
+### Life cycle of coho salmon (*Oncorhynchus kisutch*)
 
-if(print_for_slides==T){file.copy(from = file.path(ms_dir, "Graphics and Supplements", "coho life cycle table_2022.02.03.jpg"),
-                                  to = file.path(save_figs_here, paste0("Figure ",fig_i,".jpg")))
-  fig_i = fig_i +1
-}
+Returning adult coho spawn in natal streams between November and January, and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts [@Moyle2002; @McMahon1983]. 
+
+<!-- Their habitat needs are somewhat different during summer and winter: in summer, coho are found most commonly in cool pools, more than 1 meter deep, with abundant cover (e.g., woody debris or undercut banks) [@Moyle2002; @Giannico2007; @Nickelson1992]. In winter, coho are most abundant in areas with flow refugia, such as alcoves and beaver ponds [@Nickelson1992] or riverine ponds [@Peterson1982], and complex cover such as low velocities, shade, and complex woody debris [@McMahon1989; @Bustard1975]. In winter, without such refugia, juvenile coho risk being swept downstream or out to sea by storm flows before they are physiologically ready to live in ocean conditions [@McMahon1983].  -->
+
+<!-- Coho salmon can be harmed by acute or chronic thermal stress, by exposure to suspended solids, and (at a population level) by hatchery effects. Critical thermal maxima of coho (the temperature at which acute exposure is fatal) has been measured between 28.21 and 29.23 ºC [@Konecki1995]. Below critical thermal maxima, chronic exposure to elevated temperatures (above a threshold of approximately 16º-18ºC) can increase prevalence of disease and reduce survival rates [@Miller2014]; however, if sufficient food resources are available to sustain the faster growth that takes place at higher temperatures, chronic thermal stresses may be mitigated [@Lusardi2020]. Similarly, juvenile coho exposed to high levels (2-3 g/L) of suspended solids have exhibited higher stress levels, lower feeding rates, and lower resistances to disease [@Redding1987]. Additionally, hatchery fish tend to have lower fitness than wild-reared fish, and releasing them into wild populations can negatively impact wild coho salmon populations [@Quinones2014a]; one proposed cause is that the lack of sexual selection in hatchery fish populations leads to a higher number of less fit individuals competing for resources [@Theriault2011]. -->
+
+In previous studies, the strongest predictor of juvenile coho abundance in a stream system was spatial habitat [@Bradford2016; @Nickelson1992; @Bustard1975], although adequate food and cover were also important [@McMahon1983]. The primary mechanism for spatial constraints on abundance appears to be that juvenile coho become more territorial as they grow [@McMahon1983].
+
+<!-- , and those that cannot hold a territory typically emigrate downstream or all the way to the ocean in their first summer or spring.  -->
+
+<!-- These early migrators are not well suited to ocean conditions and are much less likely to return as spawning adults [@McMahon1983], though there is evidence that some of these fish may be able to rear in non-natal habitats [@Gorman2016]. -->
+
+An average coho life cycle is illustrated in Figure \@ref(fig:cohoLifeCycleFigure). Some coho salmon return to spawn at age 2 as grilse, but the majority (e.g., 92.4% in 2020) return after more than one year in the ocean, giving the Scott coho salmon run its characteristic 3-year cohort return interval [@CDFW2021a].
+
+```{r cohoLifeCycleFigure, echo = F, message = F, warning =F, out.height= "8.5in", fig.cap = "Typical life stage progression of coho salmon in the Scott River watershed."}
+
+knitr::include_graphics(file.path(graphics_dir, "coho life cycle table_2022.02.03.jpg"))
 
 ```
 
-### Coho salmon management and monitoring in the Scott River watershed
-<!-- #### Coho salmon management and monitoring in the Scott River watershed -->
-
-Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CRMP2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC -@SRWC2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CDFW2015a]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River smolt production [SRWC and Siskiyou RCD -@SRWC2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NMFS2014].
-
-Monitoring activity in the past 20 years has included population estimates from a video counting flume and a rotary screw trap operated by CDFW [CDFW -@CDFW2015b; @Massie2020], and spawning surveys for Chinook [@SiskiyouRCD2015b; @SiskiyouRCD2017a; @SiskiyouRCD2018] and coho [@Maurer2003; @SiskiyouRCD2005; @Quigley2006; @Quigley2007; @SiskiyouRCD2010; @Yokel2011; @SiskiyouRCD2012; @SiskiyouRCD2013; @SiskiyouRCD2014; @SiskiyouRCD2015a; @SiskiyouRCD2017b]. Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@SRWT2018], the prioritization of stream reaches for habitat restoration [SRWC -@SRWC2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@Yokel2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CDFW2015a], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCounty2021].
-
-## 2.3 Species of concern: Chinook salmon, *Oncorhynchus tshawytscha*
-
-### Chinook salmon life cycle
+### Life cycle of Chinook salmon (*Onchorhynchus tsawytscha*)
 
 Chinook salmon in the Scott Valley are a candidate for listing under the federal ESA, and are not listed under the California ESA. They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU). 
-
-State-wide, coho populations have declined more than 90% since the 1940s [@Brown1994]. Of course, factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions; in this study, because we are interested only in the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system, such as number of coho smolt produced per female spawner.
-
 
 *pile of citations like the one for coho*
 @Healey1991. Life history of CHinook salmon
@@ -257,42 +248,45 @@ State-wide, coho populations have declined more than 90% since the 1940s [@Brown
 
 As of 2013 the SONCC Chinook were stable and becoming more complex [@Wainwright2013], though ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@Welch2021]. Relevant ocean conditions may include temperature and food resources; in the ocean, the availability of Chinook salmon prey species may change seasonally and with environmental conditions, such as the strength of upwelling currents [@Hunt1999].
 
-
-
 @VanWert2023 evidence that the thermal tolerance of juvenile freshwater-dwelling chinook is locally-adapted and warmer temperatures stress out juvenile fish
 @NMFS2005 historical salmon habitat
 
 * O+ chinook. Chinook overwhelmingly outmigrate before they are 1 year old.
 
-### Chinook salmon management and monitoring in the Scott River watershed
+### Salmon management and monitoring in the Scott River watershed
+
 
 *history of chinook salmon management. wasn't as much of a concern but recent population declines have prompted close monitoring (redd surveys) of this species as well as the coho,  and some think endangered status may be coming*
 
 * Annual juvenile salmonid monitoring started in 2001 [@Massie2020]
 * 
 
-## 2.4 Key ecological metrics
+Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CRMP2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC -@SRWC2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CDFW2015a]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River smolt production [SRWC and Siskiyou RCD -@SRWC2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NMFS2014].
+
+Monitoring activity in the past 20 years has included population estimates from a video counting flume and a rotary screw trap operated by CDFW [CDFW -@CDFW2015b; @Massie2020], and spawning surveys for Chinook [@SiskiyouRCD2015b; @SiskiyouRCD2017a; @SiskiyouRCD2018] and coho [@Maurer2003; @SiskiyouRCD2005; @Quigley2006; @Quigley2007; @SiskiyouRCD2010; @Yokel2011; @SiskiyouRCD2012; @SiskiyouRCD2013; @SiskiyouRCD2014; @SiskiyouRCD2015a; @SiskiyouRCD2017b]. Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@SRWT2018], the prioritization of stream reaches for habitat restoration [SRWC -@SRWC2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@Yokel2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CDFW2015a], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCounty2021].
+
+
+
+## Key ecological metrics
 
 The key ecological observations used in this study are:
 
-1. Number of adults migrating from the ocean to freshwater natal streams to spawn. This quantity, the “escapement”, is measured at a CDFW counting facility, using a resistance board weir and video counting flume in the Scott River [e.g., @CDFW2021a]. 
+1. Number of adults migrating from the ocean to freshwater natal streams to spawn. This quantity, the 'escapement', is measured at a CDFW counting facility, using a resistance board weir and video counting flume in the Scott River [e.g., @CDFW2021a]. 
 2. Number of salmon gravel nests, or redds, observed during spawning window [e.g., @SiskiyouRCD2017b].
 3. Number of juvenile yearling, or smolt, coho salmon. Smolt are counted as outmigrants, often from rotary screw trap observations [e.g., @Massie2020]. 
 
 In addition to these three metrics, it is possible to calculate a combined metric, the number of coho smolt produced per spawning female, after monitoring for multiple years to capture both the spawning and outmigrating events for the relevant cohort.
 
 
-# 3. Methods
-<!-- ## Methods -->
+# Methods
 
 Hydrologic metric predictors of fish response variables were screened in two passes: first, using correlation coefficients on a large number of potential predictors, and then using linear models to assess combinations of a refined set of potential predictors. The objectives of the linear model selection exercise were to 1) empirically determine which hydrologic flows were related to coho reproductive outcomes and 2) assign weights of relative importance for a Hydrologic Benefit formula, using slopes in the linear models.
 
-## 3.1 Flow metrics to describe Scott River flow regime
-<!-- ### Flow metrics to describe Scott River flow regime -->
+## Flow metrics to describe Scott River flow regime
 
-A series of metrics from the catalog of California-specific functional flows [as illustrated in \autoref{fig:fig2_yarnell2020}; @Yarnell2020; @Patterson2020] were selected to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. Abbreviations and descriptions are listed in \autoref{tab:func_flow_terms_tab}, and additional information is available in @Patterson2020 and supporting documentation. Total annual flow is used to evaluate water year type. Fall metrics, such as fall pulse magnitude and fall pulse timing, provide olfactory migration signals and spawning access to anadromous fish; however, a discrete fall pulse does not occur in every water year. Wet season metrics, such as wet season onset timing and baseflow magnitude, can be used to gauge conditions during egg incubation or the overwintering period for juvenile salmon. Spring metrics, such as spring flow recession rate of change, occur during the transition from wet to dry season, and indicate conditions during early juvenile salmon rearing as well as the flow available for outmigration from Scott Valley to the ocean. Finally, metrics like the duration and median flow of the dry season indicate the timing and severity of low-flow conditions in which spatial habitat is constrained and connectivity between reaches may be limited.
+A series of metrics from the catalog of California-specific functional flows [as illustrated in Figure \@ref(fig:fig2Yarnell2020); @Yarnell2020; @Patterson2020] were selected to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. Abbreviations and descriptions are listed in Table \@ref(tab:func_flow_terms_tab), and additional information is available in @Patterson2020 and supporting documentation. Total annual flow is used to evaluate water year type. Fall metrics, such as fall pulse magnitude and fall pulse timing, provide olfactory migration signals and spawning access to anadromous fish; however, a discrete fall pulse does not occur in every water year. Wet season metrics, such as wet season onset timing and baseflow magnitude, can be used to gauge conditions during egg incubation or the overwintering period for juvenile salmon. Spring metrics, such as spring flow recession rate of change, occur during the transition from wet to dry season, and indicate conditions during early juvenile salmon rearing as well as the flow available for outmigration from Scott Valley to the ocean. Finally, metrics like the duration and median flow of the dry season indicate the timing and severity of low-flow conditions in which spatial habitat is constrained and connectivity between reaches may be limited.
 
-In addition to the metrics discussed above, we devised two metrics for this study area related to timing of anadromous fish access to preferred spawning habitat (illustrated in \autoref{fig:reconnect_explainer_hydrograph}). These metrics are referred to as "reconnection" and "disconnection" dates. They assume a flow threshold, defined at the Fort Jones gauge, that corresponds to a certain degree of "connectivity" in the Scott River stream system. The date on which this connectivity is lost in the spring/summer or gained in the fall has implications for whether salmon passage exists during the preferred migrating time window. While these metrics can be somewhat correlated with some of the California-specific functional flows, they add value to this analysis because of their direct relation to fish passage in the watershed.
+In addition to the metrics discussed above, we devised two metrics for this study area related to timing of anadromous fish access to preferred spawning habitat (illustrated in Figure \@ref(fig:reconnectExplainerHydrograph)). These metrics are referred to as "reconnection" and "disconnection" dates. They assume a flow threshold, defined at the Fort Jones gauge, that corresponds to a certain degree of "connectivity" in the Scott River stream system. The date on which this connectivity is lost in the spring/summer or gained in the fall has implications for whether salmon passage exists during the preferred migrating time window. While these metrics can be somewhat correlated with some of the California-specific functional flows, they add value to this analysis because of their direct relation to fish passage in the watershed.
 
 
 ```{r func_flow_terms_tab, echo = FALSE, results = 'asis'}
@@ -311,39 +305,50 @@ names(ff_xtab) = column_labels
 print.xtable(ff_xtab, comment = F,type = "latex", format.args = list(big.mark = ","), include.rownames = F)#, hline.after = 0:nrow(best))
 #caption.placement = "top",
 
+
+
 ``` 
 
-```{r fig2_yarnell2020, echo = F, message = F, warning =F, fig.align = "center", fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California. \\label{fig:fig2_yarnell2020}"}
+```{r fig2Yarnell2020, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
 
-knitr::include_graphics(file.path(ms_dir, "Graphics and Supplements", "Yarnell2020_Fig2.png"))
+knitr::include_graphics(file.path(graphics_dir, "Yarnell2020_Fig2.png"))
 
-if(print_for_slides==T){file.copy(from = file.path(ms_dir, "Graphics and Supplements", "Yarnell2020_Fig2.png"),
-                            to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
-  fig_i = fig_i +1
-  }
+if(save_imgs==T){
+  file.copy(from = file.path(graphics_dir, "Yarnell2020_Fig2.png"),
+            to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
+fig_i = fig_i +1
+
 ```
 
 
 
-```{r reconnect_explainer_hydrograph, echo = F, warning =F, fig.height = 6, fig.cap = "Reconnection and disconnection dates are highlighted for one water year. Two example thresholds, 10 and 100 cfs (0.28 and 2.8 cms, respectively) are highlighted, which correspond to distinct river connectivity (and salmon habitat access) conditions in the Scott River watershed as observed at the Fort Jones gauge (see Results for more detail on selection of flow thresholds). \\label{fig:reconnect_explainer_hydrograph}"}
+```{r reconnectExplainerHydrograph, echo = F, warning =F, fig.cap = "Reconnection and disconnection dates are highlighted for one water year. Two example thresholds, 10 and 100 cfs (0.28 and 2.8 cms, respectively) are highlighted, which correspond to distinct river connectivity (and salmon habitat access) conditions in the Scott River watershed as observed at the Fort Jones gauge (see Results for more detail on selection of flow thresholds)."}
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 7, units = "in", res = 300)}
 
-  recon_and_discon_explainer_hydrograph(water_year = 2016,
-                                        tot_flow_annotate = F, 
-                                        connection_date_annotate = "10_and_100_only")
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 7, units = "in", res = 300)
+  
+recon_and_discon_explainer_hydrograph(
+  water_year = 2016, tot_flow_annotate = F, 
+  connection_date_annotate = "10_and_100_only")
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
 ```
 
-## 3.2 Data alignment and correlation coefficients between flow metrics and ecological observations
-<!-- ### Data alignment and correlation coefficients between flow metrics and ecological observations -->
+## Data alignment and correlation coefficients between flow metrics and ecological observations
 
 In the first pass of flow metric predictor selection, potential predictor variables were screened using correlation coefficients. Before the coefficients could be calculated the data was manipulated to assign each cohort's ecological observations to the metrics of flow phenomena occurring at each life stage.
 
 Water managers think of flow in terms of water years, making it the relevant unit for decision-support tools. However, a cohort of coho salmon experiences conditions during multiple water years. The relevant unit of time for identifying the impacts of freshwater hydrology on a salmon cohort is defined here as a Coho Freshwater Life Period (CFLP), a duration of 21 months beginning the September of the year their parents spawned and ending the July of their outmigration from the watershed as smolts. This time period is conservatively wide; most spawning occurs in October or later, and most outmigration occurs in June or earlier [@Moyle2002], but the September-July duration was chosen to capture critical life stages even in extreme water years. 
 
-For convenience in referring to hydrologic metrics in different water years, this Coho Freshwater Life Period has been broken up into three subperiods (as shown in \autoref{fig:coho_life_cycle_figure} and described in \autoref{tab:func_flow_terms_tab}):
+For convenience in referring to hydrologic metrics in different water years, this Coho Freshwater Life Period has been broken up into three subperiods (as shown in Figure \@ref(fig:cohoLifeCycleFigure) and described in Table \@ref(tab:func_flow_terms_tab)):
 
 * Brood Year (BY), September-December of the year of the cohort's parents' spawning
 * Rearing Year (RY), January-December of the full year the cohort spends in the watershed
@@ -376,37 +381,34 @@ metrics_tab = calc_metrics_hydro_by_affected_smolt_year(
   thresholds = thresh_for_corr_fig) 
 
 write.csv(x = metrics_tab, quote = F, row.names = F,
-  file = file.path(ms_dir, "Graphics and Supplements",
+  file = file.path(graphics_dir,
                    "Supplemental Table 1 - Flow Metrics by Brood Year.csv"))
 
 ```
 
 
-## 3.3 Selection of ecological response variable and critical flow thresholds for reconnection predictors
-<!-- ### Selection of ecological response variable and critical flow thresholds for reconnection predictors -->
+## Selection of ecological response variable and critical flow thresholds for reconnection predictors
 
 Of the ecological response variables that were evaluated, one variable clearly showed a higher degree of correlatedness with hydrologic metrics: the number of coho smolt produced (i.e., that were estimated as outmigrating from the watershed) divided by the estimate of spawning females migrating upstream almost two years prior (i.e., the cohort's parents).  One reason for this strong degree of correlatedness may be that the normalization to the number of spawners makes the three cohorts more comparable. This metric has also been identified by state agency analysts as indicative of freshwater ecosystem conditions at coho salmon populations below carrying capacity [CDFW -@CDFW2021a]. Consequently, all further hydro-ecological modeling uses this coho smolt per female (coho spf) metric as the response variable.
 
 To avoid introducing redundant information into the prediction analysis [@Olden2003], we examined relationships between reconnection dates and biological monitoring data to find the flow thresholds with the highest predictive power. Two critical flow thresholds (10 cfs and 100 cfs) were selected, based on the ability for the flow threshold reconnection dates to predict the observed biological data (based on R^2^ values), as well as professional judgment and previous work done on salmon passage in the watershed [e.g., SRWC -@SRWC2018].
 
-## 3.4 Linear model selection
-<!-- ### Linear model selection -->
+## Linear model selection
 
 In the second pass of flow metric predictor selection, a refined set of potential predictor variables was used to make one- and two-predictor linear models of the coho spf response variable. 
 
-With a dataset this small, the risk of overfitting is relatively high [@James2013]. Consequently linear models with a maximum of two predictors were evaluated. The four best one-predictor models and six of the best two-predictor models are shown in \autoref{tab:best_lm_summary_tab}. Criteria used to make the selection included degree of variability explained by the predictors (R^2^ and adjusted R^2^), statistical significance (p-value and F-statistic), the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes). Because the predictor BY_recon_10 (Brood Year reconnection date, 10 cfs) performed so much better than all other metrics in the one-predictor model set, all two-predictor models evaluated included that predictor.
+With a dataset this small, the risk of overfitting is relatively high [@James2013]. Consequently linear models with a maximum of two predictors were evaluated. The four best one-predictor models and six of the best two-predictor models are shown in Table \@ref(tab:best_lm_summary_tab). Criteria used to make the selection included degree of variability explained by the predictors (R^2^ and adjusted R^2^), statistical significance (p-value and F-statistic), the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes). Because the predictor BY_recon_10 (Brood Year reconnection date, 10 cfs) performed so much better than all other metrics in the one-predictor model set, all two-predictor models evaluated included that predictor.
 
-For each of these models, we calculated the estimated average model error using leave-one-out cross-validation (LOOCV; \autoref{tab:model_error_tab}). In the LOOCV method, for a dataset with $n$ observations, the LOOCV error of a predictive model is obtained by recalculating the model coefficients $n$ times, each time leaving out one observation, and comparing the resulting prediction to the single left-out observation. The root mean square of these $n$ errors is the LOOCV error used to evaluate model performance in Results.
+For each of these models, we calculated the estimated average model error using leave-one-out cross-validation (LOOCV; Table \@ref(tab:model_error_tab)). In the LOOCV method, for a dataset with $n$ observations, the LOOCV error of a predictive model is obtained by recalculating the model coefficients $n$ times, each time leaving out one observation, and comparing the resulting prediction to the single left-out observation. The root mean square of these $n$ errors is the LOOCV error used to evaluate model performance in Results.
 
-Finally, minimum performance criteria were established to select the models which were incorporated into the ultimate HB function. These criteria were: adjusted R^2^ value of >0.6, a p-value of <0.2, an F-statistic of more than 10, and a LOOCV value of less than 747 (i.e., the LOOCV value of the best one-predictor model). The predictors and slopes of the three models which met these criteria (lm2a, lm2b, and lm2c) are shown in \autoref{tab:best_lm_slopes_tab}. 
+Finally, minimum performance criteria were established to select the models which were incorporated into the ultimate HB function. These criteria were: adjusted R^2^ value of >0.6, a p-value of <0.2, an F-statistic of more than 10, and a LOOCV value of less than 747 (i.e., the LOOCV value of the best one-predictor model). The predictors and slopes of the three models which met these criteria (lm2a, lm2b, and lm2c) are shown in Table \@ref(tab:best_lm_slopes_tab). 
 
-These criteria were selected using professional judgment based on the features of the available models, and the diversity of predictors in the resulting ensemble model. For example, the selection of a p-value criteria of <0.2 allowed the inclusion of lm2c (\autoref{tab:best_lm_summary_tab}), with a p-value of 0.18, but excluded lm2d, with a p-value of 0.64. The authors felt that this was a reasonable cutoff in statistical significance for such a small sample size of observed response variable. Additionally, the three models that met these criteria incorporate information from the end of a dry season (BY_recon_10 and 100), the onset of the wet season (RY_Wet_Tim), and the wet season duration (Wet_BFL_Dur), which supports the professional judgment of the authors that the degree of hydro-ecological services provided each water year should be evaluated using information from multiple seasons. 
+These criteria were selected using professional judgment based on the features of the available models, and the diversity of predictors in the resulting ensemble model. For example, the selection of a p-value criteria of <0.2 allowed the inclusion of lm2c (Table \@ref(tab:best_lm_summary_tab)), with a p-value of 0.18, but excluded lm2d, with a p-value of 0.64. The authors felt that this was a reasonable cutoff in statistical significance for such a small sample size of observed response variable. Additionally, the three models that met these criteria incorporate information from the end of a dry season (BY_recon_10 and 100), the onset of the wet season (RY_Wet_Tim), and the wet season duration (Wet_BFL_Dur), which supports the professional judgment of the authors that the degree of hydro-ecological services provided each water year should be evaluated using information from multiple seasons. 
 
 
-## 3.5 Proposed formulation of a water year-based Hydrologic Benefit function
-<!-- ### Proposed formulation of a water year-based Hydrologic Benefit function -->
+## Proposed formulation of a water year-based Hydrologic Benefit function
 
-To avoid over-interpreting the results of this small dataset, the coefficients of the three best selected models were averaged into the coefficients of an ensemble model (\autoref{tab:best_lm_slopes_tab}). The ensemble model coefficients provide the formulation of the Hydrologic Benefit function. Consequently the Hydrologic Benefit values can be interpreted as predictions of coho spf-equivalents for a given water year. The values of the predictors -- the four hydrologic metrics for each water year in the Fort Jones gauge record (water years 1942-2021) -- are included in *Supplemental Table 2*.
+To avoid over-interpreting the results of this small dataset, the coefficients of the three best selected models were averaged into the coefficients of an ensemble model (Table \ref(tab:best_lm_slopes_tab)). The ensemble model coefficients provide the formulation of the Hydrologic Benefit function. Consequently the Hydrologic Benefit values can be interpreted as predictions of coho spf-equivalents for a given water year. The values of the predictors -- the four hydrologic metrics for each water year in the Fort Jones gauge record (water years 1942-2021) -- are included in *Supplemental Table 2*.
 
 The combined formulation is as follows:
 
@@ -512,7 +514,7 @@ coef_tab = rbind(coef_tab, mean_row)
 rownames(coef_tab)[nrow(coef_tab)] = "Ensemble Avg."
 
 # Record for use in Ch. 2
-write.csv(coef_tab, file.path(ms_dir, "Graphics and Supplements",
+write.csv(coef_tab, file.path(graphics_dir,
                               "best linear model coefficients table_2022 march.csv"))
 
 
@@ -560,11 +562,9 @@ comp_names = c("Fall Recon. Day, 10 cfs", "Fall Recon. Day, 100 cfs", "Wet Seaso
 ```
 
 
-## 3.6 HB function sensitivity to one additional observation
+## HB function sensitivity to one additional observation
 
-<!-- ### HB function sensitivity to one additional observation -->
-
-To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive model was estimated by adding one additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. Furthermore, flow conditions in and just before water year 2016 were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (`r round(hbf_tab$hbf_total[hbf_tab$water_year==2016],1)`; see \autoref{fig:hbf_over_time}). The significance of predicted negative coho spf values is described further in Results. 
+To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive model was estimated by adding one additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. Furthermore, flow conditions in and just before water year 2016 were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (`r round(hbf_tab$hbf_total[hbf_tab$water_year==2016],1)`; see Figure \@ref(fig:hbfOverTime)). The significance of predicted negative coho spf values is described further in Results. 
 
 This missing value for brood year 2015 was replaced by 0, as well as the minimum, mean and maximum values of observed coho spf (5.8, 60.0, and 101.8 coho spf, respectively). The ensemble average coefficients in the HB function were recalculated based on each revised dataset.
 
@@ -803,28 +803,32 @@ This missing value for brood year 2015 was replaced by 0, as well as the minimum
 
 
 
-# 4. Results
-<!-- ## Results -->
+# Results
 
-## 4.1 Flow history of the Scott River, described in functional flow metrics
-<!-- ### Flow history of the Scott River, described in functional flow metrics -->
+## Flow history of the Scott River, described in functional flow metrics
 
-Diagnostic metrics of Scott River flow have demonstrated clear trends over the past 8 decades. Between 1942 and 2021, total annual flow measured at the Fort Jones gauge has dropped from an average of approximately 600 to 400 thousand acre-feet (TAF, or from >800 to <600 million m^3^) (\autoref{fig:func_flow_timeseries}, panel A). Ecosystem functional flow metrics, calculated with signal-processing techniques [@Patterson2020 and illustrated in \autoref{fig:fig2_yarnell2020}], also show clear trends over time (\autoref{fig:func_flow_timeseries}, panels B-H). The fall pulse onset date has trended slightly later (though a distinct fall pulse flow does not occur every year), and the magnitude of the fall pulse flows has decreased. The onset of the wet season has trended slightly later, though wet season median baseflows (i.e., flows not occurring during storm pulses) have remained stable on average (with a very slight downward trend). The rate of flow reduction during the spring has increased over time (i.e., the spring recession curve has grown steeper). The median dry season flow has dropped by approximately 50%, the onset of the dry season is earlier, and the duration of the dry season has increased (\autoref{fig:func_flow_timeseries}).
+Diagnostic metrics of Scott River flow have demonstrated clear trends over the past 8 decades. Between 1942 and 2021, total annual flow measured at the Fort Jones gauge has dropped from an average of approximately 600 to 400 thousand acre-feet (TAF, or from >800 to <600 million m^3^) (Figure \@ref(fig:funcFlowTimeseries), panel A). Ecosystem functional flow metrics, calculated with signal-processing techniques [@Patterson2020 and illustrated in Figure \@ref(fig:fig2Yarnell2020)), also show clear trends over time (Figure \@ref(fig:funcFlowTimeseries), panels B-H). The fall pulse onset date has trended slightly later (though a distinct fall pulse flow does not occur every year), and the magnitude of the fall pulse flows has decreased. The onset of the wet season has trended slightly later, though wet season median baseflows (i.e., flows not occurring during storm pulses) have remained stable on average (with a very slight downward trend). The rate of flow reduction during the spring has increased over time (i.e., the spring recession curve has grown steeper). The median dry season flow has dropped by approximately 50%, the onset of the dry season is earlier, and the duration of the dry season has increased (Figure \@ref(fig:funcFlowTimeseries)).
 
-The reconnection and disconnection dates also show trends over time, illustrating that since 1942 the wet season has narrowed, in that its (approximate) onset has trended later and the spring flow recession has trended earlier (\autoref{fig:re_and_discon_timeseries}).
+The reconnection and disconnection dates also show trends over time, illustrating that since 1942 the wet season has narrowed, in that its (approximate) onset has trended later and the spring flow recession has trended earlier (Figure \@ref(fig:reAndDisconTimeseries)).
 
 In aggregate, these metrics show an increased prevalence over the past 80 years of unfavorable hydrologic conditions for salmonids, in terms of the flows needed during critical life stages. The primary causes of this reduced ecological functionality are a changing climate (especially a reduced snowpack and earlier snowmelt) and long-term changes in local consumptive water uses [@VanKirk2008a; @Drake2000a].
 
 
-```{r func_flow_timeseries, echo = F, warning =F, fig.height = 8.6, fig.cap = "Total annual flow volume (panel A) and functional flow metrics (panels B-H; Patterson et al. 2020), derived from daily average flow measurements at the Fort Jones USGS flow gauge (ID 11519500) for water years 1942-2021.\\label{fig:func_flow_timeseries}"}
-
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 9, units = "in", res = 300)}
+```{r funcFlowTimeseries, echo = F, warning =F, fig.height = 8.6, fig.cap = "Total annual flow volume (panel A) and functional flow metrics (panels B-H; Patterson et al. 2020), derived from daily average flow measurements at the Fort Jones USGS flow gauge (ID 11519500) for water years 1942-2021.\\label{fig:funcFlowTimeseries}"}
 
 fflows_hist_obs = read_fflows_csv(scen_id = "hist_obs")
 
-func_flow_timeseries_fig(fj_flow = fj_flow, fflows = fflows_hist_obs)
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 9, units = "in", res = 300)
+  
+funcFlowTimeseries_fig(fj_flow = fj_flow, fflows = fflows_hist_obs)
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
 
 
 ```
@@ -832,42 +836,54 @@ if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
 
 
 
-```{r re_and_discon_timeseries, echo = F, warning =F, fig.height = 8, fig.cap = "Disconnection and reconnection dates for the 100 cfs (2.8 cms) flow threshold, water years 1942-2021. The disconnection date refers to the first day in the spring on which flow drops below the designated threshold (100 cfs); the reconnection date refers to the first date in the fall on which flow rises above the designated threshold. Trends over the past 80 years suggest that the spring flow recession is trending earlier, and the fall river reconnection is trending later. \\label{fig:re_and_discon_timeseries}"}
+```{r reAndDisconTimeseries, echo = F, warning =F, fig.height = 8, fig.cap = "Disconnection and reconnection dates for the 100 cfs (2.8 cms) flow threshold, water years 1942-2021. The disconnection date refers to the first day in the spring on which flow drops below the designated threshold (100 cfs); the reconnection date refers to the first date in the fall on which flow rises above the designated threshold. Trends over the past 80 years suggest that the spring flow recession is trending earlier, and the fall river reconnection is trending later. \\label{fig:reAndDisconTimeseries}"}
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8, units = "in", res = 300)}
-
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  
 re_and_discon_timeseries_figure()
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
 
 
 ```
 
 
 
-## 4.2 Correlation of hydrologic metrics with coho salmon metrics
-<!-- ### Correlation of hydrologic metrics with coho salmon metrics -->
+## Correlation of hydrologic metrics with coho salmon metrics
 
-The information in *Supplemental Table 1* was used to calculate Pearson correlation coefficients between flow metrics and four observed quantities in coho ecological monitoring (the number of spawners, number of redds, number of smolt, and the number of smolts produced per female spawner) (\autoref{fig:corr_matrix_fig}). These correlations were used to refine the set of variables considered in the linear modeling exercise. A larger number of predictors was evaluated than the set depicted here; the predictors included in \autoref{fig:corr_matrix_fig} are selected because of a high correlation coefficient or an unexpected result. A full correlation matrix is shown in *Supplemental Figure 1*.
+The information in *Supplemental Table 1* was used to calculate Pearson correlation coefficients between flow metrics and four observed quantities in coho ecological monitoring (the number of spawners, number of redds, number of smolt, and the number of smolts produced per female spawner) (Figure \@ref(fig:corrMatrixFig)). These correlations were used to refine the set of variables considered in the linear modeling exercise. A larger number of predictors was evaluated than the set depicted here; the predictors included in Figure \@ref(fig:corrMatrixFig} are selected because of a high correlation coefficient or an unexpected result. A full correlation matrix is shown in *Supplemental Figure 1*.
 
 
-```{r corr_matrix_fig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 41 predictors and 4 coho monitoring metrics. Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics; for dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier dot is correlated with higher fish values. \\label{fig:corr_matrix_fig}"}
+```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 41 predictors and 4 coho monitoring metrics. Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics; for dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier dot is correlated with higher fish values. \\label{fig:corrMatrixFig}"}
 
 corr_matrix_pearson_coho = calc_corr_matrix(metrics_tab, corr_method = "pearson", 
                                fish_outcome_cols = "coho")
 
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8.5, units = "in", res = 300)}
-
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  
 corr_matrix_fig(corr_matrix = corr_matrix_pearson_coho, thresholds = thresh_for_corr_fig)
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
+
 
 ```
 
 
 
-```{r corr_matrix_fig_chinook, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "chinook corr matrix caption. \\label{fig:corr_matrix_fig_coho}"}
+```{r corrMatrixFig_chinook, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "chinook corr matrix caption. \\label{fig:corrMatrixFig_coho}"}
 
 
 # Code to determine which FFs to plot against chinook spawners
@@ -906,7 +922,7 @@ for(i in 1:dim(fflows)[2]){
 
 ```
 
-As mentioned in Methods, the coho salmon indicator that is most correlated with hydrologic metrics is the number of coho smolt produced per spawning female (\autoref{fig:corr_matrix_fig}). One reason for this may be that normalizing the observed number of smolt to the number of spawners eliminates the independent influence of cohort strength. Because of the already small number of water years for which smolt and spawner counts are available, explicit consideration of each 3-year cohort of coho salmon was deemed statistically impossible for this study. Notably, data limitations for the coho spf metric reduce the sample size to only 11 years of observations.
+As mentioned in Methods, the coho salmon indicator that is most correlated with hydrologic metrics is the number of coho smolt produced per spawning female (Figure \@ref(fig:corrMatrixFig)). One reason for this may be that normalizing the observed number of smolt to the number of spawners eliminates the independent influence of cohort strength. Because of the already small number of water years for which smolt and spawner counts are available, explicit consideration of each 3-year cohort of coho salmon was deemed statistically impossible for this study. Notably, data limitations for the coho spf metric reduce the sample size to only 11 years of observations.
 
 
 ```{r inter_corr_matrix_supp_fig, echo = F, warning =F, comment = F}
@@ -932,7 +948,7 @@ metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
                               )
 
 
-pdf(file = file.path(ms_dir, "Graphics and Supplements", "corr_explorer_2.pdf"), width = 30, height = 30)
+pdf(file = file.path(graphics_dir, "corr_explorer_2.pdf"), width = 30, height = 30)
 par(mar=c(5,4,2,2))
 corrplot(cor(metrics_tab, use = "pairwise.complete.obs"),
          tl.col = metrics_tab_column_colors, tl.cex = 1.1,
@@ -944,7 +960,7 @@ dev.off()
 
 <!-- ```{r corr_scatterplots_smolt_per_fem, echo = F, warning =F, fig.height = 8.7, fig.cap = "Correlations between 8 hydrologic predictors and the estimated number of smolts produced per spawning female.\\label{fig:corr_scatterplots_smolt_per_fem}"} -->
 
-<!-- if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8.5, units = "in", res = 300)} -->
+<!-- if(save_imgs==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8.5, units = "in", res = 300)} -->
 
 <!-- correl_scatter_plots(metrics_tab=metrics_tab, -->
 <!--                      predicted = "coho_smolt_per_fem", -->
@@ -952,14 +968,14 @@ dev.off()
 
 <!-- # need to add RY total flow -->
 
-<!-- if(print_for_slides==T){fig_i = fig_i +1; dev.off()} -->
+<!-- if(save_imgs==T){fig_i = fig_i +1; dev.off()} -->
 
 <!-- ``` -->
 
 
 <!-- ```{r corr_scatterplots_chinook_smolt_per_spawner, echo = F, warning =F, fig.height = 8.7, fig.cap = "Correlations between 8 hydrologic predictors and the estimated number of CHINOOK smolts produced per spawning female.\\label{fig:corr_scatterplots_smolt_per_fem}"} -->
 
-<!-- if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8.5, units = "in", res = 300)} -->
+<!-- if(save_imgs==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8.5, units = "in", res = 300)} -->
 
 <!-- correl_scatter_plots(metrics_tab=metrics_tab, -->
 <!--                      predicted = "chinook_juv_per_adult", -->
@@ -967,12 +983,12 @@ dev.off()
 
 <!-- # need to add RY total flow -->
 
-<!-- if(print_for_slides==T){fig_i = fig_i +1; dev.off()} -->
+<!-- if(save_imgs==T){fig_i = fig_i +1; dev.off()} -->
 
 <!-- ``` -->
 
 
-## 4.2.a Correlation of hydrologic metrics with chinook salmon metrics
+## Correlation of hydrologic metrics with chinook salmon metrics
 
 
 ```{r inter_corr_matrix_supp_fig_chinook, echo = F, warning =F, comment = F}
@@ -998,7 +1014,7 @@ metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
                               )
 
 
-pdf(file = file.path(ms_dir, "Graphics and Supplements", "corr_explorer_2.pdf"), width = 30, height = 30)
+pdf(file = file.path(graphics_dir, "corr_explorer_2.pdf"), width = 30, height = 30)
 par(mar=c(5,4,2,2))
 corrplot(cor(metrics_tab, use = "pairwise.complete.obs"),
          tl.col = metrics_tab_column_colors, tl.cex = 1.1,
@@ -1007,15 +1023,14 @@ corrplot(cor(metrics_tab, use = "pairwise.complete.obs"),
 dev.off()
 ```
 
-## 4.3 Selection of 10 and 100 cfs thresholds for fall disconnection dates
-<!-- ### Selection of 10 and 100 cfs thresholds for fall disconnection dates -->
+## Selection of 10 and 100 cfs thresholds for fall disconnection dates
 
-Fall reconnection dates in a cohort's Brood Year appear strongly correlated with coho spf (\autoref{fig:corr_matrix_fig}), and previous work in the region has documented that fall flows are critical for salmon spawning [SRWC and RCD -@SRWC_RCD2003]. However, some flow thresholds may be less relevant to coho life stages than others, and the reconnection timing of proximate flow thresholds is somewhat correlated. It was therefore necessary to reduce the number of flow thresholds under consideration in the linear model selection process, in order to a) identify flow thresholds with the greatest impact on coho reproduction (to the extent possible with such a small dataset), and b) avoid the inclusion of redundant hydrologic information.
+Fall reconnection dates in a cohort's Brood Year appear strongly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)), and previous work in the region has documented that fall flows are critical for salmon spawning [SRWC and RCD -@SRWC_RCD2003]. However, some flow thresholds may be less relevant to coho life stages than others, and the reconnection timing of proximate flow thresholds is somewhat correlated. It was therefore necessary to reduce the number of flow thresholds under consideration in the linear model selection process, in order to a) identify flow thresholds with the greatest impact on coho reproduction (to the extent possible with such a small dataset), and b) avoid the inclusion of redundant hydrologic information.
 
-Relationships between the Brood Year reconnection dates for six flow thresholds and coho spf are shown in \autoref{fig:explanation_for_BY_recon_cfs_selection}. The trends in slope value and R^2^ suggest that the date of crossing lower flow thresholds such as 10 and 15 cfs has greater biological significance than the date of crossing thresholds like 40 cfs, with 20 cfs being somewhat intermediate. In the context of this watershed, it suggests that a Fort Jones gauge flowrate of 10 cfs is a critical threshold for coho passage into the mainstem Scott River.
+Relationships between the Brood Year reconnection dates for six flow thresholds and coho spf are shown in Figure \@ref(fig:explanationForBYReconCFSSelection). The trends in slope value and R^2^ suggest that the date of crossing lower flow thresholds such as 10 and 15 cfs has greater biological significance than the date of crossing thresholds like 40 cfs, with 20 cfs being somewhat intermediate. In the context of this watershed, it suggests that a Fort Jones gauge flowrate of 10 cfs is a critical threshold for coho passage into the mainstem Scott River.
 
 
-```{r explanation_for_BY_recon_cfs_selection, echo = F, warning = F,  fig.height = 8, fig.cap = "Correlations between the 'reconnection' dates, or dates of fall flow rising above the designated flow threshold, for six flowrates.  X-axis units are days after Aug. 31 of the salmon cohort Birth Year.\\label{fig:explanation_for_BY_recon_cfs_selection}"}
+```{r explanationForBYReconCFSSelection, echo = F, warning = F,  fig.height = 8, fig.cap = "Correlations between the 'reconnection' dates, or dates of fall flow rising above the designated flow threshold, for six flowrates.  X-axis units are days after Aug. 31 of the salmon cohort Birth Year.\\label{fig:explanationForBYReconCFSSelection}"}
 
 
 #rerun metrics tab with mostly-low cfs thresholds for these explainer figures
@@ -1026,13 +1041,17 @@ metrics_tab_for_explainer = calc_metrics_hydro_by_affected_smolt_year(
   thresholds = thresh_for_explain_fig) 
 
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8, units = "in", res = 300)}
-
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  
 threshold_explainer_trendlines(data_tab = metrics_tab_for_explainer, 
                                thresholds = thresh_for_explain_fig)
-
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
-
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
 ```
 
@@ -1040,51 +1059,57 @@ At reconnection dates for 100 cfs, the R^2^ of the relationship is higher than a
 
 It should be noted that for this metric, at very low flows like 8 and 10 cfs, a data censoring problem emerges, as there are some years where the flow never drops below the threshold, so "reconnection" as flows rise above that threshold cannot occur. For these water years, the date of September 1st was selected as the "threshold crossing day". This is considered to represent the earliest date that a spawning coho salmon would require spawning flows measurable at the Fort Jones gauge. Thus, in average and wet years (and, in the mid-20th century, most years) the distribution of values for this threshold-exceeding date for low flowrates would be heavily skewed to September 1st. This data processing method retains the information that the flow in a high-baseflow year may have served the spawning needs of the salmon, but conveys no other information about flow timing. 
 
-Based on the trends shown in \autoref{fig:explanation_for_BY_recon_cfs_selection}, we narrowed the reconnection and disconnection date flow thresholds under consideration to 10 cfs and 100 cfs. This decision could be revisited if additional years of data become available.
+Based on the trends shown in Figure \@ref(fig:explanationForBYReconCFSSelection), we narrowed the reconnection and disconnection date flow thresholds under consideration to 10 cfs and 100 cfs. This decision could be revisited if additional years of data become available.
 
-## 4.4 Linear model predictions
-<!-- ### Linear model predictions -->
+## Linear model predictions
 
-Coho reproduction rates appear to be correlated with some hydrologic metrics, based on the hydrologic conditions and coho observations in water years 2007-2020 (though these linear models should not be overinterpreted, given the small sample size). The best single-predictor models (Brood Year reconnection dates for 10 and 100 cfs, or BY_recon_10 and BY_recon_100) are both related to the timing of rising fall flows in the Brood Year of each salmon cohort (\autoref{tab:best_lm_summary_tab}). 
+Coho reproduction rates appear to be correlated with some hydrologic metrics, based on the hydrologic conditions and coho observations in water years 2007-2020 (though these linear models should not be overinterpreted, given the small sample size). The best single-predictor models (Brood Year reconnection dates for 10 and 100 cfs, or BY_recon_10 and BY_recon_100) are both related to the timing of rising fall flows in the Brood Year of each salmon cohort (Table \@ref(tab:best_lm_summary_tab)). 
 
-The predictor BY_FA_Mag, or the magnitude of the Brood Year fall pulse, was also highly correlated with coho spf (\autoref{fig:corr_matrix_fig}). However, because a distinct fall pulse does not occur every year, including it would reduced the sample size to an unacceptable level (i.e., a total of six water years with a complete set of predictors and response observations). Because of this sample size limitation, and because some of the information about this pulse was carried in the reconnection date metric, FA_Mag was excluded from the set of potential predictors.
+The predictor BY_FA_Mag, or the magnitude of the Brood Year fall pulse, was also highly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)). However, because a distinct fall pulse does not occur every year, including it would reduced the sample size to an unacceptable level (i.e., a total of six water years with a complete set of predictors and response observations). Because of this sample size limitation, and because some of the information about this pulse was carried in the reconnection date metric, FA_Mag was excluded from the set of potential predictors.
 
-The addition of a second predictor clearly improves model performance in terms of predictive power and test error, given the increased R^2^ values, reduced AIC~c~ values, and reduced average error when comparing models lm2a and lm2b versus lm1a and lm1b (Tabulated in Tables \ref{tab:best_lm_summary_tab} and \ref{tab:model_error_tab}; with observed and predicted values shown in \autoref{fig:lm_pred_v_obs}). The three best two-predictor models included the Brood Year reconnection date for 10 cfs (BY_recon_10) and an indication of the onset or duration of the following wet season: Brood Year reconnection date for 100 cfs (BY_recon_100), wet season onset or duration for the Rearing Year (RY_Wet_Tim and RY_Wet_BFL_Dur). (Though they both occur as the Brood Year transitions to the Rearing Year, the two metrics BY_recon_100 and RY_Wet_Tim are not highly correlated, due to the more complex criteria needed for a flow event to qualify as the wet season onset.)
-
+The addition of a second predictor clearly improves model performance in terms of predictive power and test error, given the increased R^2^ values, reduced AIC~c~ values, and reduced average error when comparing models lm2a and lm2b versus lm1a and lm1b (Tabulated in Tables \ref{tab:best_lm_summary_tab} and \ref{tab:model_error_tab}; with observed and predicted values shown in Figure \@ref(fig:lmPredVObs)). The three best two-predictor models included the Brood Year reconnection date for 10 cfs (BY_recon_10) and an indication of the onset or duration of the following wet season: Brood Year reconnection date for 100 cfs (BY_recon_100), wet season onset or duration for the Rearing Year (RY_Wet_Tim and RY_Wet_BFL_Dur). (Though they both occur as the Brood Year transitions to the Rearing Year, the two metrics BY_recon_100 and RY_Wet_Tim are not highly correlated, due to the more complex criteria needed for a flow event to qualify as the wet season onset.)
 
 
-```{r lm_pred_v_obs, echo = F, warning = F, fig.height = 6, fig.cap = "Predicted vs observed values for coho smolt production per female in the linear models with one through four hydrologic predictors. A dashed 1:1 line is included for reference.\\label{fig:lm_pred_v_obs}"}
 
-
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8, units = "in", res = 300)}
+```{r lmPredVObs, echo = F, warning = F, fig.cap = "Predicted vs observed values for coho smolt production per female in the linear models with one through four hydrologic predictors. A dashed 1:1 line is included for reference."}
 
 best_predobs = rbind(best_demo[1,], best)
-lm_pred_v_obs_fig(best_tab = best_predobs, metrics_tab = metrics_tab, plot_rowscols = c(2,2))
 
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
-
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  
+lmPredVObs_fig(best_tab = best_predobs, metrics_tab = metrics_tab, plot_rowscols = c(2,2))
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
 
 ```
 
 
-## 4.5 Hydrologic Benefit value over time and component contributions
-<!-- ### Hydrologic Benefit value over time and component contributions -->
+## Hydrologic Benefit value over time and component contributions
 
-Matching the historical flow trends discussed above, the predicted value of coho spf-equivalent produced by a given water year has trended downward over time (\autoref{fig:hbf_over_time}). The hydrology of a severe drought in water years 2012-2016 is reflected in three consecutive years (2014-2016) of lower-than-40 predicted coho spf.
+Matching the historical flow trends discussed above, the predicted value of coho spf-equivalent produced by a given water year has trended downward over time (Figure \@ref(fig:hbfOverTime)). The hydrology of a severe drought in water years 2012-2016 is reflected in three consecutive years (2014-2016) of lower-than-40 predicted coho spf.
 
 Since 1990, the low predicted coho spf values in dry water years have become progressively lower, culminating in three years, all occurring after water year 2000, in which < 0 coho spf are predicted. Though a negative value for coho reproduction is obviously not possible, we chose to retain these impossible values to visually represent uncertainty associated with this modeling exercise (see Discussion for more information).
 
-The relative contributions of each hydrologic metric to predicted Hydrologic Benefit values (except the intercept term, which is excluded for ease of visualization) is shown in \autoref{fig:hbf_barchart}.
+The relative contributions of each hydrologic metric to predicted Hydrologic Benefit values (except the intercept term, which is excluded for ease of visualization) is shown in Figure \@ref(fig:hbf_barchart).
 
-```{r hbf_over_time, echo = F, warning = F, fig.height = 5, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf). Predicted coho spf quantities are shown as Hydrologic Benefit (HB) function values. The coho spf values are plotted in the water year spanning each cohort's Brood and Rearing Year. Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.\\label{fig:hbf_over_time}"}
+```{r hbfOverTime, echo = F, warning = F, fig.height = 5, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf). Predicted coho spf quantities are shown as Hydrologic Benefit (HB) function values. The coho spf values are plotted in the water year spanning each cohort's Brood and Rearing Year. Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.\\label{fig:hbfOverTime}"}
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 9, height = 6, units = "in", res = 300)}
-
-hbf_over_time_fig(hbf_tab = hbf_tab) 
-
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
-
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  
+  hbf_over_time_fig(hbf_tab = hbf_tab) 
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
 
 ```
 
@@ -1104,7 +1129,7 @@ colnames(bd_melt)[3] = "Contribution to Hydrologic Benefit value"
 
 # Bar charrrt
 
-if(print_for_slides==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8, units = "in", res = 300)}
+if(save_imgs==T){png(filename = file.path(save_figs_here, paste0("Figure ",fig_i,".png")), width = 7, height = 8, units = "in", res = 300)}
 
 ggplot(data = bd_melt, aes(x = `Water Year`, y = `Contribution to Hydrologic Benefit value`,
                            fill = variable)) + 
@@ -1112,23 +1137,19 @@ ggplot(data = bd_melt, aes(x = `Water Year`, y = `Contribution to Hydrologic Ben
   scale_fill_brewer(palette = "Spectral") +
   theme(legend.position = "bottom", legend.direction = "vertical")
 
-if(print_for_slides==T){fig_i = fig_i +1; dev.off()}
+if(save_imgs==T){fig_i = fig_i +1; dev.off()}
 
 
 ```
 
 
-## 4.6 Sensitivity of the Hydrologic Benefit function to one additional data point
-<!-- ### Sensitivity of the Hydrologic Benefit function to one additional data point -->
+## Sensitivity of the Hydrologic Benefit function to one additional data point
 
 The best-fit HB function weights are relatively sensitive to the addition of one new data point, as can be expected for a small dataset. Assigning a coho spf value of 0 to the missing 2016 observation (brood year 2015) changes the coefficient (or conceptual weight) of the predictor BY_recon_10 from -1.15 to -0.88 (a difference of 24%). Replacing it with higher numbers produces less and less negative coefficient values. Specifically, a 1-coho spf increase in the missing value makes the coefficient less negative by 0.007 coho spf per day of 10-cfs reconnection delay, such that if it is replaced with the maximum observed coho spf value (101.8), the coefficient is calculated as -0.09 coho spf/day. The other three coefficients are not as sensitive to the new value, ranging from -0.17 -- -0.19, -0.20 -- -0.18, and 0.12 -- 0.13 for BY_recon_100, RY_Wet_Tim, and RY_Wet_BFL_Dur, respectively, when the missing value is replaced by a range from 0 to 101.8.
 
-# 5. Discussion
-<!-- ## Discussion -->
+# Discussion
 
-## 5.1 Previous work on hydrologic indices and ecological responses
-<!-- ### Previous work on hydrologic indices and ecological responses -->
-
+## Previous work on hydrologic indices and ecological responses
 
 A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to  persist in specific flow regimes are commonly negatively affected by flow alteration [@Bunn2002; @Poff2010]. Consequently, a diversity of methods have been used to predict regional ecological responses to changes in key flow metrics. Many regional case studies predict ecological responses in terms of species richness or macroinvertebrate composition at dozens or hundreds of bioassessment sites [e.g., @Mazor2018; @McManamay2013; @Hain2018; @White2018; @Larsen2021; @Peek2022], and the temporal framework is often a snapshot of the biological changes between natural and altered flow conditions [@Wheeler2018; @Peek2022]. Methods of generating the predictive models include boosted regression trees [@Mazor2018; @Hain2018], stochastic matrix models [@Sakaris2010a], and probabilistic Bayesian Network models [@Bestgen2020], among others.
 
@@ -1136,41 +1157,37 @@ In most of these studies, because flow data is often continuous and more abundan
 
 In spite of these known limitations, the HB function proposed here uses only hydrologic predictors. In part this is a pragmatic approach, as this work is intended for assessing flow conditions in speculative hydrologic models, which do not simulate non-hydrologic, ecologically-relevant factors such as water quality or internal population dynamics. Furthermore, the hydrologic-only predictor approach may be more valid in this watershed than in a general case, as previous work suggests that flow availability is the major limiting factor on the local salmon fishery [SRWC and Siskiyou RCD -@SRWC2005; NMFS -@NMFS2014]. Lastly, the proposed HB function avoids some of the disadvantages of the snapshot method of comparing the two states of natural and altered flows [@Wheeler2018], because the hydro-ecological dataset is relatively long. This temporal structure, covering a wide range of water year types, makes it possible to test the hypothesis that a measurable relationship exists between hydrologic signal and ecologic response, even within an otherwise more complex relationship involving many non-hydrologic factors.
 
-## 5.2 Critical flow thresholds
-<!-- ### Critical flow thresholds -->
+## Critical flow thresholds
 
 The river reconnection dates of multiple flow thresholds are correlated, to varying degrees, with biological monitoring data (see Results). These correlations support the current scientific understanding that the timing of restoration of habitat connectivity after dry periods in the Scott River is related to the reproductive success of spawning salmon [e.g., Siskiyou County -@SiskiyouCounty2021; *pers. comm.*, @Sommarstrom2020; SRWC -@SRWC2018]. 
 
-The selection of 10 and 100 cfs thresholds for fall flow reconnection dates is informed by both the empirical relationship between thresholds and coho spf observations (\autoref{fig:explanation_for_BY_recon_cfs_selection}) and professional judgment regarding which flows typically facilitate coho spawning passage into the valley and access to a large amount of tributary habitat. However, multiple caveats apply to these thresholds. First, though the timing of the 10 cfs reconnection had the strongest correlation with observed coho spf values, a flow of 18 to 25 cfs has been reported in stakeholder meetings as the minimum flowrate during which fish can pass upriver into Scott Valley [SVGAC -@SVGAC_2020_Nov]. Second, the extent to which the flow at the Fort Jones gauge represents conditions in the rest of the watershed depends on the speed of hydrologic processes taking place. When the transition from the dry season to the wet season is especially abrupt, flow in the tributaries may increase hours before the Fort Jones gauge flow responds (e.g. as was observed in response to the storm in late October of 2021).
+The selection of 10 and 100 cfs thresholds for fall flow reconnection dates is informed by both the empirical relationship between thresholds and coho spf observations (Figure \@ref(fig:explanationForBYReconCFSSelection)) and professional judgment regarding which flows typically facilitate coho spawning passage into the valley and access to a large amount of tributary habitat. However, multiple caveats apply to these thresholds. First, though the timing of the 10 cfs reconnection had the strongest correlation with observed coho spf values, a flow of 18 to 25 cfs has been reported in stakeholder meetings as the minimum flowrate during which fish can pass upriver into Scott Valley [SVGAC -@SVGAC_2020_Nov]. Second, the extent to which the flow at the Fort Jones gauge represents conditions in the rest of the watershed depends on the speed of hydrologic processes taking place. When the transition from the dry season to the wet season is especially abrupt, flow in the tributaries may increase hours before the Fort Jones gauge flow responds (e.g. as was observed in response to the storm in late October of 2021).
 
 Additional fish population monitoring in future water years will be instrumental in better constraining the nuances of these hydro-ecological relationships and the conditions in which hydrology can be used to predict outcomes for anadromous fish.
 
-## 5.3 Hydrologic Benefit (HB) function predictive performance and sensitivity
-<!-- ### Hydrologic Benefit (HB) function predictive performance and sensitivity -->
+## Hydrologic Benefit (HB) function predictive performance and sensitivity
 
-For the 11 years in which observed coho spf values are available, the HB function was reasonably accurate in its predictions (\autoref{fig:hbf_over_time}). In particular, it succeeded in predicting whether a coho spf year would be above or below 40 (an arbitrary threshold based on visual inspection of the grouping of the 11 observed values). A more conservative use of this model would be to assign a high-low threshold, and categorize each water year as a "high-coho spf" or "low-coho spf" year based on its relation to this threshold. However, for purposes of this discussion we retain the full distribution of values.
+For the 11 years in which observed coho spf values are available, the HB function was reasonably accurate in its predictions (Figure \@ref(fig:hbfOverTime)). In particular, it succeeded in predicting whether a coho spf year would be above or below 40 (an arbitrary threshold based on visual inspection of the grouping of the 11 observed values). A more conservative use of this model would be to assign a high-low threshold, and categorize each water year as a "high-coho spf" or "low-coho spf" year based on its relation to this threshold. However, for purposes of this discussion we retain the full distribution of values.
 
-These linear models have been developed for a Coho Freshwater Life Period (see \autoref{fig:coho_life_cycle_figure}), but the relevant time period for decisionmakers is typically a water year or shorter. It was possible to select a set of best models that fit within one water year, in that they range from the fall of the Brood Year through the wet season of the immediately following Rearing Year. With this formulation, a prediction could be made each fall, using the flow record of the preceding water year and the estimated number of female spawners during the previous fall-winter, regarding the number of smolts to be observed in the coming spring. This smolt abundance prediction could be made to test the model quality when confronted with new data. 
+These linear models have been developed for a Coho Freshwater Life Period (see Figure \@ref(fig:cohoLifeCycleFigure)), but the relevant time period for decisionmakers is typically a water year or shorter. It was possible to select a set of best models that fit within one water year, in that they range from the fall of the Brood Year through the wet season of the immediately following Rearing Year. With this formulation, a prediction could be made each fall, using the flow record of the preceding water year and the estimated number of female spawners during the previous fall-winter, regarding the number of smolts to be observed in the coming spring. This smolt abundance prediction could be made to test the model quality when confronted with new data. 
 
 The predictive power of the Hydrologic Benefit formula beyond the hydrologic conditions of water years 2007-2020 remains untestable; for this reason the coho spf prediction values of water years pre-2007 should be treated with skepticism. Notably, the hydrologic phenomena that constitute the limiting factors on salmon reproduction might have been very different in the watershed in past decades (e.g., if fall flows were not a major constraint, then spring rearing habitat, or possibly scouring storm flows in winter, might show stronger correlations with coho reproduction).
 
 Additionally, the sensitivity exercise indicated that even one additional data point can alter the ensemble coefficient, or weight, of the most important predictor (Brood Year reconnection timing, 10 cfs) by at least 24%; thus it is reasonable to assume that if more data is collected in the future, the HB function coefficients and possibly even the set of best hydrologic predictors may shift. Nevertheless, the limited data available can be used to draw some preliminary conclusions regarding bio-hydrologic relationships in the Scott River watershed.
 
-## 5.4 Metric weights and importance
-<!-- ### Metric weights and importance -->
+## Metric weights and importance
 
-The relative contributions of each metric, shown in \autoref{fig:hbf_barchart}, indicate that the weighted metric introducing the greatest variability in coho spf predictions is the reconnection date at the 10 cfs threshold; in other words, an important common feature of the water years that yield very low coho spf predictions is a relatively long fall period of flow <10 cfs.
+The relative contributions of each metric, shown in Figure \@ref(fig:hbf_barchart), indicate that the weighted metric introducing the greatest variability in coho spf predictions is the reconnection date at the 10 cfs threshold; in other words, an important common feature of the water years that yield very low coho spf predictions is a relatively long fall period of flow <10 cfs.
 
-\autoref{fig:hbf_barchart} also highlights that three of the four selected hydrologic metrics are negatively correlated with coho spf values. This means the HB function relies on a positive intercept value to generate positive coho spf predictions, and because the intercept value can be outweighed by combinations of flow metric values that are within the range of possibility, this formulation allows the prediction of negative values. A negative value, or a prediction of coho smolt consumption rather than production, is obviously not possible based on our understanding of the coho salmon life cycle (\autoref{fig:coho_life_cycle_figure}).
+Figure \@ref(fig:hbf_barchart} also highlights that three of the four selected hydrologic metrics are negatively correlated with coho spf values. This means the HB function relies on a positive intercept value to generate positive coho spf predictions, and because the intercept value can be outweighed by combinations of flow metric values that are within the range of possibility, this formulation allows the prediction of negative values. A negative value, or a prediction of coho smolt consumption rather than production, is obviously not possible based on our understanding of the coho salmon life cycle (Figure \@ref(fig:cohoLifeCycleFigure)).
 
-Unfortunately, observed coho spf values are not available for any of the water years in which a negative value is predicted (2002, 2016 and 2021; \autoref{fig:hbf_over_time}), so a direct comparison of prediction accuracy is not possible in these water years. However, given that the coho run persisted in the Scott River watershed beyond the 3-year cohort-return interval (i.e., water years 2005 and 2019), some smolt production greater than 0 in these years is highly likely.
+Unfortunately, observed coho spf values are not available for any of the water years in which a negative value is predicted (2002, 2016 and 2021; Figure \@ref(fig:hbfOverTime)), so a direct comparison of prediction accuracy is not possible in these water years. However, given that the coho run persisted in the Scott River watershed beyond the 3-year cohort-return interval (i.e., water years 2005 and 2019), some smolt production greater than 0 in these years is highly likely.
 
 The metrics most related to watershed-scale coho spf occur during the window of their parents' spawning and, to a lesser extent, in the winter through summer of their early rearing. At least three potential mechanisms have been hypothesized regarding the importance of fall flow timing and magnitude to coho salmon. During dry water years, when fall reconnection dates are delayed, coho have been known to spawn in suboptimal habitat [e.g., @SiskiyouRCD2014]. Eggs laid in suboptimal conditions suffer from higher mortality rates for multiple reasons, including egg burial by transported sediment, channel bed scouring, or unfavorable water quality [@BjornnReiser1991]. Additionally, anadromous fish do not eat during spawning, and a delayed reconnection date, with a corresponding longer waiting period before spawning habitat becomes accessible, leads to higher rates of exhaustion and potentially higher mortality during spawning in long high-elevation spawning migrations [e.g., sockeye salmon in @Crossin2004]. Finally, early reconnection flows and related access to more and higher-quality habitat may allow spawning salmon to select more favorable nesting sites, which could exert a controlling influence on the mortality rates of the young produced that year.
 
 It is also notable that the metrics with the highest predictive power are associated with negative values, or coho spf penalties. One possible interpretation is that hydrologic metrics can be useful for identifying unfavorable conditions for coho salmon, but are not sufficient to describe favorable conditions. The ecological theory that may explain this further is beyond the scope of this paper, but could be a focus of future studies.
 
-## 5.5 Implications for water and fisheries management
-<!-- ### Implications for water and fisheries management -->
+## Implications for water and fisheries management
 
 This study represents a contribution to the large body of work seeking to understand and conserve aquatic ecosystems in the Klamath basin and Mediterranean climates more generally. Viability of the SONCC ESU of coho salmon has been examined at a regional scale in the past, though conclusions were preliminary, due to data limitations [@Williams2006; @Williams2008]. A proposed framework to assess viability included the following factors [@Williams2008]:
 
@@ -1189,16 +1206,15 @@ We note also that any adaptive management other than flow management (e.g., habi
 
 We expect pieces of this approach could be employed in other regional studies, though in systems with shorter or minimal ecological monitoring records, opportunities to find correlations between flow and biological metrics may be sample size-limited to an even greater degree than in this study. However, this study may show the value of even a dozen years of monitoring data in a range of water year types, and could provide motivation to continue investing in data collection and the monitoring of sensitive species. 
 
-# 6. Conclusions
-<!-- ## Conclusions -->
+# Conclusions
 
 This case study uses the functional flow framework and long-term biological monitoring to relate hydrologic conditions to watershed-scale anadromous fish reproduction rates. The empirical flow-biology relationships evaluated here also suggest hypotheses regarding the watershed-specific mechanisms of ecological response to flow variability.
 
-To learn if it was possible to empirically quantify a hydrologic regime that meets the ecological needs of coho salmon in the Scott River watershed, we examined correlations between several dozen hydrologic metrics and local salmon observations. We found several metrics, both from prior studies [@Patterson2020; @Yarnell2020] and designed for this study (\autoref{fig:reconnect_explainer_hydrograph}), that appeared correlated with the number of coho smolts produced per female spawner (coho spf). The two flow metrics most correlated with the coho spf of a given smolt cohort were the first date after the dry season of flows rising above 10 and 100 cfs, respectively, during the spawning window for the cohort's parents. This suggests that in the Scott River watershed, flow conditions and habitat access during spawning may be the greatest single factor in a brood's success, affecting the cohort from the egg stage through outmigration to the ocean.
+To learn if it was possible to empirically quantify a hydrologic regime that meets the ecological needs of coho salmon in the Scott River watershed, we examined correlations between several dozen hydrologic metrics and local salmon observations. We found several metrics, both from prior studies [@Patterson2020; @Yarnell2020] and designed for this study (Figure \@ref(fig:reconnectExplainerHydrograph)), that appeared correlated with the number of coho smolts produced per female spawner (coho spf). The two flow metrics most correlated with the coho spf of a given smolt cohort were the first date after the dry season of flows rising above 10 and 100 cfs, respectively, during the spawning window for the cohort's parents. This suggests that in the Scott River watershed, flow conditions and habitat access during spawning may be the greatest single factor in a brood's success, affecting the cohort from the egg stage through outmigration to the ocean.
 
-We used linear models to predict coho spf values for each water year based on potential combinations of one and two hydrologic metric predictors. The intercept and slopes of the three best of these linear models were aggregated to formulate a Hydrologic Benefit function (\autoref{fig:hbf_over_time}). With this formulation, a prediction could be made each fall, using the flow hydrology of the preceding water year and the estimated number of female spawners during the previous fall-winter, regarding the number of smolts to be observed in the coming spring. It can also be applied to the river flow output of hydrologic models simulating various management scenarios, to estimate the impact of infrastructure or regulation on local salmon reproduction.
+We used linear models to predict coho spf values for each water year based on potential combinations of one and two hydrologic metric predictors. The intercept and slopes of the three best of these linear models were aggregated to formulate a Hydrologic Benefit function (Figure \@ref(fig:hbfOverTime)). With this formulation, a prediction could be made each fall, using the flow hydrology of the preceding water year and the estimated number of female spawners during the previous fall-winter, regarding the number of smolts to be observed in the coming spring. It can also be applied to the river flow output of hydrologic models simulating various management scenarios, to estimate the impact of infrastructure or regulation on local salmon reproduction.
 
-With continuing trends of a narrowing wet season in the Scott River watershed (e.g., \autoref{fig:re_and_discon_timeseries}), entities aiming to sustain local fisheries may find themselves working with ever-thinner margins for error. Globally, in communities living and working with local natural resources, climate change may transform biodiversity-preservation  activities into long-term engineering of novel ecosystems. If this occurs, long-term monitoring and frequently re-evaluated flow-ecology relationships will be necessary to support such efforts.
+With continuing trends of a narrowing wet season in the Scott River watershed (e.g., Figure \@ref(fig:reAndDisconTimeseries)), entities aiming to sustain local fisheries may find themselves working with ever-thinner margins for error. Globally, in communities living and working with local natural resources, climate change may transform biodiversity-preservation  activities into long-term engineering of novel ecosystems. If this occurs, long-term monitoring and frequently re-evaluated flow-ecology relationships will be necessary to support such efforts.
 
 \newpage
 
