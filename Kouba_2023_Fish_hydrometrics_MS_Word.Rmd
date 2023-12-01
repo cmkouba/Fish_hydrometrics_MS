@@ -52,6 +52,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   library(plyr)  # for barplots for climate fig
   # library(boot) # for linear model selection
   library(xtable)
+  library(flextable)
   
   
   
@@ -207,18 +208,19 @@ Historically, local regulation of land use has focused on maintaining the rural 
 All of the regulatory and management programs in this region, including recommended instream flows [CDFW -@CDFW2017], recent emergency drought measures [SWRCB -@SWRCB2022], and legal rights governing surface water diversion [@SuperiorCourtofSiskiyouCounty1980], are tabulated in units of cubic feet per second (cfs). For consistency, this document will also use primarily cfs units.
 
 
-## Species of concern
-
-Coho salmon in the Scott Valley are listed as threatened under the federal and California Endangered Species Acts (ESAs). They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU), which was listed as threatened under the federal and state ESAs in 1997 and 2005, respectively. State-wide, coho populations have declined more than 90% since the 1940s [@Brown1994]. 
-
-As recently as 2013, the SONCC Chinook population was stable and becoming more complex [@Wainwright2013]. However, in monitoring from 2015-2020, the number of returning adults (the escapement) was 65% below historical average, and the change in the Scott River Chinook population has been more rapid than the decline in the overall Klamath Basin Chinook run [@CDFW2021b]. Ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@Welch2021].
-
-Factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions. In this study, because we are interested only in the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system, such as number of coho smolt produced per female spawner.
+## Species of concern: coho and Chinook
 
 
-### Life cycle of coho salmon (*Oncorhynchus kisutch*)
+### Salmon management and monitoring in the Scott River watershed
 
-Returning adult coho spawn in natal streams between November and January, and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts [@Moyle2002; @McMahon1983]. 
+Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CRMP2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC -@SRWC2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CDFW2015a]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River smolt production [SRWC and Siskiyou RCD -@SRWC2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NMFS2014].
+
+Monitoring activity in the past 20 years has included population estimates from a video counting flume and a rotary screw trap operated by CDFW [CDFW -@CDFW2015b; @Massie2020], and spawning surveys for Chinook [@SiskiyouRCD2015b; @SiskiyouRCD2017a; @SiskiyouRCD2018] and coho [@Maurer2003; @SiskiyouRCD2005; @Quigley2006; @Quigley2007; @SiskiyouRCD2010; @Yokel2011; @SiskiyouRCD2012; @SiskiyouRCD2013; @SiskiyouRCD2014; @SiskiyouRCD2015a; @SiskiyouRCD2017b]. Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@SRWT2018], the prioritization of stream reaches for habitat restoration [SRWC -@SRWC2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@Yokel2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CDFW2015a], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCounty2021].
+
+
+### Life cycle and status of coho salmon (*Oncorhynchus kisutch*)
+
+Returning adult coho spawn in natal streams between November and January [@CDFW2020], and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts [@Moyle2002; @McMahon1983]. In the Scott River system these natal streams are the tributaries along the margins of the valley floor [@SiskiyouRCD2004].
 
 <!-- Their habitat needs are somewhat different during summer and winter: in summer, coho are found most commonly in cool pools, more than 1 meter deep, with abundant cover (e.g., woody debris or undercut banks) [@Moyle2002; @Giannico2007; @Nickelson1992]. In winter, coho are most abundant in areas with flow refugia, such as alcoves and beaver ponds [@Nickelson1992] or riverine ponds [@Peterson1982], and complex cover such as low velocities, shade, and complex woody debris [@McMahon1989; @Bustard1975]. In winter, without such refugia, juvenile coho risk being swept downstream or out to sea by storm flows before they are physiologically ready to live in ocean conditions [@McMahon1983].  -->
 
@@ -232,55 +234,41 @@ In previous studies, the strongest predictor of juvenile coho abundance in a str
 
 An average coho life cycle is illustrated in Figure \@ref(fig:cohoLifeCycleFigure). Some coho salmon return to spawn at age 2 as grilse, but the majority (e.g., 92.4% in 2020) return after more than one year in the ocean, giving the Scott coho salmon run its characteristic 3-year cohort return interval [@CDFW2021a].
 
+Coho salmon in the Scott Valley are listed as threatened under the federal and California Endangered Species Acts (ESAs). They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU), which was listed as threatened under the federal and state ESAs in 1997 and 2005, respectively. State-wide, coho populations have declined more than 90% since the 1940s [@Brown1994]. 
+
 ```{r cohoLifeCycleFigure, echo = F, message = F, warning =F, out.height= "8.5in", fig.cap = "Typical life stage progression of coho salmon in the Scott River watershed."}
 
 knitr::include_graphics(file.path(graphics_dir, "coho life cycle table_2022.02.03.jpg"))
 
 ```
 
-### Life cycle of Chinook salmon (*Onchorhynchus tsawytscha*)
+### Life cycle and status of Chinook salmon (*Onchorhynchus tsawytscha*)
 
 Chinook salmon in the Scott Valley are a candidate for listing under the federal ESA, and are not listed under the California ESA. They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU). 
 
-Typically, adult Chinook salmon in this watershed hatch in the spring, migrate to the ocean in their first year of life, spend the majority of their life in the ocean, and return to their natal streams shortly before spawning [@Healey1991].
+Typically, adult Chinook salmon return to spawn in Scott Valley streams in the fall months September-December when flows are sufficient for salmon passage [@CDFW2020; @SiskiyouRCD2015a; @SiskiyouRCD2017a]. Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life [@NMFS2005]. Chinook spend the majority of their life in the ocean, and return to their natal streams shortly before spawning [@Healey1991]. However, substantial variability exists within this broader structure: Chinook salmon exhibit variation in multiple life stages, including time of seaward migration, age of maturity, and timing of return to natal stream [@Healey1991; @Bourret2016].
 
-Chinook salmon exhibit variation in multiple life stages, including time of seaward migration, age of maturity, and timing of return to natal stream [@Healey1991]. **Scott valley return window**
+As recently as 2013, the SONCC Chinook population was stable and becoming more complex [@Wainwright2013]. However, in monitoring from 2015-2020, the number of returning adults (the escapement) was 65% below historical average, and the change in the Scott River Chinook population has been more rapid than the decline in the overall Klamath Basin Chinook run [@CDFW2021b]. Ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@Welch2021]. Some studies have found that the leading cause of declining Chinook populations are ocean conditions, including including temperature, upwelling currents and food resources [@Hunt1999], while others have identified hatchery practices as the primary cause [@Quinones2014]. 
 
-@Healey1991. Life history of CHinook salmon. comparison to coho graph.
+### Relevant distinctions in Chinook and coho life histories
 
-@Bourret2016. Diversity of juvenile Chinook salmon life history pathways
+Chinook and coho salmon are distinct in several ways relevant to this study and to management considerations:
 
-As of 2013 the SONCC Chinook were stable and becoming more complex [@Wainwright2013], though ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@Welch2021]. Relevant ocean conditions may include temperature and food resources; in the ocean, the availability of Chinook salmon prey species may change seasonally and with environmental conditions, such as the strength of upwelling currents [@Hunt1999].
-
-@VanWert2023 evidence that the thermal tolerance of juvenile freshwater-dwelling chinook is locally-adapted and warmer temperatures stress out juvenile fish
-@NMFS2005 historical salmon habitat
-
-* O+ chinook. Chinook overwhelmingly outmigrate before they are 1 year old.
-
-### Salmon management and monitoring in the Scott River watershed
-
-
-*history of chinook salmon management. wasn't as much of a concern but recent population declines have prompted close monitoring (redd surveys) of this species as well as the coho,  and some think endangered status may be coming*
-
-* Annual juvenile salmonid monitoring started in 2001 [@Massie2020]
-* 
-
-Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CRMP2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC -@SRWC2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CDFW2015a]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River smolt production [SRWC and Siskiyou RCD -@SRWC2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NMFS2014].
-
-Monitoring activity in the past 20 years has included population estimates from a video counting flume and a rotary screw trap operated by CDFW [CDFW -@CDFW2015b; @Massie2020], and spawning surveys for Chinook [@SiskiyouRCD2015b; @SiskiyouRCD2017a; @SiskiyouRCD2018] and coho [@Maurer2003; @SiskiyouRCD2005; @Quigley2006; @Quigley2007; @SiskiyouRCD2010; @Yokel2011; @SiskiyouRCD2012; @SiskiyouRCD2013; @SiskiyouRCD2014; @SiskiyouRCD2015a; @SiskiyouRCD2017b]. Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@SRWT2018], the prioritization of stream reaches for habitat restoration [SRWC -@SRWC2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@Yokel2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CDFW2015a], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCounty2021].
-
+* In most years Chinook spawning migration takes place earlier (September-December) than coho (October-January).
+* Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life, in contrast to coho, which spend a full year in the stream before migrating  [@NMFS2005; @CDFW2020].
+* Coho salmon prefer to spawn in reaches with smaller spawning gravels than Chinook salmon. Consequently the majority coho redds are found in Scott River tributaries, while Chinook redds are more commonly found in the mainstem Scott River [e.g., @SiskiyouRCD2017a; @SiskiyouRCD2017a].
+* Declining populations of coho salmon have been noted in the Klamath basin and more broadly in coastal California streams since the 1990s [e.g., @Brown1994], while regional Chinook populations have historically been more robust [@Wainwright2013]. However, a declining trend was observed in the Klamath run of Chinook in the 2010s, and this trend was more significant in the Scott River system than the broader Klamath basin [@CDFW2021a]. These trends have prompted additional monitoring of Scott Valley Chinook in the past decade [e.g., spawning surveys such as @SiskiyouRCD2015b; @SiskiyouRCD2017a].
 
 
 ## Key ecological metrics
 
-The key ecological observations used in this study are:
+Factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions. In this study, because we are interested only in the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system. The key ecological observations used in this study are:
 
 1. Number of adults migrating from the ocean to freshwater natal streams to spawn. This quantity, the 'escapement', is measured at a CDFW counting facility, using a resistance board weir and video counting flume in the Scott River [e.g., @CDFW2021a]. 
 2. Number of salmon gravel nests, or redds, observed during spawning window [e.g., @SiskiyouRCD2017b].
-3. Number of juvenile yearling, or smolt, coho salmon. Smolt are counted as outmigrants, often from rotary screw trap observations [e.g., @Massie2020]. 
+3. Number of juvenile yearling, or smolt, salmon. Smolt are counted as outmigrants, often from rotary screw trap observations [e.g., @Massie2020]. 
 
-In addition to these three metrics, it is possible to calculate a combined metric, the number of coho smolt produced per spawning female, after monitoring for multiple years to capture both the spawning and outmigrating events for the relevant cohort.
-
+In addition to these three metrics, it is possible to calculate a combined metric, the number of salmon smolt produced per spawning female, after monitoring for multiple years to capture both the spawning and outmigrating events for the relevant cohort.
 
 # Methods
 
@@ -288,28 +276,23 @@ Hydrologic metric predictors of fish response variables were screened in two pas
 
 ## Flow metrics to describe Scott River flow regime
 
-A series of metrics from the catalog of California-specific functional flows [as illustrated in Figure \@ref(fig:fig2Yarnell2020); @Yarnell2020; @Patterson2020] were selected to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. Abbreviations and descriptions are listed in Table \@ref(tab:func_flow_terms_tab), and additional information is available in @Patterson2020 and supporting documentation. Total annual flow is used to evaluate water year type. Fall metrics, such as fall pulse magnitude and fall pulse timing, provide olfactory migration signals and spawning access to anadromous fish; however, a discrete fall pulse does not occur in every water year. Wet season metrics, such as wet season onset timing and baseflow magnitude, can be used to gauge conditions during egg incubation or the overwintering period for juvenile salmon. Spring metrics, such as spring flow recession rate of change, occur during the transition from wet to dry season, and indicate conditions during early juvenile salmon rearing as well as the flow available for outmigration from Scott Valley to the ocean. Finally, metrics like the duration and median flow of the dry season indicate the timing and severity of low-flow conditions in which spatial habitat is constrained and connectivity between reaches may be limited.
+A series of metrics from the catalog of California-specific functional flows [as illustrated in Figure \@ref(fig:fig2Yarnell2020); @Yarnell2020; @Patterson2020] were selected to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. Abbreviations and descriptions are listed in Table \@ref(tab:funcFlowTermsTab), and additional information is available in @Patterson2020 and supporting documentation. Total annual flow is used to evaluate water year type. Fall metrics, such as fall pulse magnitude and fall pulse timing, provide olfactory migration signals and spawning access to anadromous fish; however, a discrete fall pulse does not occur in every water year. Wet season metrics, such as wet season onset timing and baseflow magnitude, can be used to gauge conditions during egg incubation or the overwintering period for juvenile salmon. Spring metrics, such as spring flow recession rate of change, occur during the transition from wet to dry season, and indicate conditions during early juvenile salmon rearing as well as the flow available for outmigration from Scott Valley to the ocean. Finally, metrics like the duration and median flow of the dry season indicate the timing and severity of low-flow conditions in which spatial habitat is constrained and connectivity between reaches may be limited.
 
 In addition to the metrics discussed above, we devised two metrics for this study area related to timing of anadromous fish access to preferred spawning habitat (illustrated in Figure \@ref(fig:reconnectExplainerHydrograph)). These metrics are referred to as "reconnection" and "disconnection" dates. They assume a flow threshold, defined at the Fort Jones gauge, that corresponds to a certain degree of "connectivity" in the Scott River stream system. The date on which this connectivity is lost in the spring/summer or gained in the fall has implications for whether salmon passage exists during the preferred migrating time window. While these metrics can be somewhat correlated with some of the California-specific functional flows, they add value to this analysis because of their direct relation to fish passage in the watershed.
 
 
-```{r func_flow_terms_tab, echo = FALSE, results = 'asis'}
+```{r funcFlowTermsTab, echo = FALSE, results = 'asis'}
 
 ff_tab = read.csv(file.path(data_dir,"Hydro metrics explanation table.csv"))
 
 #Create caption and column labels
 caption_text = "Explanation of hydrologic metrics and other terms used in this analysis."
 column_labels = c("Abbreviation","Full Name", "Description")
+colnames(ff_tab) = column_labels
 
-#declare xtable object, assign formatted column labels, and print to latex object
-ff_xtab = xtable(ff_tab, label = "tab:func_flow_terms_tab",
-                 caption = caption_text, #digits = c(NA, NA, NA, NA),
-                  align= "llp{4cm}p{8cm}") #"lp{2.5cm}p{4.5cm}p{5cm}p{2cm}p{2.5cm}p{4cm}")
-names(ff_xtab) = column_labels
-print.xtable(ff_xtab, comment = F,type = "latex", format.args = list(big.mark = ","), include.rownames = F)#, hline.after = 0:nrow(best))
-#caption.placement = "top",
-
-
+ff_tab_ft = flextable(data=ff_tab)
+ff_tab_ft = set_caption(ff_tab_ft, caption = caption_text)
+# autofit(ff_tab_ft)
 
 ``` 
 
@@ -352,7 +335,7 @@ In the first pass of flow metric predictor selection, potential predictor variab
 
 Water managers think of flow in terms of water years, making it the relevant unit for decision-support tools. However, a cohort of coho salmon experiences conditions during multiple water years. The relevant unit of time for identifying the impacts of freshwater hydrology on a salmon cohort is defined here as a Coho Freshwater Life Period (CFLP), a duration of 21 months beginning the September of the year their parents spawned and ending the July of their outmigration from the watershed as smolts. This time period is conservatively wide; most spawning occurs in October or later, and most outmigration occurs in June or earlier [@Moyle2002], but the September-July duration was chosen to capture critical life stages even in extreme water years. 
 
-For convenience in referring to hydrologic metrics in different water years, this Coho Freshwater Life Period has been broken up into three subperiods (as shown in Figure \@ref(fig:cohoLifeCycleFigure) and described in Table \@ref(tab:func_flow_terms_tab)):
+For convenience in referring to hydrologic metrics in different water years, this Coho Freshwater Life Period has been broken up into three subperiods (as shown in Figure \@ref(fig:cohoLifeCycleFigure) and described in Table \@ref(tab:funcFlowTermsTab)):
 
 * Brood Year (BY), September-December of the year of the cohort's parents' spawning
 * Rearing Year (RY), January-December of the full year the cohort spends in the watershed
@@ -401,18 +384,18 @@ To avoid introducing redundant information into the prediction analysis [@Olden2
 
 In the second pass of flow metric predictor selection, a refined set of potential predictor variables was used to make one- and two-predictor linear models of the coho spf response variable. 
 
-With a dataset this small, the risk of overfitting is relatively high [@James2013]. Consequently linear models with a maximum of two predictors were evaluated. The four best one-predictor models and six of the best two-predictor models are shown in Table \@ref(tab:best_lm_summary_tab). Criteria used to make the selection included degree of variability explained by the predictors (R^2^ and adjusted R^2^), statistical significance (p-value and F-statistic), the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes). Because the predictor BY_recon_10 (Brood Year reconnection date, 10 cfs) performed so much better than all other metrics in the one-predictor model set, all two-predictor models evaluated included that predictor.
+With a dataset this small, the risk of overfitting is relatively high [@James2013]. Consequently linear models with a maximum of two predictors were evaluated. The four best one-predictor models and six of the best two-predictor models are shown in Table \@ref(tab:bestLMSummaryTab). Criteria used to make the selection included degree of variability explained by the predictors (R^2^ and adjusted R^2^), statistical significance (p-value and F-statistic), the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes). Because the predictor BY_recon_10 (Brood Year reconnection date, 10 cfs) performed so much better than all other metrics in the one-predictor model set, all two-predictor models evaluated included that predictor.
 
-For each of these models, we calculated the estimated average model error using leave-one-out cross-validation (LOOCV; Table \@ref(tab:model_error_tab)). In the LOOCV method, for a dataset with $n$ observations, the LOOCV error of a predictive model is obtained by recalculating the model coefficients $n$ times, each time leaving out one observation, and comparing the resulting prediction to the single left-out observation. The root mean square of these $n$ errors is the LOOCV error used to evaluate model performance in Results.
+For each of these models, we calculated the estimated average model error using leave-one-out cross-validation (LOOCV; Table \@ref(tab:modelErrorTab)). In the LOOCV method, for a dataset with $n$ observations, the LOOCV error of a predictive model is obtained by recalculating the model coefficients $n$ times, each time leaving out one observation, and comparing the resulting prediction to the single left-out observation. The root mean square of these $n$ errors is the LOOCV error used to evaluate model performance in Results.
 
-Finally, minimum performance criteria were established to select the models which were incorporated into the ultimate HB function. These criteria were: adjusted R^2^ value of >0.6, a p-value of <0.2, an F-statistic of more than 10, and a LOOCV value of less than 747 (i.e., the LOOCV value of the best one-predictor model). The predictors and slopes of the three models which met these criteria (lm2a, lm2b, and lm2c) are shown in Table \@ref(tab:best_lm_slopes_tab). 
+Finally, minimum performance criteria were established to select the models which were incorporated into the ultimate HB function. These criteria were: adjusted R^2^ value of >0.6, a p-value of <0.2, an F-statistic of more than 10, and a LOOCV value of less than 747 (i.e., the LOOCV value of the best one-predictor model). The predictors and slopes of the three models which met these criteria (lm2a, lm2b, and lm2c) are shown in Table \@ref(tab:bestLMSlopesTab). 
 
-These criteria were selected using professional judgment based on the features of the available models, and the diversity of predictors in the resulting ensemble model. For example, the selection of a p-value criteria of <0.2 allowed the inclusion of lm2c (Table \@ref(tab:best_lm_summary_tab)), with a p-value of 0.18, but excluded lm2d, with a p-value of 0.64. The authors felt that this was a reasonable cutoff in statistical significance for such a small sample size of observed response variable. Additionally, the three models that met these criteria incorporate information from the end of a dry season (BY_recon_10 and 100), the onset of the wet season (RY_Wet_Tim), and the wet season duration (Wet_BFL_Dur), which supports the professional judgment of the authors that the degree of hydro-ecological services provided each water year should be evaluated using information from multiple seasons. 
+These criteria were selected using professional judgment based on the features of the available models, and the diversity of predictors in the resulting ensemble model. For example, the selection of a p-value criteria of <0.2 allowed the inclusion of lm2c (Table \@ref(tab:bestLMSummaryTab)), with a p-value of 0.18, but excluded lm2d, with a p-value of 0.64. The authors felt that this was a reasonable cutoff in statistical significance for such a small sample size of observed response variable. Additionally, the three models that met these criteria incorporate information from the end of a dry season (BY_recon_10 and 100), the onset of the wet season (RY_Wet_Tim), and the wet season duration (Wet_BFL_Dur), which supports the professional judgment of the authors that the degree of hydro-ecological services provided each water year should be evaluated using information from multiple seasons. 
 
 
 ## Proposed formulation of a water year-based Hydrologic Benefit function
 
-To avoid over-interpreting the results of this small dataset, the coefficients of the three best selected models were averaged into the coefficients of an ensemble model (Table \ref(tab:best_lm_slopes_tab)). The ensemble model coefficients provide the formulation of the Hydrologic Benefit function. Consequently the Hydrologic Benefit values can be interpreted as predictions of coho spf-equivalents for a given water year. The values of the predictors -- the four hydrologic metrics for each water year in the Fort Jones gauge record (water years 1942-2021) -- are included in *Supplemental Table 2*.
+To avoid over-interpreting the results of this small dataset, the coefficients of the three best selected models were averaged into the coefficients of an ensemble model (Table \ref(tab:bestLMSlopesTab)). The ensemble model coefficients provide the formulation of the Hydrologic Benefit function. Consequently the Hydrologic Benefit values can be interpreted as predictions of coho spf-equivalents for a given water year. The values of the predictors -- the four hydrologic metrics for each water year in the Fort Jones gauge record (water years 1942-2021) -- are included in *Supplemental Table 2*.
 
 The combined formulation is as follows:
 
@@ -436,7 +419,7 @@ $m_{4} = 0.12~spf~equiv. / (day~of~wet~season~baseflow~duration)$
 
 
 
-```{r best_lm_summary_tab, echo = FALSE, results = 'asis'}
+```{r bestLMSummaryTab, echo = FALSE, results = 'asis'}
 
 #Reset metrics tab to include only values with coho smolt per fem obs
 metrics_tab_all_yrs = metrics_tab # store table with all years
@@ -453,15 +436,17 @@ best_vals = make_lm_table_for_rmd(best_tab = best_demo, data_tab = metrics_tab,
 caption_text = "Summary statistics of an example set of linear models predicting the number of coho smolt produced per female in a given water year. Because the Brood Year reconnection date for 10 cfs was by far the best single-predictor model, it is included in all two-predictor models under consideration."
 column_labels = c("Model","Predictor(s)", "F-stat.", "P-value", "R squared", "Adj. R squared", "AICc")
 
+colnames(best_vals) = column_labels
 
+best_vals_ft = flextable(data = best_vals)#, col_keys = column_labels)
+best_vals_ft = colformat_double(x = best_vals_ft, j=3, digits = 1)
+best_vals_ft = colformat_double(x = best_vals_ft, j=4, digits = 5)
+best_vals_ft = colformat_double(x = best_vals_ft, j=5, digits = 3)
+best_vals_ft = colformat_double(x = best_vals_ft, j=6, digits = 3)
+best_vals_ft = colformat_double(x = best_vals_ft, j=7, digits = 1)
+best_vals_ft = set_caption(best_vals_ft, caption = caption_text)
+autofit(best_vals_ft)
 
-#declare xtable object, assign formatted column labels, and print to latex object
-lm_xtab = xtable(best_vals, label = "tab:best_lm_summary_tab",
-                 caption = caption_text, digits = c(NA, NA, NA, 1, 5, 3, 3, 1),
-                align= "lcp{3.5cm}lp{1.5cm}lll") #"lp{2.5cm}p{4.5cm}p{5cm}p{2cm}p{2.5cm}p{4cm}")
-names(lm_xtab) = column_labels
-print.xtable(lm_xtab, comment = F,type = "latex", format.args = list(big.mark = ","), include.rownames = F, hline.after = 0:nrow(best_demo))
-#caption.placement = "top",
 
 ```
 
@@ -469,7 +454,7 @@ print.xtable(lm_xtab, comment = F,type = "latex", format.args = list(big.mark = 
 
 
 
-```{r model_error_tab, echo = FALSE, results = 'asis'}
+```{r modelErrorTab, echo = FALSE, results = 'asis'}
 
 
 test_error_tab = data.frame(model_id = best_demo$model_id,
@@ -492,19 +477,16 @@ for(i in 1:nrow(best_demo)){
 #Create caption and column labels
 caption_text = "Average model prediction error, based on leave-one-out cross-validation (James et al., 2013)."
 column_labels = c("Model","LOOCV value", "Average error (coho spf-equiv.)")
-
-#declare xtable object, assign formatted column labels, and print to latex object
-loocv_xtab = xtable(test_error_tab, label = "tab:model_error_tab",
-                 caption = caption_text, digits = c(NA, NA, 0, 1),
-                  align= "llll") #"lp{2.5cm}p{4.5cm}p{5cm}p{2cm}p{2.5cm}p{4cm}")
-names(loocv_xtab) = column_labels
-print.xtable(loocv_xtab, comment = F,type = "latex", format.args = list(big.mark = ","), include.rownames = F)#, hline.after = 0:nrow(best))
-#caption.placement = "top",
+colnames(test_error_tab) = column_labels
+ 
+loocv_ft = flextable(data = test_error_tab)
+loocv_ft = set_caption(loocv_ft, caption = caption_text)
+autofit(loocv_ft)
 
 ``` 
 
 
-```{r best_lm_slopes_tab, echo = F, results = 'asis'}
+```{r bestLMSlopesTab, echo = F, results = 'asis'}
 
 # Read in reduced set of best model predictors
 best = read.csv(file = file.path(data_dir, "best_model_predictors_2022.03.30.csv"))
@@ -529,26 +511,16 @@ preds = unique(unlist(best[,colnames(best)!="model_id"]))
 preds = preds[preds!="" & !is.na(preds)] # take out the blanks
 
 column_labels =c("Intercept", preds) #c("Model ID", preds)
+colnames(coef_tab) = column_labels
 
-#declare xtable object, assign formatted column labels, and print to latex object
-
-lm_coef_xtab = xtable(coef_tab, label = "tab:best_lm_slopes_tab",
-                 caption = caption_text, 
-                 digits = c(NA,1, rep(2,3),2),
-                 # digits = c(NA,1, rep(2,3),2,0,2,2),
-                  align= "lrrrrr")
-                 # align = "lrrrrrrrr")
-
-#"lp{2.5cm}p{4.5cm}p{5cm}p{2cm}p{2.5cm}p{4cm}")
-names(lm_coef_xtab) = column_labels
-print.xtable(lm_coef_xtab, 
-             comment = F,
-             type = "latex", 
-             format.args = list(big.mark = ","),
-             include.rownames = T,
-             rotate.colnames = T,
-             hline.after = c(0,nrow(coef_tab)-1,nrow(coef_tab)))
-
+lm_coef_ft = flextable(data = coef_tab)
+lm_coef_ft = colformat_double(x = lm_coef_ft, j = 1, digits = 1)
+lm_coef_ft = colformat_double(x = lm_coef_ft, j = 2, digits = 2)
+lm_coef_ft = colformat_double(x = lm_coef_ft, j = 3, digits = 2)
+lm_coef_ft = colformat_double(x = lm_coef_ft, j = 4, digits = 2)
+lm_coef_ft = colformat_double(x = lm_coef_ft, j = 5, digits = 2)
+lm_coef_ft = set_caption(lm_coef_ft, caption = caption_text)
+autofit(lm_coef_ft)
 ```
 
 
@@ -1065,11 +1037,11 @@ Based on the trends shown in Figure \@ref(fig:explanationForBYReconCFSSelection)
 
 ## Linear model predictions
 
-Coho reproduction rates appear to be correlated with some hydrologic metrics, based on the hydrologic conditions and coho observations in water years 2007-2020 (though these linear models should not be overinterpreted, given the small sample size). The best single-predictor models (Brood Year reconnection dates for 10 and 100 cfs, or BY_recon_10 and BY_recon_100) are both related to the timing of rising fall flows in the Brood Year of each salmon cohort (Table \@ref(tab:best_lm_summary_tab)). 
+Coho reproduction rates appear to be correlated with some hydrologic metrics, based on the hydrologic conditions and coho observations in water years 2007-2020 (though these linear models should not be overinterpreted, given the small sample size). The best single-predictor models (Brood Year reconnection dates for 10 and 100 cfs, or BY_recon_10 and BY_recon_100) are both related to the timing of rising fall flows in the Brood Year of each salmon cohort (Table \@ref(tab:bestLMSummaryTab)). 
 
 The predictor BY_FA_Mag, or the magnitude of the Brood Year fall pulse, was also highly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)). However, because a distinct fall pulse does not occur every year, including it would reduced the sample size to an unacceptable level (i.e., a total of six water years with a complete set of predictors and response observations). Because of this sample size limitation, and because some of the information about this pulse was carried in the reconnection date metric, FA_Mag was excluded from the set of potential predictors.
 
-The addition of a second predictor clearly improves model performance in terms of predictive power and test error, given the increased R^2^ values, reduced AIC~c~ values, and reduced average error when comparing models lm2a and lm2b versus lm1a and lm1b (Tabulated in Tables \ref{tab:best_lm_summary_tab} and \ref{tab:model_error_tab}; with observed and predicted values shown in Figure \@ref(fig:lmPredVObs)). The three best two-predictor models included the Brood Year reconnection date for 10 cfs (BY_recon_10) and an indication of the onset or duration of the following wet season: Brood Year reconnection date for 100 cfs (BY_recon_100), wet season onset or duration for the Rearing Year (RY_Wet_Tim and RY_Wet_BFL_Dur). (Though they both occur as the Brood Year transitions to the Rearing Year, the two metrics BY_recon_100 and RY_Wet_Tim are not highly correlated, due to the more complex criteria needed for a flow event to qualify as the wet season onset.)
+The addition of a second predictor clearly improves model performance in terms of predictive power and test error, given the increased R^2^ values, reduced AIC~c~ values, and reduced average error when comparing models lm2a and lm2b versus lm1a and lm1b (Tabulated in Tables \ref{tab:bestLMSummaryTab} and \ref{tab:modelErrorTab}; with observed and predicted values shown in Figure \@ref(fig:lmPredVObs)). The three best two-predictor models included the Brood Year reconnection date for 10 cfs (BY_recon_10) and an indication of the onset or duration of the following wet season: Brood Year reconnection date for 100 cfs (BY_recon_100), wet season onset or duration for the Rearing Year (RY_Wet_Tim and RY_Wet_BFL_Dur). (Though they both occur as the Brood Year transitions to the Rearing Year, the two metrics BY_recon_100 and RY_Wet_Tim are not highly correlated, due to the more complex criteria needed for a flow event to qualify as the wet season onset.)
 
 
 
