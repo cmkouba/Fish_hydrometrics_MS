@@ -854,9 +854,11 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
   #1. Initialize table
   ## Identify brood year coverage to find number of rows
   brood_years_min = min(c(smolt_per_fem$Adult_Year_Brood_Year,
-                          outmigs$Brood.Year, coho_abun$Return_Year, chinook_abun$Year))
+                          outmigs$Brood.Year, coho_abun$Return_Year,
+                          chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
   brood_years_max = max(c(smolt_per_fem$Adult_Year_Brood_Year,
-                          outmigs$Brood.Year,coho_abun$Return_Year, chinook_abun$Year))
+                          outmigs$Brood.Year,coho_abun$Return_Year,
+                          chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
   brood_years = brood_years_min:brood_years_max
 
   # structure initial output dataframe and label columns
@@ -1187,14 +1189,106 @@ correl_scatter_plots= function(metrics_tab, predicted, y_label){
   }
 }
 
+all_lms_tab_and_plot = function(data_tab,
+                                        y_name = "coho_smolt_per_fem",
+                                        num_xs = 1, graph_p_adjR=T, alpha_val = .5,
+                                xlab_text = NA, ylab_text = NA){
+
+  # Initialize output tab as a combination of
+  non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
+                       "chinook_juvenile_abundance", "chinook_juv_per_adult",
+                       "coho_spawner_abundance", "coho_smolt_per_fem",
+                       "coho_smolt_abun_est","percent_coho_smolt_survival",
+                       "coho_redds_in_brood")
+  data_tab_pred = data_tab[,!(colnames(data_tab) %in% non_pred_columns)]
+  cdtb = colnames(data_tab_pred)
+  if(num_xs==1){model_combos = cdtb}
+  if(num_xs==2){model_combos = expand.grid(cdtb, cdtb)}
+  if(num_xs==3){model_combos = expand.grid(cdtb, cdtb, cdtb)}
+  if(num_xs==4){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb)}
+  if(num_xs==5){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb)}
+  if(num_xs==6){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb, cdtb)}
+
+  output_tab = as.data.frame(as.matrix(model_combos))
+  pred_colnames = paste0("x", 1:num_xs)
+  colnames(output_tab) = pred_colnames
+  # eliminate models with repeat predictors. ugh. hard to do this without knowing the # of predictors
+  # dup_rows = (output_tab$x1==output_tab$x2) | (output_tab$x2==output_tab$x3) | (output_tab$x1==output_tab$x3)
+  # output_tab = output_tab[!dup_rows,]
+
+  # add model
+  output_tab$Fstat = NA; output_tab$pval = NA
+  output_tab$Rsquare = NA; output_tab$adjRsquare = NA
+  output_tab$AICc = NA
+
+  for(i in 1:nrow(output_tab)){
+    predictors = as.character(output_tab[i, 1:num_xs])
+
+    if(length(unique(predictors)) == num_xs){ # weed out combos with redundant factors (again)
+      f1 = paste(y_name,
+                 paste(predictors, collapse = " + "), sep = " ~ ")
+      lm1 = lm(data = data_tab, formula = f1)
+      coeffs = summary(lm1)$coefficients
+
+      if(sum(is.na(coeffs))<1){  # Don't populate the output tab if there's insufficient pairwise complete data
+        #assign output tab vars
+        output_tab$Fstat[i] = summary(lm1)$fstatistic["value"]
+        output_tab$pval[i] =  coeffs[1,ncol(coeffs)]
+        output_tab$Rsquare[i] = summary(lm1)$r.squared
+        output_tab$adjRsquare[i] = summary(lm1)$adj.r.squared
+        output_tab$AICc[i] = AICc(lm1)
+      }
+    }
+  }
+
+  if(graph_p_adjR==T){
+    y_name_long = y_name
+    if(y_name=="coho_spawner_abundance"){y_name_long = "Coho Spawner Abundance"}
+    if(y_name=="coho_smolt_abun_est"){y_name_long = "Coho Smolt Abundance"}
+    if(y_name=="coho_smolt_per_fem"){y_name_long = "Coho Smolt per Female Spawner"}
+    if(y_name=="coho_redds_in_brood"){y_name_long = "Coho Redds"}
+    if(y_name=="chinook_juv_per_adult"){y_name_long = "Juvenile Chinook per Adult"}
+    if(y_name=="chinook_juvenile_abundance"){y_name_long = "Chinook Juvenile Abundance"}
+    if(y_name=="chinook_spawner_abundance"){y_name_long = "Chinook Spawner Abundance"}
+    # if(num_xs == 1){title_text = paste("All models of", y_name_long,"\n with", num_xs, "predictor")}
+    # if(num_xs > 1){title_text = paste("All models of", y_name_long,"\n with", num_xs, "predictors")}
+    if(num_xs == 1){title_text = paste0(y_name_long,", \n ", num_xs, " predictor")}
+    if(num_xs > 1){title_text = paste0(y_name_long,", \n ", num_xs, " predictors")}
+
+    #plot color
+
+    rgb_val = col2rgb("violet")
+    if(y_name=="coho_smolt_per_fem"){rgb_val = c(1,0,0)}
+    if(y_name=="chinook_juv_per_adult"){rgb_val = c(0,0,1)}
+
+
+    plot(output_tab$pval ,output_tab$adjRsquare, pch = 21,
+         bg = rgb(rgb_val[1],rgb_val[2],rgb_val[3],alpha_val),
+         col = NULL, # border color
+         ylim = c(-1,1),#c(min(output_tab$adjRsquare, na.rm=T), 1),
+         xlab = xlab_text, ylab = ylab_text,
+         # xlab = "linear model P value", ylab = "Adj. R square",
+         main = title_text)
+    grid()
+    abline(h=0)
+  }
+
+  return(output_tab)
+
+
+}
+
 threshold_explainer_trendlines = function(data_tab, y_name = "coho_smolt_per_fem",
                                           pred_type = "BY_recon",
-                                          thresholds = c(8,10,15,20,40,100)){
+                                          thresholds = c(8,10,15,20,40,100),
+                                          print_r2=F){
 
   par(mfrow = c(3,2), mar = c(4,4,1,2))
   # thresholds = thresh_for_fig #c(8,10,15,20,40,100)
   ylimits = range(data_tab[,y_name],na.rm = T)
   if(y_name=="coho_smolt_per_fem"){ylab_text = "Coho smolt per female spawner (spf)"}
+  else if(y_name=="chinook_juv_per_adult"){ylab_text = "Chinook juveniles per adult (jpa)"}
+  else {ylab_text = y_name}
   ylab_6 = c(ylab_text, "", ylab_text,"", ylab_text,"" )
   if(pred_type == "BY_recon"){
     xlimits = c(0,165)
@@ -1231,6 +1325,7 @@ threshold_explainer_trendlines = function(data_tab, y_name = "coho_smolt_per_fem
     text(x = tx, y = ty-10, paste("Slope:", round(summary(lm1)$coefficients[2,1], 2), "spf/day"))
     R2_lab  = bquote(italic(R)^2 == .(format(summary(lm1)$r.squared, digits = 3)))
     text(x = tx, y = ty-20, R2_lab)
+    if(print_r2==T){print(paste(thresh,R2_lab))}
   }
 }
 
@@ -1549,7 +1644,8 @@ linear_model_forward_selection = function(){
     # str(lm1)
   }
 
-  make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem", num_xs = 1){
+  make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem",
+                                   num_xs = 1, graph_p_adjR=T){
 
     # Initialize output tab as a combination of
     non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
@@ -1598,12 +1694,19 @@ linear_model_forward_selection = function(){
       }
     }
 
+    if(graph_p_adjR==T){
+      plot(output_tab$pval ,output_tab$adjRsquare,
+           main = paste("All Models with", num_xs, "predictors"))
+    }
+
     return(output_tab)
   }
 
 
+
   ### 0. Prepare reduced table of metrics
   #reduced metrics tab for the 4-predictor models
+ # for chinook  metrics_tab = metrics_tab_ch
 
   # reduced_pred = c("BY_FA_Mag", "BY_recon_10", "BY_recon_100", "BY_tot_flow_sepdec",
   #                  "RY_discon_10", "RY_discon_100", "RY_DS_Mag_50", "RY_DS_Mag_90", "RY_FA_Mag",
