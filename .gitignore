@@ -3,5 +3,6 @@
 .RData
 .Ruserdata
 scratch_work/
+Archive/
 manuscript_data.RData
 Data/hillshade_cropped_raster.tif

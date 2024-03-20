@@ -1723,6 +1723,7 @@ linear_model_forward_selection = function(){
                    "SY_Wet_Tim", "tot_flow_CFLP")
   keep_cols = c(colnames(metrics_tab)[1:7],reduced_pred)
   metrics_tab_redu = metrics_tab[,keep_cols]
+  metrics_tab_redu = metrics_tab
 
   # For Chinook
 # remove_pred = c("SY_min_flow_janjul","SY_discon_100", "SY_SP_ROC",
@@ -1732,6 +1733,8 @@ linear_model_forward_selection = function(){
 
   ### 1. Selection of best 1 predictor model
   pred1 = make_table_of_all_lms(data_tab = metrics_tab_redu, y_name = "coho_smolt_per_fem", num_xs = 1)
+  colnames(pred1)[1] = "pred1"
+  write.csv(pred1, file="pred1 diagnostics.csv", quote=F, row.names = F)
   # pred1 = make_table_of_all_lms(data_tab = metrics_tab_redu, y_name = "chinook_juv_per_adult", num_xs = 1)
 
   # Which are the best? Want a high Rsquare and a low pval
@@ -1751,9 +1754,11 @@ linear_model_forward_selection = function(){
 
   ### 2. Selection of best 2 predictor model
   pred2 = make_table_of_all_lms(data_tab = metrics_tab_redu, y_name = "coho_smolt_per_fem", num_xs = 2)
+  pred2 = pred2[!is.na(pred2$pval),] # get rid of NA rows
+  colnames(pred2)[1] = "pred1"; colnames(pred2)[2] = "pred2"
+  write.csv(pred2, file="pred2 diagnostics.csv", quote = F, row.names =F)
   # pred2 = make_table_of_all_lms(data_tab = metrics_tab_redu, y_name = "chinook_juv_per_adult", num_xs = 2)
 
-  pred2 = pred2[!is.na(pred2$pval),] # get rid of NA rows
   # # get rid of redundant combos
   # pred2_alpha_order = pred2$x1 < pred2$x2 # find the ones in alphabetical order
   # pred2_pred_combo = apply(X= as.character(pred2[,]), MARGIN = 1, FUN = paste)
