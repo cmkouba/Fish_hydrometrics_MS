@@ -1613,6 +1613,188 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 
 
+# Supplemental lm tables --------------------------------------------------
+
+
+make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem",
+                                 num_xs = 1, graph_p_adjR=T){
+
+  # Initialize output tab as a combination of
+  non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
+                       "chinook_juvenile_abundance", "chinook_juv_per_adult",
+                       "coho_spawner_abundance", "coho_smolt_per_fem",
+                       "coho_smolt_abun_est","percent_coho_smolt_survival",
+                       "coho_redds_in_brood")
+  data_tab_pred = data_tab[,!(colnames(data_tab) %in% non_pred_columns)]
+  cdtb = colnames(data_tab_pred)
+  if(num_xs==1){model_combos = cdtb}
+  if(num_xs==2){model_combos = expand.grid(cdtb, cdtb)}
+  if(num_xs==3){model_combos = expand.grid(cdtb, cdtb, cdtb)}
+  if(num_xs==4){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb)}
+  if(num_xs==5){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb)}
+  if(num_xs==6){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb, cdtb)}
+
+  output_tab = as.data.frame(as.matrix(model_combos))
+  pred_colnames = paste0("x", 1:num_xs)
+  colnames(output_tab) = pred_colnames
+  # eliminate models with repeat predictors. ugh. hard to do this without knowing the # of predictors
+  # dup_rows = (output_tab$x1==output_tab$x2) | (output_tab$x2==output_tab$x3) | (output_tab$x1==output_tab$x3)
+  # output_tab = output_tab[!dup_rows,]
+
+  # add model
+  output_tab$Fstat = NA; output_tab$pval = NA
+  output_tab$Rsquare = NA; output_tab$adjRsquare = NA
+  output_tab$AICc = NA
+
+  for(i in 1:nrow(output_tab)){
+    predictors = as.character(output_tab[i, 1:num_xs])
+
+    if(length(unique(predictors)) == num_xs){ # weed out combos with redundant factors (again)
+      f1 = paste(y_name,
+                 paste(predictors, collapse = " + "), sep = " ~ ")
+      lm1 = lm(data = data_tab, formula = f1)
+      coeffs = summary(lm1)$coefficients
+
+      if(sum(is.na(coeffs))<1){  # Don't populate the output tab if there's insufficient pairwise complete data
+        #assign output tab vars
+        output_tab$Fstat[i] = summary(lm1)$fstatistic["value"]
+        output_tab$pval[i] =  coeffs[1,ncol(coeffs)]
+        output_tab$Rsquare[i] = summary(lm1)$r.squared
+        output_tab$adjRsquare[i] = summary(lm1)$adj.r.squared
+        output_tab$AICc[i] = AICc(lm1)
+      }
+    }
+  }
+
+  if(graph_p_adjR==T){
+    plot(output_tab$pval ,output_tab$adjRsquare,
+         main = paste("All Models with", num_xs, "predictors"))
+  }
+
+  return(output_tab)
+}
+
+show_lm_summary_from_table = function(pred_tab, data_tab, y_name = "coho_smolt_per_fem"){
+  # assumes each predictor is in a column with an "x1", "x2" name, etc
+  x_cols_selector = grepl(pattern = "x", x = colnames(pred_tab)) | grepl(pattern="pred",x=colnames(pred_tab))
+  num_xs = sum(x_cols_selector)
+
+  f1 = paste(y_name,
+             paste(pred_tab[1,x_cols_selector], collapse = " + "), sep = " ~ ")
+  lm1 = lm(data = data_tab, formula = f1)
+  print(summary(lm1))
+
+  # str(lm1)
+}
+
+save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
+  # March 2024: retain all metrics for these tables
+  save_dir = graphics_dir
+
+  ### 1a. Selection of best 1 predictor model: coho
+  pred1 = make_table_of_all_lms(data_tab = metrics_tab, y_name = "coho_smolt_per_fem",
+                                num_xs = 1, graph_p_adjR=F)
+  colnames(pred1)[1] = "pred1"
+  write.csv(pred1, quote=F, row.names = F,
+            file=file.path(save_dir, "Supplemental Table 3 - One Predictor Models of Coho spf.csv"))
+
+  ### 1b. Selection of best 1 predictor model: Chinook
+  pred1_ch = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F, y_name = "chinook_juv_per_adult", num_xs = 1)
+  colnames(pred1_ch)[1] = "pred1"
+  write.csv(pred1_ch, file=file.path(save_dir,"Supplemental Table 4 - One Predictor Models of Chinook jpa.csv"),
+            quote=F, row.names = F)
+
+  ### 2a. Selection of best 2 predictor model: coho
+  pred2 = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F,
+                                y_name = "coho_smolt_per_fem", num_xs = 2)
+  pred2 = pred2[!is.na(pred2$pval),] # get rid of NA rows
+  colnames(pred2)[1:2] = c("pred1", "pred2")
+  write.csv(pred2, quote=F, row.names = F,
+            file=file.path(save_dir,"Supplemental Table 5 - Two Predictor Models of Coho spf.csv"))
+
+  ### 2b. Selection of best 2 predictor model: Chinook
+  pred2_ch = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F,
+                                   y_name = "chinook_juv_per_adult", num_xs = 2)
+  pred2_ch = pred2_ch[!is.na(pred2_ch$pval),] # get rid of NA rows
+  colnames(pred2_ch)[1:2] = c("pred1", "pred2")
+  write.csv(pred2_ch, quote=F, row.names = F,
+            file=file.path(save_dir, "Supplemental Table 6 - Two Predictor Models of Chinook jpa.csv"))
+
+
+  if(show_best_analysis==T){
+
+    # 1a. Selection of best 1 predictor model - coho
+    # Which are the best? Want a high Rsquare and a low pval
+    plot(pred1$pval, pred1$Rsquare) # choose a quadrant
+    AICc_threshold = quantile(pred1$AICc, 0.5)
+    best_1 = pred1[pred1$Rsquare>.3 & pred1$pval < .1 & pred1$AICc < AICc_threshold,]
+    best_1
+    # Best is BY_recon_10, based on pval and Rsquare, but AICc is high (107).
+    # RY_Wet_Tim is similar. (and BY_recon_15)
+    # Alternate best is RY_FA_Mag. Much better AICc of 73. But tiny sample size.
+
+    best1_sub = best_1[best_1$pred1=="BY_recon_10",]
+    show_lm_summary_from_table(pred_tab = best1_sub, data_tab = metrics_tab_redu)
+
+
+
+    ### 1b. Selection of best 1 predictor model - Chinook
+
+    # Which are the best? Want a high Rsquare and a low pval
+    plot(pred1_ch$pval, pred1_ch$Rsquare) # choose a quadrant
+    AICc_threshold = quantile(pred1_ch$AICc, .5)
+    best_1_ch = pred1_ch[pred1_ch$Rsquare>.2 & pred1_ch$pval < .1 &
+                        pred1_ch$AICc < AICc_threshold,]
+    best_1_ch
+    # Best is log_BY_tot_flow_sepdec, based on pval and Rsquare, but AICc is high (107).
+    # SY_min_flow_janjul is better but mechanistically, SY flows should not affect Chinook since they're already migrated.
+    # BY_FA_Dur is better but too small a sample size.
+
+    show_lm_summary_from_table(pred_tab = best_1_ch[best_1_ch$pred1=="log_BY_tot_flow_sepdec",],
+                               data_tab = metrics_tab_redu)
+
+    # 2a. best 2-predictor models - coho
+    plot(pred2$pval, pred2$Rsquare) # choose a quadrant
+    AICc_threshold = quantile(pred2$AICc, 0.5)
+    # Apply selection criteria and exclude FA metrics
+    best_2 = pred2[pred2$Rsquare>.6 & pred2$pval < .2 &
+                     # pred2$AICc < AICc_threshold & # AIC selector not needed actually
+                     pred2$Fstat > 10 &
+                     !grepl(pattern = "FA", x = pred2$pred1) &
+                     !grepl(pattern = "FA", x = pred2$pred2),]
+    best2_sub = best_2[!duplicated(round(best_2$Fstat,4)),] # remove duplicates
+    # Best 3 are:
+    # BY_recon_10 + BY_recon_100,
+    # BY_recon_10 + RY_Wet_Tim,
+    # BY_recon_10 + RY_Wet_BFL_Dur
+
+    show_lm_summary_from_table(pred_tab = best2_sub[1,], data_tab = metrics_tab)
+    show_lm_summary_from_table(pred_tab = best2_sub[2,], data_tab = metrics_tab)
+    show_lm_summary_from_table(pred_tab = best2_sub[3,], data_tab = metrics_tab)
+
+    # 2b. best 2-predictor models - Chinook
+    plot(pred2_ch$pval, pred2_ch$Rsquare) # choose a quadrant
+    AICc_threshold = quantile(pred2_ch$AICc, 0.5)
+    best_2_ch = pred2_ch[pred2_ch$Rsquare>.3 & pred2_ch$pval < .2 &
+                     # pred2$AICc_ch < AICc_threshold & #pred2$Fstat > 10 &
+                     !grepl(pattern = "FA", x = pred2_ch$pred1) &
+                     !grepl(pattern = "FA", x = pred2_ch$pred2) &
+                       !grepl(pattern = "SY", x = pred2_ch$pred1) &
+                       !grepl(pattern = "SY", x = pred2_ch$pred2),]
+    best2_sub_ch = best_2_ch[!duplicated(round(best_2_ch$Fstat,4)),] # remove duplicates
+    # Best 3 are:
+    # BY_recon_10 + BY_recon_100,
+    # BY_recon_10 + RY_Wet_Tim,
+    # BY_recon_10 + RY_Wet_BFL_Dur
+
+    show_lm_summary_from_table(pred_tab = best2_sub[1,], data_tab = metrics_tab)
+    show_lm_summary_from_table(pred_tab = best2_sub[2,], data_tab = metrics_tab)
+    show_lm_summary_from_table(pred_tab = best2_sub[3,], data_tab = metrics_tab)
+
+  }
+
+}
+
 
 
 
@@ -1626,82 +1808,9 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 # One-time analyses -------------------------------------------------------
 
-# look at all the fcking water years
+
 
 linear_model_forward_selection = function(){
-
-  ### subfunctions
-  show_lm_summary_from_table = function(pred_tab, data_tab, y_name = "coho_smolt_per_fem"){
-    # assumes each predictor is in a column with an "x1", "x2" name, etc
-    x_cols_selector = grepl(pattern = "x", x = colnames(pred_tab))
-    num_xs = sum(x_cols_selector)
-
-    f1 = paste(y_name,
-               paste(pred_tab[1,x_cols_selector], collapse = " + "), sep = " ~ ")
-    lm1 = lm(data = data_tab, formula = f1)
-    print(summary(lm1))
-
-    # str(lm1)
-  }
-
-  make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem",
-                                   num_xs = 1, graph_p_adjR=T){
-
-    # Initialize output tab as a combination of
-    non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
-                         "chinook_juvenile_abundance", "chinook_juv_per_adult",
-                         "coho_spawner_abundance", "coho_smolt_per_fem",
-                         "coho_smolt_abun_est","percent_coho_smolt_survival",
-                         "coho_redds_in_brood")
-    data_tab_pred = data_tab[,!(colnames(data_tab) %in% non_pred_columns)]
-    cdtb = colnames(data_tab_pred)
-    if(num_xs==1){model_combos = cdtb}
-    if(num_xs==2){model_combos = expand.grid(cdtb, cdtb)}
-    if(num_xs==3){model_combos = expand.grid(cdtb, cdtb, cdtb)}
-    if(num_xs==4){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb)}
-    if(num_xs==5){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb)}
-    if(num_xs==6){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb, cdtb)}
-
-    output_tab = as.data.frame(as.matrix(model_combos))
-    pred_colnames = paste0("x", 1:num_xs)
-    colnames(output_tab) = pred_colnames
-    # eliminate models with repeat predictors. ugh. hard to do this without knowing the # of predictors
-    # dup_rows = (output_tab$x1==output_tab$x2) | (output_tab$x2==output_tab$x3) | (output_tab$x1==output_tab$x3)
-    # output_tab = output_tab[!dup_rows,]
-
-    # add model
-    output_tab$Fstat = NA; output_tab$pval = NA
-    output_tab$Rsquare = NA; output_tab$adjRsquare = NA
-    output_tab$AICc = NA
-
-    for(i in 1:nrow(output_tab)){
-      predictors = as.character(output_tab[i, 1:num_xs])
-
-      if(length(unique(predictors)) == num_xs){ # weed out combos with redundant factors (again)
-        f1 = paste(y_name,
-                   paste(predictors, collapse = " + "), sep = " ~ ")
-        lm1 = lm(data = data_tab, formula = f1)
-        coeffs = summary(lm1)$coefficients
-
-        if(sum(is.na(coeffs))<1){  # Don't populate the output tab if there's insufficient pairwise complete data
-          #assign output tab vars
-          output_tab$Fstat[i] = summary(lm1)$fstatistic["value"]
-          output_tab$pval[i] =  coeffs[1,ncol(coeffs)]
-          output_tab$Rsquare[i] = summary(lm1)$r.squared
-          output_tab$adjRsquare[i] = summary(lm1)$adj.r.squared
-          output_tab$AICc[i] = AICc(lm1)
-        }
-      }
-    }
-
-    if(graph_p_adjR==T){
-      plot(output_tab$pval ,output_tab$adjRsquare,
-           main = paste("All Models with", num_xs, "predictors"))
-    }
-
-    return(output_tab)
-  }
-
 
 
   ### 0. Prepare reduced table of metrics
@@ -1723,6 +1832,8 @@ linear_model_forward_selection = function(){
                    "SY_Wet_Tim", "tot_flow_CFLP")
   keep_cols = c(colnames(metrics_tab)[1:7],reduced_pred)
   metrics_tab_redu = metrics_tab[,keep_cols]
+
+  # March 2024: retain all metrics for these tables
   metrics_tab_redu = metrics_tab
 
   # For Chinook
