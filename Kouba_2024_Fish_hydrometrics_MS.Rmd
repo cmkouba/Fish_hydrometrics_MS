@@ -568,7 +568,7 @@ fig_i = fig_i +1
 
 ## Linear modeling
 
-We used all hydrologic predictors to generate the set of all possible 1- and 2-predictor linear models of the relative reproduction for Chinook (Chinook jpa) and coho (coho spf) salmon. One-predictor models performed categorically worse than two-predictor models (Figure \@ref(fig:allLMsCohoChinook)). This is an expected outcome and likely reflects some overfitting in two-predictor models. Diagnostics for all linear models are included in *Supplemental Tables 3* through *6*.
+We used all hydrologic predictors to generate the set of all possible 1- and 2-predictor linear models of the relative reproduction for Chinook (Chinook jpa) and coho (coho spf) salmon. One-predictor models performed categorically worse than two-predictor models (Figure \@ref(fig:allLMsCohoChinook), *Supplemental Figure 1*). This is an expected outcome and likely reflects some overfitting in two-predictor models. Diagnostics for all linear models are included in *Supplemental Tables 3* through *6*.
 
 ```{r lm_diagnostics_supp_tabs, echo = F, warning =F}
 
@@ -646,11 +646,6 @@ The addition of a second predictor clearly improves model performance in terms o
 
 ```{r lmPredVObs, echo = F, warning = F, fig.cap = "Predicted vs observed values for coho smolt production per female in the linear models with one through four hydrologic predictors. A dashed 1:1 line is included for reference."}
 
-# #Reset metrics tab to include only values with salmon relative reproduction values
-# metrics_tab_all_yrs = metrics_tab # store table with all years
-# metrics_tab_ch = metrics_tab_all_yrs[!is.na(metrics_tab_all_yrs$chinook_juv_per_adult),]
-metrics_tab_co = metrics_tab[!is.na(metrics_tab$coho_smolt_per_fem),]
-
 # Select best 1 predictor model for coho
 pred1= make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F,
                               y_name = "coho_smolt_per_fem", num_xs = 1)
@@ -669,29 +664,16 @@ best_2 = pred2[pred2$Rsquare>.6 & pred2$pval < .2 &
                  !grepl(pattern = "FA", x = pred2$pred2),]
 best_2 = best_2[!duplicated(round(best_2$Fstat,4)),] # remove duplicates
 
-best_demo = data.frame(model_id = c("lm2a","lm2b","lm2c"), x1=best_2$pred1, x2 = best_2$pred2)
-
-
-# Read in reduced set of best model predictors
-
-# 
-# best = read.csv(file = file.path(data_dir, "best_model_predictors_2022.03.30.csv"))
-# 
-# best_demo = read.csv(file = file.path(data_dir, "best_model_predictors_2022.03.30_demo extras.csv"))
-
-
-best_vals = make_lm_table_for_rmd(best_tab = best_demo, data_tab = metrics_tab_co,
-                                  include_pluses = F)
-
-# plot 
-
-best_predobs = rbind(best_1, best_2)
+best_for_fig = data.frame(model_id = c("lm1a","lm2a","lm2b","lm2c"), 
+                       x1=c(best_1$pred1,best_2$pred1), 
+                       x2 = c(NA,best_2$pred2))
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
   
-lm_pred_v_obs_fig(best_tab = best_predobs, metrics_tab = metrics_tab, plot_rowscols = c(2,2))
+lm_pred_v_obs_fig(best_tab = best_for_fig, 
+                  metrics_tab = metrics_tab, plot_rowscols = c(2,2))
   
   dev.off()
 }
@@ -709,52 +691,6 @@ Before finalizing the selection of the highest-utility hydrologic predictors, al
 
 To avoid over-interpreting results based on the small ecological dataset of coho reproduction, the coefficients of the three best two-predictor linear models ($n = 3$ in Equation 1) were averaged into the coefficients of an ensemble model shown in Table 4. The ensemble model coefficients provide the formulation of the Hydrologic Benefit function (Equation 2).
 
-
-
-
-# Extra text from Methods
-
-
-
-The average ensemble model was used to dampen the sensitivity of any individual model to a single water-year outcome. 
-
-
-
-
-
-Only two-predictor models were included in the model selection exercise, because 
-
-In all two-predictor linear regression models the ecological outcome for each water year was estimated as follows:
-
-where $y_wy$ is the ecologic response variable estimated in a given water year, $x_{1,wy}$ and $x_{2,wy}$ are hydrologic predictor variables observed in a given water year, and a and b are regression coefficients.
-
-
-With a dataset this small, the risk of overfitting is relatively high [@James2013]. Consequently linear models with a maximum of two predictors were evaluated. Criteria used to make the evaluate model performance included degree of variability explained by the predictors ($R^2$ and adjusted $R^2$), statistical significance (p-value and F-statistic), the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes).
-
-
-
-
-
-MOVE TO RESULTS
-
-
-
-
-
-### Evaluation of all possible linear models and exclusion of Chinook
-
-
-### Hydrologic benefit function formulation and sensitivity
-
-As described above, coho salmon outcomes were modeled using two-predictor linear regression models. One-predictor models were also calculated for comparative purposes (see Results). 
-
-
-
-## Proposed formulation of a water year-based Hydrologic Benefit function for coho salmon
-
-To avoid over-interpreting the results of this small dataset, the coefficients of the three best selected models were averaged into the coefficients of an ensemble model shown in Table \@ref(tab:bestLMSlopesTab). The ensemble model coefficients provide the formulation of the Hydrologic Benefit function. Consequently the Hydrologic Benefit values can be interpreted as predictions of coho spf-equivalents for a given water year. The values of the four predictors (i.e., the hydrologic metrics for each water year in the Fort Jones gauge record in water years 1942-2021) -- are included in *Supplemental Table 1*.
-
-The combined formulation is as follows:
 
 $$
 HB_{wy} = b + m_{1}*metric_{1,~wy} + ... + m_{4}*metric_{4,~wy}
@@ -783,6 +719,11 @@ $m_{4} = 0.12~spf~equiv. / (day~of~wet~season~baseflow~duration)$
 caption_text = "Summary statistics of an example set of linear models predicting the number of coho smolt produced per female in a given water year. Because the Brood Year reconnection date for 10 cfs was by far the best single-predictor model, it is included in all two-predictor models under consideration."
 column_labels = c("Model","Predictor(s)", "F-stat.", "P-value", "R squared", "Adj. R squared", "AICc")
 
+# #Reset metrics tab to include only values with salmon relative reproduction values
+metrics_tab_co = metrics_tab[!is.na(metrics_tab$coho_smolt_per_fem),]
+
+best_for_demo_tab = read.csv(file.path(data_dir,"best_model_predictors_2022.03.30_demo extras.csv"))
+best_vals = make_lm_table_for_rmd(best_tab = best_for_demo_tab, data_tab = metrics_tab_co)
 colnames(best_vals) = column_labels
 
 best_vals_ft = flextable(data = best_vals)#, col_keys = column_labels)
@@ -806,14 +747,14 @@ best_vals_ft
 ```{r modelErrorTab, echo = FALSE, results = 'asis'}
 
 
-test_error_tab = data.frame(model_id = best_demo$model_id,
+test_error_tab = data.frame(model_id = best_for_demo_tab$model_id,
                             loocv = NA,
                             avg_pred_error = NA)
 
 # Build test error table
 
-for(i in 1:nrow(best_demo)){
-  preds = best_demo[i,colnames(best_demo)!="model_id"]
+for(i in 1:nrow(best_for_demo_tab)){
+  preds = best_for_demo_tab[i,colnames(best_for_demo_tab)!="model_id"]
   preds_i = preds[preds!="" & !is.na(preds)]
   
   loocv_i = homebrew_loocv(data_tab = metrics_tab_co, preds_lm = preds_i)
@@ -842,7 +783,8 @@ loocv_ft
 
 
 # build slopes table for all predictors
-coef_tab = best_lms_slopes_table(best_tab = best, data_tab = metrics_tab)
+best_for_slopes_tab = best_for_fig[!(is.na(best_for_fig$x2)),]
+coef_tab = best_lms_slopes_table(best_tab = best_for_slopes_tab, data_tab = metrics_tab)
 
 # Add averaged row for HBF weights
 mean_row = colSums(coef_tab, na.rm=T) / nrow(coef_tab)
@@ -857,10 +799,13 @@ write.csv(coef_tab, file.path(graphics_dir,
 #Create caption and column labels
 caption_text = "Summary of slope values (coho smolt per female per relevant unit) for predictors included in the three best linear models. The ensemble average values are used as weights in the Hydrologic Benefit function."
 
-preds = unique(unlist(best[,colnames(best)!="model_id"]))
+preds = unique(unlist(best_for_slopes_tab[,colnames(best_for_slopes_tab)!="model_id"]))
 preds = preds[preds!="" & !is.na(preds)] # take out the blanks
 
-column_labels =c("Intercept", preds) #c("Model ID", preds)
+column_labels =c("Model ID","Intercept", preds) #c("Model ID", preds)
+
+coef_tab$model_id = c("lm2a","lm2b","lm2c","Ensemble Avg.")
+coef_tab = coef_tab[,c("model_id",colnames(coef_tab)[1:(ncol(coef_tab)-1)])]
 colnames(coef_tab) = column_labels
 
 lm_coef_ft = flextable(data = coef_tab)
@@ -869,6 +814,7 @@ lm_coef_ft = colformat_double(x = lm_coef_ft, j = 2, digits = 2)
 lm_coef_ft = colformat_double(x = lm_coef_ft, j = 3, digits = 2)
 lm_coef_ft = colformat_double(x = lm_coef_ft, j = 4, digits = 2)
 lm_coef_ft = colformat_double(x = lm_coef_ft, j = 5, digits = 2)
+lm_coef_ft = hline(lm_coef_ft, i=3)
 lm_coef_ft = set_caption(lm_coef_ft, caption = caption_text)
 autofit(lm_coef_ft)
 ```
@@ -888,11 +834,127 @@ comp_names = c("Fall Recon. Day, 10 cfs", "Fall Recon. Day, 100 cfs", "Wet Seaso
 ```
 
 
-## HB function sensitivity to one additional observation
 
-To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive model was estimated by adding one additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. Furthermore, flow conditions in and just before water year 2016 were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (`r round(hbf_tab$hbf_total[hbf_tab$water_year==2016],1)`; see Figure \@ref(fig:hbfOverTime)). The significance of predicted negative coho spf values is described further in Results. 
+### Hydrologic Benefit value over time and component contributions
 
-This missing value for brood year 2015 was replaced by 0, as well as the minimum, mean and maximum values of observed coho spf (5.8, 60.0, and 101.8 coho spf, respectively). The ensemble average coefficients in the HB function were recalculated based on each revised dataset.
+The values of the predictors - the four hydrologic metrics for each water year in the Fort Jones gauge record (water years 1942-2021) - are included in *Supplemental Table 2*.  Using this table, coho outcomes for 1944-2021 can be predicted.
+
+Matching the historical flow trends discussed above, the predicted value of coho spf-equivalent produced by a given water year has trended downward over time (Figure \@ref(fig:hbfOverTime)). The hydrology of a severe drought in water years 2012-2016 is reflected in three consecutive years (2014-2016) of lower-than-40 predicted coho spf.
+
+Since 1990, the low predicted coho spf values in dry water years have become progressively lower, culminating in three years, all occurring after water year 2000, in which < 0 coho spf are predicted. Though a negative value for coho reproduction has no physical meaning, we chose to retain these impossible values to visually represent uncertainty associated with this modeling exercise (see Discussion for more information).
+
+The relative influence of different terms in the Tensemble model varies over time: most variability in the 1940s-1970s is due to changes in wet season onset and wet season baseflow duration, but starting in the 1980s the fall flow reconnection timing tends to dominate predictions, especially during low-coho spf years (Figure \@ref(fig:hbfBarchart); the intercept term is excluded for ease of visualization).
+
+```{r hbfOverTime, echo = F, warning = F, fig.height = 5, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf). Predicted coho spf quantities are shown as Hydrologic Benefit (HB) function values. The coho spf values are plotted in the water year spanning each cohort's Brood and Rearing Year. Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.\\label{fig:hbfOverTime}"}
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 7, units = "in", res = 300)
+  
+  hbf_over_time_fig(hbf_tab = hbf_tab) 
+  
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
+
+```
+
+
+
+```{r hbfBarchart, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values (coho spf-equivalent). A positive value (i.e., one associated with a water year's Wet Season Baseflow Duration) indicates that a longer wet season baseflow duration contributes a positive value to the predicted number of coho spf produced in that cohort. A negative value (e.g., one associated with a water year's Fall Reconnection Day at 10 cfs) indicates that a later reconnection date contributes a negative value to the predicted number of coho spf produced in that cohort.\\label{fig:hbfBarchart}"}
+
+# arrange data
+keep_cols = c("water_year",paste0("comp",1:4))
+bar_data = hbf_tab[,keep_cols]
+
+graph_cols = c("Water Year", comp_names)
+colnames(bar_data) = graph_cols
+bd_melt = melt(dat = bar_data, id.vars = "Water Year")
+colnames(bd_melt)[3] = "Contribution to Hydrologic Benefit value (coho spf-equiv.)"
+
+
+# Bar charrrt
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs==T){
+  # png(filename = file.path(fig_path), width = 7, height = 8, units = "in", res = 300)
+
+hbf_bar = ggplot(data = bd_melt, 
+                 aes(x = `Water Year`, 
+                     y = `Contribution to Hydrologic Benefit value`,
+                     fill = variable)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_brewer(palette = "Spectral") +
+  theme(legend.position = "bottom", legend.direction = "vertical")
+
+ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 7, units="in")
+}
+
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
+
+```
+
+
+
+### Sensitivity of the Hydrologic Benefit function to one additional data point
+
+Testing different values for the missing coho spf observation for brood year 2015 suggests that the best-fit HB function weights are relatively sensitive to the addition of one new data point, as can be expected for a small dataset. Flow conditions in and just before water year 2016 (affecting brood year 2015) were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (-35.9; see Figure \@ref(fig:hbfOverTime)). 
+
+Replacing this predicted negative value in 2016 (brood year 2015) with an "observed" coho spf value of 0 changes the coefficient (or conceptual weight) of the predictor BY_recon_10 from -1.15 to -0.88 (a difference of 24%). Replacing it with higher numbers produces less and less negative coefficient values. Specifically, a 1-coho spf increase in the missing value makes the coefficient less negative by 0.007 coho spf per day of 10-cfs reconnection delay, such that if it is replaced with the maximum observed coho spf value (101.8), the coefficient is calculated as -0.09 coho spf/day. The other three coefficients are not as sensitive to the new value, ranging from -0.17 -- -0.19, -0.20 -- -0.18, and 0.12 -- 0.13 for BY_recon_100, RY_Wet_Tim, and RY_Wet_BFL_Dur, respectively, when the missing value is replaced by a range from 0 to 101.8.
+
+
+
+<!-- # Extra text from Methods -->
+
+
+
+<!-- The average ensemble model was used to dampen the sensitivity of any individual model to a single water-year outcome.  -->
+
+
+
+
+
+<!-- Only two-predictor models were included in the model selection exercise, because  -->
+
+<!-- In all two-predictor linear regression models the ecological outcome for each water year was estimated as follows: -->
+
+<!-- where $y_wy$ is the ecologic response variable estimated in a given water year, $x_{1,wy}$ and $x_{2,wy}$ are hydrologic predictor variables observed in a given water year, and a and b are regression coefficients. -->
+
+
+<!-- With a dataset this small, the risk of overfitting is relatively high [@James2013]. Consequently linear models with a maximum of two predictors were evaluated. Criteria used to make the evaluate model performance included degree of variability explained by the predictors ($R^2$ and adjusted $R^2$), statistical significance (p-value and F-statistic), the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes). -->
+
+
+
+
+
+<!-- MOVE TO RESULTS -->
+
+
+
+
+
+<!-- ### Evaluation of all possible linear models and exclusion of Chinook -->
+
+
+<!-- ### Hydrologic benefit function formulation and sensitivity -->
+
+<!-- As described above, coho salmon outcomes were modeled using two-predictor linear regression models. One-predictor models were also calculated for comparative purposes (see Results).  -->
+
+
+
+<!-- ## Proposed formulation of a water year-based Hydrologic Benefit function for coho salmon -->
+
+<!-- To avoid over-interpreting the results of this small dataset, the coefficients of the three best selected models were averaged into the coefficients of an ensemble model shown in Table \@ref(tab:bestLMSlopesTab). The ensemble model coefficients provide the formulation of the Hydrologic Benefit function. Consequently the Hydrologic Benefit values can be interpreted as predictions of coho spf-equivalents for a given water year. The values of the four predictors (i.e., the hydrologic metrics for each water year in the Fort Jones gauge record in water years 1942-2021) -- are included in *Supplemental Table 1*. -->
+
+<!-- The combined formulation is as follows: -->
+
+<!-- ## HB function sensitivity to one additional observation -->
+
+<!-- To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive model was estimated by adding one additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. Furthermore, flow conditions in and just before water year 2016 were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (`r round(hbf_tab$hbf_total[hbf_tab$water_year==2016],1)`; see Figure \@ref(fig:hbfOverTime)). The significance of predicted negative coho spf values is described further in Results.  -->
+
+<!-- This missing value for brood year 2015 was replaced by 0, as well as the minimum, mean and maximum values of observed coho spf (5.8, 60.0, and 101.8 coho spf, respectively). The ensemble average coefficients in the HB function were recalculated based on each revised dataset. -->
 
 
 <!-- ```{r SA_0_val, echo = F, warning =F, results = 'asis'} -->
@@ -1127,21 +1189,21 @@ This missing value for brood year 2015 was replaced by 0, as well as the minimum
 
 <!-- ``` -->
 
-# Results
+<!-- # Results -->
 
 
 
-### Correlation of hydrologic metrics with salmon metrics
+<!-- ### Correlation of hydrologic metrics with salmon metrics -->
 
-The information in *Supplemental Table 2* was used to calculate Pearson correlation coefficients between flow metrics and observed ecological quantities: four coho observation types (the number of spawners, number of redds, number of smolt, and the number of smolts produced per female spawner) (Figure \@ref(fig:corrMatrixFig)), and three Chinook observation types (all aforementioned types except number of redds, since local redd monitoring for Chinook has an insufficient record length) (*Supplemental Figure 1*)). 
+<!-- The information in *Supplemental Table 2* was used to calculate Pearson correlation coefficients between flow metrics and observed ecological quantities: four coho observation types (the number of spawners, number of redds, number of smolt, and the number of smolts produced per female spawner) (Figure \@ref(fig:corrMatrixFig)), and three Chinook observation types (all aforementioned types except number of redds, since local redd monitoring for Chinook has an insufficient record length) (*Supplemental Figure 1*)).  -->
 
-These correlations were used as a first pass filter to refine the set of variables considered in the linear modeling exercise. A larger number of predictors was evaluated than the set depicted here; the predictors included in Figure \@ref(fig:corrMatrixFig) are selected because of a high correlation coefficient or an unexpected result. A full correlation matrix is shown in *Supplemental Figure 1*.
+<!-- These correlations were used as a first pass filter to refine the set of variables considered in the linear modeling exercise. A larger number of predictors was evaluated than the set depicted here; the predictors included in Figure \@ref(fig:corrMatrixFig) are selected because of a high correlation coefficient or an unexpected result. A full correlation matrix is shown in *Supplemental Figure 1*. -->
 
 
 
-As mentioned in Methods, the coho salmon indicator that is most correlated with hydrologic metrics is the number of coho smolt produced per spawning female (Figure \@ref(fig:corrMatrixFig)). One reason for this may be that normalizing the observed number of smolt to the number of spawners eliminates the independent influence of cohort strength. Because of the already small number of water years for which smolt and spawner counts are available, explicit consideration of each 3-year cohort of coho salmon was deemed statistically impossible for this study. Notably, data limitations for the coho spf metric reduce the sample size to only 11 years of observations. 
+<!-- As mentioned in Methods, the coho salmon indicator that is most correlated with hydrologic metrics is the number of coho smolt produced per spawning female (Figure \@ref(fig:corrMatrixFig)). One reason for this may be that normalizing the observed number of smolt to the number of spawners eliminates the independent influence of cohort strength. Because of the already small number of water years for which smolt and spawner counts are available, explicit consideration of each 3-year cohort of coho salmon was deemed statistically impossible for this study. Notably, data limitations for the coho spf metric reduce the sample size to only 11 years of observations.  -->
 
-Furthermore, as mentioned in Methods, ecological observations of Chinook show markedly less correlation with hydrologic metrics than those for coho.
+<!-- Furthermore, as mentioned in Methods, ecological observations of Chinook show markedly less correlation with hydrologic metrics than those for coho. -->
 
 
 ```{r inter_corr_matrix_supp_fig, echo = F, warning =F, comment = F}
@@ -1212,87 +1274,25 @@ dev.off()
 
 <!-- ``` -->
 
-### Selection of 10 and 100 cfs thresholds for fall disconnection dates
+<!-- ### Selection of 10 and 100 cfs thresholds for fall disconnection dates -->
 
-Fall reconnection dates in a cohort's Brood Year appear strongly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)), and previous work in the region has documented that fall flows are critical for salmon spawning [SRWC and RCD -@SRWC_RCD2003]. However, some flow thresholds may be less relevant to coho life stages than others, and the reconnection timing of proximate flow thresholds is somewhat correlated. It was therefore necessary to reduce the number of flow thresholds under consideration in the linear model selection process, in order to a) identify flow thresholds with the greatest impact on coho reproduction (to the extent possible with such a small dataset), and b) avoid the inclusion of redundant hydrologic information.
-
-
+<!-- Fall reconnection dates in a cohort's Brood Year appear strongly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)), and previous work in the region has documented that fall flows are critical for salmon spawning [SRWC and RCD -@SRWC_RCD2003]. However, some flow thresholds may be less relevant to coho life stages than others, and the reconnection timing of proximate flow thresholds is somewhat correlated. It was therefore necessary to reduce the number of flow thresholds under consideration in the linear model selection process, in order to a) identify flow thresholds with the greatest impact on coho reproduction (to the extent possible with such a small dataset), and b) avoid the inclusion of redundant hydrologic information. -->
 
 
 
 
 
 
-### All possible linear models for Chinook and coho reproduction
+
+
+<!-- ### All possible linear models for Chinook and coho reproduction -->
 
 
 
-## Linear model predictions
-
-
-## Hydrologic Benefit value over time and component contributions
-
-Matching the historical flow trends discussed above, the predicted value of coho spf-equivalent produced by a given water year has trended downward over time (Figure \@ref(fig:hbfOverTime)). The hydrology of a severe drought in water years 2012-2016 is reflected in three consecutive years (2014-2016) of lower-than-40 predicted coho spf.
-
-Since 1990, the low predicted coho spf values in dry water years have become progressively lower, culminating in three years, all occurring after water year 2000, in which < 0 coho spf are predicted. Though a negative value for coho reproduction is obviously not possible, we chose to retain these impossible values to visually represent uncertainty associated with this modeling exercise (see Discussion for more information).
-
-The relative contributions of each hydrologic metric to predicted Hydrologic Benefit values (except the intercept term, which is excluded for ease of visualization) is shown in Figure \@ref(fig:hbfBarchart).
-
-```{r hbfOverTime, echo = F, warning = F, fig.height = 5, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf). Predicted coho spf quantities are shown as Hydrologic Benefit (HB) function values. The coho spf values are plotted in the water year spanning each cohort's Brood and Rearing Year. Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.\\label{fig:hbfOverTime}"}
-
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 7, units = "in", res = 300)
-  
-  hbf_over_time_fig(hbf_tab = hbf_tab) 
-  
-  dev.off()
-}
-knitr::include_graphics(fig_path)
-fig_i = fig_i +1
-
-```
+<!-- ## Linear model predictions -->
 
 
 
-```{r hbfBarchart, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values (coho spf-equivalent). A positive value (i.e., one associated with a water year's Wet Season Baseflow Duration) indicates that a longer wet season baseflow duration contributes a positive value to the predicted number of coho spf produced in that cohort. A negative value (e.g., one associated with a water year's Fall Reconnection Day at 10 cfs) indicates that a later reconnection date contributes a negative value to the predicted number of coho spf produced in that cohort.\\label{fig:hbfBarchart}"}
-
-# arrange data
-keep_cols = c("water_year",paste0("comp",1:4))
-bar_data = hbf_tab[,keep_cols]
-
-graph_cols = c("Water Year", comp_names)
-colnames(bar_data) = graph_cols
-bd_melt = melt(dat = bar_data, id.vars = "Water Year")
-colnames(bd_melt)[3] = "Contribution to Hydrologic Benefit value (coho spf-equiv.)"
-
-
-# Bar charrrt
-
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs==T){
-  # png(filename = file.path(fig_path), width = 7, height = 8, units = "in", res = 300)
-
-hbf_bar = ggplot(data = bd_melt, 
-                 aes(x = `Water Year`, 
-                     y = `Contribution to Hydrologic Benefit value`,
-                     fill = variable)) + 
-  geom_bar(stat = "identity") + 
-  scale_fill_brewer(palette = "Spectral") +
-  theme(legend.position = "bottom", legend.direction = "vertical")
-
-ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 7, units="in")
-}
-
-knitr::include_graphics(fig_path)
-fig_i = fig_i +1
-
-```
-
-
-## Sensitivity of the Hydrologic Benefit function to one additional data point
-
-The best-fit HB function weights are relatively sensitive to the addition of one new data point, as can be expected for a small dataset. Assigning a coho spf value of 0 to the missing 2016 observation (brood year 2015) changes the coefficient (or conceptual weight) of the predictor BY_recon_10 from -1.15 to -0.88 (a difference of 24%). Replacing it with higher numbers produces less and less negative coefficient values. Specifically, a 1-coho spf increase in the missing value makes the coefficient less negative by 0.007 coho spf per day of 10-cfs reconnection delay, such that if it is replaced with the maximum observed coho spf value (101.8), the coefficient is calculated as -0.09 coho spf/day. The other three coefficients are not as sensitive to the new value, ranging from -0.17 -- -0.19, -0.20 -- -0.18, and 0.12 -- 0.13 for BY_recon_100, RY_Wet_Tim, and RY_Wet_BFL_Dur, respectively, when the missing value is replaced by a range from 0 to 101.8.
 
 
 # Discussion
