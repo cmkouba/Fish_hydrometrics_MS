@@ -1687,6 +1687,16 @@ show_lm_summary_from_table = function(pred_tab, data_tab, y_name = "coho_smolt_p
   # str(lm1)
 }
 
+add_loocv_column_to_lm_diagnostics_tab = function(data_tab, lm_tab, num_xs){
+
+  if(num_xs == 1){}
+
+  if(num_xs == 2){
+    homebrew_loocv(data_tab = data_tab, preds_lm = preds_i)
+  }
+  return(lm_tab)
+}
+
 save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   # March 2024: retain all metrics for these tables
   save_dir = graphics_dir
@@ -1695,12 +1705,14 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   pred1 = make_table_of_all_lms(data_tab = metrics_tab, y_name = "coho_smolt_per_fem",
                                 num_xs = 1, graph_p_adjR=F)
   colnames(pred1)[1] = "pred1"
+  pred1 = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred1, num_xs = 1)   # add LOOCV column
   write.csv(pred1, quote=F, row.names = F,
             file=file.path(save_dir, "Supplemental Table 3 - One Predictor Models of Coho spf.csv"))
 
   ### 1b. Selection of best 1 predictor model: Chinook
   pred1_ch = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F, y_name = "chinook_juv_per_adult", num_xs = 1)
   colnames(pred1_ch)[1] = "pred1"
+  pred1_ch = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred1_ch, num_xs = 1)   # add LOOCV column
   write.csv(pred1_ch, file=file.path(save_dir,"Supplemental Table 4 - One Predictor Models of Chinook jpa.csv"),
             quote=F, row.names = F)
 
@@ -1708,7 +1720,9 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   pred2 = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F,
                                 y_name = "coho_smolt_per_fem", num_xs = 2)
   pred2 = pred2[!is.na(pred2$pval),] # get rid of NA rows
+  pred2 = pred2[!duplicated(pred2$Fstat,4),] # get rid of duplicates
   colnames(pred2)[1:2] = c("pred1", "pred2")
+  pred2 = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred2, num_xs = 2)   # add LOOCV column
   write.csv(pred2, quote=F, row.names = F,
             file=file.path(save_dir,"Supplemental Table 5 - Two Predictor Models of Coho spf.csv"))
 
@@ -1716,7 +1730,9 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   pred2_ch = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F,
                                    y_name = "chinook_juv_per_adult", num_xs = 2)
   pred2_ch = pred2_ch[!is.na(pred2_ch$pval),] # get rid of NA rows
+  pred2_ch = pred2_ch[!duplicated(pred2_ch$Fstat,4),] # get rid of duplicates
   colnames(pred2_ch)[1:2] = c("pred1", "pred2")
+  pred2_ch = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred2_ch, num_xs = 2)   # add LOOCV column
   write.csv(pred2_ch, quote=F, row.names = F,
             file=file.path(save_dir, "Supplemental Table 6 - Two Predictor Models of Chinook jpa.csv"))
 

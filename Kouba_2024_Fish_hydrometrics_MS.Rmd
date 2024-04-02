@@ -581,9 +581,13 @@ fig_i = fig_i +1
 
 ## Linear modeling
 
+### Hydrologic predictors and model structure 
 
+With two disconnection/reconnection flow thresholds (10 cfs, 100 cfs), a total of 36 hydrologic predictor variables are available for analysis. All hydrologic predictors were used to generate the set of possible 1- and 2-predictor linear models of the relative reproduction for Chinook (Chinook jpa) and coho (coho spf) salmon. Coho reproduction rates appear to be correlated with some hydrologic metrics, based on the hydrologic conditions and coho observations in brood years 2004 - 2019, corresponding to water years 2007-2020. Relative reproduction in Chinook was less predictable than in coho, using the same set of hydrologic predictors: for Chinook, maximum $R^2$ values were 0.2 and 0.5 for single- and two-predictor models, respectively, while for coho they were 0.5 and 0.9 (Figure \@ref(fig:allLMsCohoChinook)). Given the limited strength of the Chinook data, the development of the HB function was conducted only for coho salmon, yielding 36 + 36^2^ = 1,332 linear models.
 
-We used all hydrologic predictors to generate the set of all possible 1- and 2-predictor linear models of the relative reproduction for Chinook (Chinook jpa) and coho (coho spf) salmon. Coho reproduction rates appear to be correlated with some hydrologic metrics, based on the hydrologic conditions and coho observations in brood years 2004 - 2019, corresponding to water years 2007-2020. Relative reproduction in Chinook was less predictable than in coho, using the same set of hydrologic predictors: for Chinook, maximum $R^2$ values were 0.2 and 0.5 for single- and two-predictor models, respectively, while for coho they were 0.5 and 0.9 (Figure \@ref(fig:allLMsCohoChinook)). Given the limited strength of the Chinook data, the development of the HB function was conducted only for coho salmon.
+To select the most relevant models from the ensemble of 1,332 models, we first considered their $R^2$ and $p$ values. Most models for either coho spf or Chinook jpf produce unacceptable $p$ values, $p > 0.2$. Single predictor models with $p$ values of less than 0.2 reach $R^2$ values as high as 0.5 for coho spf, but only 0.2 for Chinook jpf (Figure \@ref(fig:allLMsCohoChinook)). As established already by simple correlation analysis for the original 49 hydrologic predictors, above, coho spf are significantly correlated with some of these hydrologic metrics, based on the hydrologic conditions and coho observations in brood years 2004-2019, corresponding to water years 2005-2020. Specifically, brood year reconnection, BY reconn. Day at 10 cfs and 100 cfs, brood year total flow, log of BY Tot. Flow Sep-Dec, brood year fall pulse magnitude and duration, BY_FA_Mag and BY_FA_Dur, rearing year fall pulse magnitude, RY FA_tim, and rearing year wet season timing and baseflow duration, RY Wet_Tim and RY BFL_Dur, exceed the correlation threshold criterion. Relative reproduction in Chinook was less predictable than in coho, using the same set of hydrologic predictors.
+
+**Explain negative R^2^ values**
 
 
 ```{r lm_diagnostics_supp_tabs, echo = F, warning =F}
@@ -640,18 +644,31 @@ knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
 ```
+For coho, the best single-predictor models (Brood Year fall reconnection dates for 10 and 100 cfs, or BY_recon_10 and BY_recon_100) are both related to the timing of rising fall flows in the Brood Year of each salmon cohort (Table \@ref(tab:bestLMSummaryTab)). Not surprisingly then, the predictor BY_FA_Mag was also highly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)). However, because a distinct fall pulse does not occur every year, including any fall pulse (FA) metrics would reduce the sample size to an unacceptable level (i.e., a total of six water years with a complete set of predictors and response observations). Because of this sample size limitation, but also because some of the information about this pulse is strongly embedded in the reconnection date metric, FA metrics were not further considered potential predictors.
 
-### Hydrologic predictors and model structure 
+Two predictor models provided significantly better results than single-predictor models: for Chinook, maximum $R^2$ valuse never exceeded 0.5, even at very low $p$ values. For coho spf, two-predictor linear models achieved maximum values of 0.9 with simultaneously very low $p$ values ($p<0.5$; Figure \@ref(fig:allLMsCohoChinook) and *Supplemental Tables 3* through *6*).
 
-For coho, the best single-predictor models (Brood Year fall reconnection dates for 10 and 100 cfs, or BY_recon_10 and BY_recon_100) are both related to the timing of rising fall flows in the Brood Year of each salmon cohort (Table \@ref(tab:bestLMSummaryTab)). 
+**AIC results**
 
-The predictor BY_FA_Mag, or the magnitude of the Brood Year fall pulse, was also highly correlated with coho spf (Figure \@ref(fig:corrMatrixFig)). However, because a distinct fall pulse does not occur every year, including it would reduced the sample size to an unacceptable level (i.e., a total of six water years with a complete set of predictors and response observations). Because of this sample size limitation, and because some of the information about this pulse was carried in the reconnection date metric, FA_Mag was excluded from the set of potential predictors.
+**F-statistics results**
 
-The addition of a second predictor clearly improves model performance in terms of predictive power and test error. This is evident in the greater abundance of 2-predictor models with higher $R^2$ and lower p-values (Figure \@ref(fig:allLMsCohoChinook); *Supplemental Tables 3* through *6*), as well as in the increased $R^2$ values, reduced AIC~c~ values, and reduced average error when comparing models lm2a and lm2b versus lm1a and lm1b (Tables \@ref(tab:bestLMSummaryTab) and \@ref(tab:modelErrorTab); Figure \@ref(fig:lmPredVObs)). 
+_Tasks for making 4.2 more systematic_
+
+* Pre-filter out FA metrics (and recon and discon? thresholds) for inclusion in Fig \@ref(fig:allLMsCohoChinook)
+* Clarify number of predictors going into full lm exercise (36?) 
+* check unit on Spring ROC for Fig 5
+* add LOOCV column to Supp Tabs
+
+
+
+, as well as in the increased $R^2$ values, reduced AIC~c~ values, and reduced average error when comparing models lm2a and lm2b versus lm1a and lm1b (Tables \@ref(tab:bestLMSummaryTab) and \@ref(tab:modelErrorTab); Figure \@ref(fig:lmPredVObs)). 
+
+
+Given the limited strength of the Chinook data, the development of the HB function was conducted only for coho salmon.
 
 ### Model selection criteria 
 
-The minimum performance criteria were established to select the final set of best model were: adjusted $R^2$ value of >0.6, a p-value of <0.2, an F-statistic of more than 10, and a LOOCV value of less than 747 (i.e., the LOOCV value of the best one-predictor model). The predictors and slopes of the three models which met these criteria (lm2a, lm2b, and lm2c) are shown in Table \@ref(tab:bestLMSlopesTab). 
+Similar to the thresholds used to discern the power of basic correlations between hydrologic predictor variables and ecologic outcomes, minimum performance criteria were established to select the final set of best linear model were: adjusted $R^2$ value of >0.6, a p-value of <0.2, an F-statistic of more than 10, and a LOOCV value of less than 747 (i.e., the LOOCV value of the best one-predictor model). The predictors and slopes of the three models which met these criteria (lm2a, lm2b, and lm2c) are shown in Table \@ref(tab:bestLMSlopesTab). 
 
 These criteria were selected using professional judgment based on the features of the available models, and the diversity of predictors in the resulting ensemble model. For example, the selection of a p-value criteria of <0.2 allowed the inclusion of lm2c (Table \@ref(tab:bestLMSummaryTab)), with a p-value of 0.18, but excluded lm2d, with a p-value of 0.64. The authors felt that this was a reasonable cutoff in statistical significance for such a small sample size of observed response variable. Additionally, the three models that met these criteria incorporate information from the end of a dry season (BY_recon_10 and 100), the onset of the wet season (RY_Wet_Tim), and the wet season duration (Wet_BFL_Dur), which supports the professional judgment of the authors that the degree of hydro-ecological services provided each water year is best evaluated using information from multiple seasons. 
 
