@@ -1617,7 +1617,7 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 
 make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem",
-                                 num_xs = 1, graph_p_adjR=T){
+                                 num_xs = 1, graph_p_adjR=F){
 
   # Initialize output tab as a combination of
   non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
@@ -1628,13 +1628,13 @@ make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem",
   data_tab_pred = data_tab[,!(colnames(data_tab) %in% non_pred_columns)]
   cdtb = colnames(data_tab_pred)
   if(num_xs==1){model_combos = cdtb}
-  if(num_xs==2){model_combos = expand.grid(cdtb, cdtb)}
-  if(num_xs==3){model_combos = expand.grid(cdtb, cdtb, cdtb)}
-  if(num_xs==4){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb)}
-  if(num_xs==5){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb)}
-  if(num_xs==6){model_combos = expand.grid(cdtb, cdtb, cdtb, cdtb, cdtb, cdtb)}
+  if(num_xs==2){model_combos = t(combn(x = cdtb, m = 2))}
+  if(num_xs==3){model_combos = t(combn(x = cdtb, m = 3))}
+  if(num_xs==4){model_combos = t(combn(x = cdtb, m = 4))}
+  if(num_xs==5){model_combos = t(combn(x = cdtb, m = 5))}
+  if(num_xs==6){model_combos = t(combn(x = cdtb, m = 6))}
 
-  output_tab = as.data.frame(as.matrix(model_combos))
+  output_tab = as.data.frame(model_combos)
   pred_colnames = paste0("x", 1:num_xs)
   colnames(output_tab) = pred_colnames
   # eliminate models with repeat predictors. ugh. hard to do this without knowing the # of predictors
@@ -1687,17 +1687,32 @@ show_lm_summary_from_table = function(pred_tab, data_tab, y_name = "coho_smolt_p
   # str(lm1)
 }
 
-add_loocv_column_to_lm_diagnostics_tab = function(data_tab, lm_tab, num_xs){
-
-  if(num_xs == 1){}
-
-  if(num_xs == 2){
-    homebrew_loocv(data_tab = data_tab, preds_lm = preds_i)
+add_loocv_column_to_lm_diagnostics_tab = function(data_tab, lm_tab,
+                                                  y_name = "coho_smolt_per_fem"){
+  lm_tab$loocv = NA
+  lm_tab$n = NA
+  data_tab = data_tab[!is.na(data_tab[,y_name]),] # reduce data tab to rows with response
+  for(i in 1:nrow(lm_tab)){
+    preds_i = as.character(lm_tab[i, grepl(pattern = "pred", x=colnames(lm_tab))])
+    if(length(preds_i)>1){preds_na_detector = is.na(apply(X = data_tab[,preds_i], MARGIN = 1, FUN = sum))}
+    if(length(preds_i)==1){preds_na_detector = is.na(data_tab[,preds_i])}
+    # reduce data tab to rows with predictors
+    data_tab_i = data_tab[!preds_na_detector,]
+    n_val = nrow(data_tab_i)
+    lm_tab$n[i] = n_val
+    loocv_val = homebrew_loocv(data_tab = data_tab_i,
+                           y_name = y_name,
+                           preds_lm = preds_i)
+    if(loocv_val >100){lm_tab$loocv[i] = round(loocv_val)}
   }
+#
+#   if(num_xs == 2){
+#     homebrew_loocv(data_tab = data_tab, preds_lm = preds_i)
+#   }
   return(lm_tab)
 }
 
-save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
+save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F, show_best_analysis_2=F){
   # March 2024: retain all metrics for these tables
   save_dir = graphics_dir
 
@@ -1705,14 +1720,15 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   pred1 = make_table_of_all_lms(data_tab = metrics_tab, y_name = "coho_smolt_per_fem",
                                 num_xs = 1, graph_p_adjR=F)
   colnames(pred1)[1] = "pred1"
-  pred1 = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred1, num_xs = 1)   # add LOOCV column
+  pred1 = add_loocv_column_to_lm_diagnostics_tab(data_tab = metrics_tab, lm_tab = pred1)   # add LOOCV column
   write.csv(pred1, quote=F, row.names = F,
             file=file.path(save_dir, "Supplemental Table 3 - One Predictor Models of Coho spf.csv"))
 
   ### 1b. Selection of best 1 predictor model: Chinook
   pred1_ch = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F, y_name = "chinook_juv_per_adult", num_xs = 1)
   colnames(pred1_ch)[1] = "pred1"
-  pred1_ch = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred1_ch, num_xs = 1)   # add LOOCV column
+  pred1_ch = add_loocv_column_to_lm_diagnostics_tab(data_tab = metrics_tab, y_name = "chinook_juv_per_adult",
+                                                    lm_tab = pred1_ch)   # add LOOCV column
   write.csv(pred1_ch, file=file.path(save_dir,"Supplemental Table 4 - One Predictor Models of Chinook jpa.csv"),
             quote=F, row.names = F)
 
@@ -1720,9 +1736,9 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   pred2 = make_table_of_all_lms(data_tab = metrics_tab, graph_p_adjR=F,
                                 y_name = "coho_smolt_per_fem", num_xs = 2)
   pred2 = pred2[!is.na(pred2$pval),] # get rid of NA rows
-  pred2 = pred2[!duplicated(pred2$Fstat,4),] # get rid of duplicates
   colnames(pred2)[1:2] = c("pred1", "pred2")
-  pred2 = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred2, num_xs = 2)   # add LOOCV column
+  pred2 = add_loocv_column_to_lm_diagnostics_tab(data_tab = metrics_tab, y_name = "coho_smolt_per_fem",
+                                                 lm_tab = pred2)   # add LOOCV column
   write.csv(pred2, quote=F, row.names = F,
             file=file.path(save_dir,"Supplemental Table 5 - Two Predictor Models of Coho spf.csv"))
 
@@ -1732,7 +1748,8 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
   pred2_ch = pred2_ch[!is.na(pred2_ch$pval),] # get rid of NA rows
   pred2_ch = pred2_ch[!duplicated(pred2_ch$Fstat,4),] # get rid of duplicates
   colnames(pred2_ch)[1:2] = c("pred1", "pred2")
-  pred2_ch = add_loocv_column_to_lm_diagnostics_tab(lm_tab = pred2_ch, num_xs = 2)   # add LOOCV column
+  pred2_ch = add_loocv_column_to_lm_diagnostics_tab(data_tab = metrics_tab, y_name = "chinook_juv_per_adult",
+                                                    lm_tab = pred2_ch)   # add LOOCV column
   write.csv(pred2_ch, quote=F, row.names = F,
             file=file.path(save_dir, "Supplemental Table 6 - Two Predictor Models of Chinook jpa.csv"))
 
@@ -1806,6 +1823,59 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F){
     show_lm_summary_from_table(pred_tab = best2_sub[1,], data_tab = metrics_tab)
     show_lm_summary_from_table(pred_tab = best2_sub[2,], data_tab = metrics_tab)
     show_lm_summary_from_table(pred_tab = best2_sub[3,], data_tab = metrics_tab)
+
+  }
+  if(show_best_analysis_2==T){
+
+    dim(pred2)
+    pred2_orig = pred2
+    pred2=pred2[pred2$n>10,] # include only models with 11
+
+    # plots
+    # lesson 1: for a set of models with the same number of predictors, adjRsquare is just
+    # a straight penalty so it's the same data for inter model comparison purposes. Might as well
+    # just use R2.
+    par(mfrow = c(1,2))
+    # pval vs Rsquare
+    plot(pred2$pval, pred2$Rsquare, pch = 19, col = rgb(.5,.5,.5,.5)); grid(); abline(h=0)
+    # pval vs adj-Rsquare
+    plot(pred2$pval, pred2$adjRsquare, pch = 19, col = rgb(.5,.5,.5,.5)); grid(); abline(h=0)
+
+    # Lesson 2: Fstat seems to carry similar info to AICc. and Rsquare!
+    # probably don't need Fstat included
+    # in the selection exercise if AIC is included.
+    # Fstat vs AICc #par(mfrow = c(1,1))
+    plot(pred2$Fstat, pred2$AICc, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+    # rsquare vs aic. makes a line! Maybe we should stick with AIC instead of Rsquare.
+    plot(pred2$AICc, pred2$Rsquare, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+
+    # so we can ignore adjRsquare and Fstat.
+    # Leaving us with 4 selection criteria: pval, Rsquare, AIC and loocv.
+
+    # AICc vs error (loocv) - very related but not strictly linearly.
+    # A group of 4 or 6 models, then a break, highlighted on this plot. AIC < 108?
+    plot(pred2$AICc, pred2$loocv, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+    # There's two enormous outliers. Control for that.
+    # plot(pred2$AICc, pred2$loocv, pch = 19, col = rgb(.5,.5,.5,.5),ylim = c(0,8000)); grid()
+    # or exclude them:     pred2$loocv[pred2$loocv>10000] = NA
+
+    #AICc vs pval
+    plot(pred2$pval, pred2$AICc, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+
+    #pval vs error. A slight positive trend (less error means more significance)
+    # but huge range at low p values.
+    plot(pred2$pval, pred2$loocv, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+
+    #rsquare vs error. same 8 highlighted I assume as AIC vs error
+    plot(pred2$Rsquare, pred2$loocv, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+    plot(pred2$AICc, pred2$loocv, pch = 19, col = rgb(.5,.5,.5,.5)); grid()
+
+
+    # if we group Rsqaure, AICc, and Fstat then we only have 3. so we can use the plot3d
+    plot3d(x=pred2$pval, y=pred2$Rsquare, z=pred2$loocv)
+    # things associated with pval: scatter and slight trends. can ID quadrants
+    # rsquare with error: swoosh. clearly IDs 4 or 6 good models.
+    # thresholds: loocv < 1000, Rsquare > 0.65
 
   }
 
