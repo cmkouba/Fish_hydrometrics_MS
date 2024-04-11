@@ -53,7 +53,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   # library(boot) # for linear model selection
   library(xtable)
   library(flextable)
-  
+  library(glmnet)
   
   
   # Directories

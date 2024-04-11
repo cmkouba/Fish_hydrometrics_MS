@@ -1019,7 +1019,7 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
 }
 
 
-# Linear Model Selection functions ----------------------------------------
+# V1 Linear Model Selection functions ----------------------------------------
 
 
 
@@ -1481,7 +1481,7 @@ lm_pred_v_obs_fig = function(best_tab, metrics_tab, plot_rowscols = c(4,2)){
 }
 
 
-# HBF Results -----------------------------------------------------------------
+# V1 HBF Results -----------------------------------------------------------------
 
 calc_hbf_tab_feb2022 = function(thresholds_hbf = c(10,100), last_wy = 2021,
                                 flow_tab_for_hbf, ch1_hbftab = F, weights,
@@ -1611,7 +1611,27 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 
 
+# V2 Linear Model Selection -----------------------------------------------
 
+# Lasso regression. Informed by lab from ISLR 7th printing
+
+#step 1. remove NA vals
+# 1a. remove rows with no response var
+mt = metrics_tab
+y_val = "coho_smolt_per_fem"
+non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
+                  "chinook_juv_per_adult", "coho_spawner_abundance",
+                  "coho_smolt_per_fem", "coho_smolt_abun_est",
+                  "percent_coho_smolt_survival", "coho_redds_in_brood")
+non_y_vals = non_pred_vals[non_pred_vals != y_val]
+mt = mt[,!(colnames(mt) %in% non_y_vals)]
+mt = mt[!is.na(mt$coho_smolt_per_fem),]
+na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
+mt = mt[,!is.na(na_col_detector) ]
+colnames(mt)
+
+lam_vals = 10^seq(10,-2,length=100)
+glmnet(x, y, alyha = 1, lambda = lam_vals)
 
 # Supplemental lm tables --------------------------------------------------
 
