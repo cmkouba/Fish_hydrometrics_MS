@@ -21,7 +21,6 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   library(lubridate)
   library(rpostgis)
   library(postGIStools)
-  library(here)
   library(httr)
   library(stringr)
   library(rstudioapi)
@@ -54,6 +53,8 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   library(xtable)
   library(flextable)
   library(glmnet)
+  library(here)
+
   
   
   # Directories

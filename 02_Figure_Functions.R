@@ -1613,25 +1613,123 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 # V2 Linear Model Selection -----------------------------------------------
 
-# Lasso regression. Informed by lab from ISLR 7th printing
+lasso_regression_exp = function(metrics_tab){
 
-#step 1. remove NA vals
-# 1a. remove rows with no response var
-mt = metrics_tab
-y_val = "coho_smolt_per_fem"
-non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
-                  "chinook_juv_per_adult", "coho_spawner_abundance",
-                  "coho_smolt_per_fem", "coho_smolt_abun_est",
-                  "percent_coho_smolt_survival", "coho_redds_in_brood")
-non_y_vals = non_pred_vals[non_pred_vals != y_val]
-mt = mt[,!(colnames(mt) %in% non_y_vals)]
-mt = mt[!is.na(mt$coho_smolt_per_fem),]
-na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
-mt = mt[,!is.na(na_col_detector) ]
-colnames(mt)
+  # Lasso regression. Informed by lab from ISLR 7th printing
 
-lam_vals = 10^seq(10,-2,length=100)
-glmnet(x, y, alyha = 1, lambda = lam_vals)
+  #step 1. remove NA vals
+  # 0 run manuscript .Rmd through line 395
+  # 1a. remove rows with no response var
+  mt = metrics_tab
+  y_val = "coho_smolt_per_fem"
+  non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
+                    "chinook_juv_per_adult", "coho_spawner_abundance",
+                    "coho_smolt_per_fem", "coho_smolt_abun_est",
+                    "percent_coho_smolt_survival", "coho_redds_in_brood")
+  non_y_vals = non_pred_vals[non_pred_vals != y_val]
+  mt = mt[,!(colnames(mt) %in% non_y_vals)]
+  mt = mt[!is.na(mt$coho_smolt_per_fem),]
+  na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
+  mt = mt[,!is.na(na_col_detector) ]
+  colnames(mt)
+
+  # 1b. Optional. Remove the other thresholds?
+  remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
+                   "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
+                   "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
+                   "SY_discon_80")
+  mt = mt[,!(colnames(mt) %in% remove_these)]
+
+
+  # 2a. Lasso Regression
+  x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
+  y = mt$coho_smolt_per_fem
+
+  # subset into training and testing (ugh)
+  seed=1
+  set.seed(seed)
+  train = sample(1:nrow(x), nrow(x)/2)
+  test = (-train)
+  y.test = y[test]
+
+  lam_vals = 10^seq(10,-2,length=100)
+  lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
+  plot(lasso_1)
+  coef_df = as.data.frame(as.matrix(coef(lasso_1)))
+  View(coef_df)
+
+  set.seed(1)
+  cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
+  # plot(cv.out)
+  bestlam=cv.out$lambda.min
+  lasso.pred=predict(lasso_1, s=bestlam, newx=x[test,])
+  lasso_rmse = sqrt(mean((lasso.pred-y.test)^2))
+  print(paste("seed:",seed,"; bestlam:",round(bestlam,1),"; err:",round(lasso_rmse,1)))
+
+
+  # Lambda selection -
+  # find complete set of combos of 1:11, 5
+
+
+  find_all_lambda_vals = function(com_tab, x, y,
+                                  lam_vals = 10^seq(10,-2,length=100)){
+    output_tab = as.data.frame(com_tab); output_tab$bestlam = NA
+    for(i in 1:nrow(com)){
+      train = com[i,]
+      test = -com[i,]
+      y.test = y[test]
+      lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
+      set.seed(1)
+      cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
+      output_tab$bestlam[i] = cv.out$lambda.min
+    }
+    return(output_tab)
+  }
+
+  x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
+  y = mt$coho_smolt_per_fem
+  com = t(combn(x = 1:11, m = 5))
+  # h = apply(X = com, MARGIN = 1, FUN = function(x){paste(x, collapse = ", ")})
+  lasso_lambdas = find_all_lambda_vals(com_tab = com, x = x, y = y)
+  View(lasso_lambdas)
+  hist(lasso_lambdas$bestlam, breaks = 30)
+  summary(lasso_lambdas$bestlam)
+
+  lambda_options = 20#c(.3, 18.8, 29)
+  lambda_options = c(0.3, 1, seq(5,50,10))
+  lasso_1 = glmnet(x, y, alpha = 1, lambda = lambda_options)
+  lasso.pred=predict(lasso_1, s=lambda_options, newx=x)
+  sqrt(mean((lasso.pred-y)^2))
+  # plot(lasso_1)
+  coef(lasso_1)
+
+
+  # don't divide test and train
+  lasso_1 = glmnet(x, y, alpha = 1, lambda = lam_vals)
+  set.seed(1)
+  cv.out=cv.glmnet(x, y, alpha = 1)
+  lasso.pred=predict(lasso_1, s=bestlam, newx=x)
+  mean((lasso.pred-y)^2)
+  # plot(lasso_1)
+
+  coef(lasso_1)
+
+
+  # 1.c. Ridge Regression
+  ridge_1 = glmnet(x, y, alpha = 0, lambda = lam_vals)
+  set.seed(1)
+  train = sample(1:nrow(x), nrow(x)/2)
+  test = (-train)
+  y.test = y[test]
+  ridge_2 = glmnet(x[train,], y[train], alpha=0, lambda = lam_vals, thresh = 1e-12)
+  cv.out=cv.glmnet(x, y, alpha = 1)
+  lasso.pred=predict(lasso_1, s=bestlam, newx=x)
+  mean((lasso.pred-y)^2)
+  plot(lasso_1)
+
+}
+
+
 
 # Supplemental lm tables --------------------------------------------------
 
