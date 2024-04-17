@@ -1613,9 +1613,121 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 # V2 Linear Model Selection -----------------------------------------------
 
-lasso_regression_exp = function(metrics_tab){
+generate_pred_appear_tab = function(lasso_mod){
+  coefs = as.data.frame((as.matrix(coef(lasso_mod))))
+  non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, FUN = function(x){min(which(abs(x)>0))})
+  coefs$lambda_val_coef_appears = best_lam_range[non0_coef_lambda_index]
+  coef_lambda_non0_vals = as.data.frame(cbind(rownames(coefs), coefs$lambda_val_coef_appears))
+  colnames(coef_lambda_non0_vals) = c("predictor","lambda_non0_val_appears")
+  coef_lambda_non0_vals$lambda_non0_val_appears = as.numeric(coef_lambda_non0_vals$lambda_non0_val_appears)
+  # View predictors in order of when they enter the regression by increasing lambda value
+  pred_appear_tab = coef_lambda_non0_vals[order(coef_lambda_non0_vals$lambda_non0_val_appears,
+                                                decreasing=T),]
+  pred_appear_tab = pred_appear_tab[!pred_appear_tab$predictor=="(Intercept)",]
+  return(pred_appear_tab)
+}
+
+lasso_regression_plots = function(metrics_tab,
+                                  find_best_lambdas = F,
+                                  remove_extra_recon_thresholds = F){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
+
+  find_all_best_lambda_vals = function(com_tab, x, y,
+                                       lam_vals = 10^seq(-3, 4,length=100)){
+    output_tab = as.data.frame(com_tab)
+    output_tab$bestlam = NA
+    output_tab$rmse = NA
+    for(i in 1:nrow(com)){
+      train = com[i,]
+      test = -com[i,]
+      y.test = y[test]
+      lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
+      set.seed(1)
+      cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
+      output_tab$bestlam[i] = cv.out$lambda.min
+      # calculate an RMSE for this test set
+      lasso_i=glmnet(x=x[test,], y=y.test, alpha = 1, lambda = output_tab$bestlam[i])
+      lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x)
+      output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
+
+    }
+
+    return(output_tab)
+  }
+
+  plot_lasso_diagnostics = function(x, y, best_lam_range){  # Plot lasso diagnostics.
+    # par(mfrow=(c(2,1)))
+    #A: deviance and non-0 coefficients
+    lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+    deg_free_tab = print(lasso_3)
+    par(mar=c(5,5,3,5))
+    plot(deg_free_tab$Lambda, deg_free_tab$`%Dev`,  type = "l",
+         ylab = "% of null deviation explained by model",
+         xlab = "Lambda value (shrinkage penalty)",
+         main = "Adding more coefficients explains more variation")
+    grid()
+    par(new=T)
+    plot(deg_free_tab$Lambda, deg_free_tab$Df, col = "dodgerblue", lwd = 2,
+         xlab="",ylab="", axes=F, type = "l")
+    axis(side=4,at=pretty(range(deg_free_tab$Df)))
+    mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3)
+    legend(x = "topright", col=c("black","dodgerblue"), lwd = c(1,2),
+           legend = c("% Deviance", "Degrees of freedom"))
+
+    # B) Plot lambda vs test error - setup
+    nbins = 30
+    bin_centers = seq(from=min(lasso_lambdas$bestlam), to = max(lasso_lambdas$bestlam),
+                      length.out=nbins)
+    categs = cut(x = lasso_lambdas$bestlam, breaks = nbins)
+    avg_by_bin = aggregate(lasso_lambdas$rmse, by = list(categs), FUN=mean)
+    # plot
+    plot(lasso_lambdas$bestlam, lasso_lambdas$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
+         main = "Test error is larger with more coefficients",
+         xlab = "Lambda value (shrinkage penalty)",
+         ylab = "Test error (RMSE) of models made \n from each set of 5 data points")
+    # summarize by binning
+    grid()
+    points(bin_centers, avg_by_bin$x, pch=23, cex = 1.2, bg = "firebrick", type = "o")
+    legend(x="topright", col = c("gray","firebrick"),bg=c(NA,"firebrick"),
+           pch = c(19,23),
+           legend = c("Individual model RMSE", "Binned average RMSE"))}
+
+  plot_lasso_coefs = function(lasso_mod, pred_appear_tab){
+    coefs = as.data.frame((as.matrix(coef(lasso_mod))))
+
+    # Plot lambda vs highlighted coefs
+    # standardize coefficients
+    plot_tab = coefs / apply(X = coefs, MARGIN = 1, FUN = sd)
+    plot_tab = as.data.frame(t(plot_tab))
+    plot_tab[plot_tab==0] = NA # remove 0-values for plotting
+    # add in lambda values for plotting
+    plot_tab$lambda_val = best_lam_range
+
+    # setup for plot
+    tot_preds = sum(!is.na(pred_appear_tab$lambda_non0_val_appears))
+    n_high = 7
+    pred_names = pred_appear_tab$predictor
+    pred_pal = colorblind_pal()(n_high)
+    # Initialize plot
+    plot(x=range(plot_tab$lambda_val), col=NA,
+         main = "Higher shrinkage penalties produce models with fewer and smaller coefficients",
+         y = range(plot_tab[,colnames(plot_tab)!="lambda_val"],na.rm=T),# ylim = c(-2,2),
+         xlab = "Lambda value (shrinkage penalty)", ylab = "Standardized predictor coefficients")
+    for(i in tot_preds:1){
+      if(i>n_high){
+        pred_col = "gray70"; pred_width = 1
+      } else {
+        pred_col = pred_pal[i]; pred_width = 2
+      }
+      pred_name = pred_names[i]
+      lines(x=plot_tab$lambda_val, y = plot_tab[,pred_name], lwd=pred_width, col = pred_col)
+    }
+    grid()
+    legend(x = "bottomright", legend = c(pred_names[1:n_high],"Other non-0 pred."),
+           col = c(pred_pal[1:n_high],"gray70"), lwd = c(rep(2,n_high),1),
+           ncol=2)
+  }
 
   #step 1. remove NA vals
   # 0 run manuscript .Rmd through line 395
@@ -1631,128 +1743,41 @@ lasso_regression_exp = function(metrics_tab){
   mt = mt[!is.na(mt$coho_smolt_per_fem),]
   na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
   mt = mt[,!is.na(na_col_detector) ]
-  colnames(mt)
+  # colnames(mt)
 
   # 1b. Optional. Remove the other thresholds?
-  # remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
-  #                  "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
-  #                  "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
-  #                  "SY_discon_80")
-  # mt = mt[,!(colnames(mt) %in% remove_these)]
+  if(remove_extra_recon_thresholds==T){
+    remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
+                     "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
+                     "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
+                     "SY_discon_80")
+    mt = mt[,!(colnames(mt) %in% remove_these)]
+  }
 
 
   # 2a. Lasso Regression
-  x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
-  y = mt$coho_smolt_per_fem
-
-  # subset into training and testing (ugh)
-  # seed=1
-  # set.seed(seed)
-  # train = sample(1:nrow(x), nrow(x)/2)
-  # test = (-train)
-  # y.test = y[test]
-  #
-  # lam_vals = 10^seq(10,-2,length=100)
-  # lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
-  # plot(lasso_1)
-  # coef_df = as.data.frame(as.matrix(coef(lasso_1)))
-  # View(coef_df)
-
-  # set.seed(1)
-  # cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
-  # # plot(cv.out)
-  # bestlam=cv.out$lambda.min
-  # lasso.pred=predict(lasso_1, s=bestlam, newx=x[test,])
-  # lasso_rmse = sqrt(mean((lasso.pred-y.test)^2))
-  # print(paste("seed:",seed,"; bestlam:",round(bestlam,1),"; err:",round(lasso_rmse,1)))
-
-
-  # Lambda selection -
-  # find complete set of combos of 1:11, 5
-
-
-  find_all_best_lambda_vals = function(com_tab, x, y,
-                                  lam_vals = 10^seq(10,-2,length=100)){
-    output_tab = as.data.frame(com_tab); output_tab$bestlam = NA
-    for(i in 1:nrow(com)){
-      train = com[i,]
-      test = -com[i,]
-      y.test = y[test]
-      lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
-      set.seed(1)
-      cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
-      output_tab$bestlam[i] = cv.out$lambda.min
-    }
-    return(output_tab)
-  }
 
   x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
   y = mt$coho_smolt_per_fem
   # find all combinations of test and train data points
   com = t(combn(x = 1:11, m = 5))
-  lasso_lambdas = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
-                                       lam_vals = lam_vals)
-  View(lasso_lambdas)
-  hist(lasso_lambdas$bestlam, breaks = 39)
-  # 0.3, 20, 22, 29 # mode 1, mean, median, mode 2
-  summary(lasso_lambdas$bestlam)
-  #iterate: cover the best lambda range. oh, actually, no need, it just reproduces the best lambda values. hah.
-  best_lam_range = c(seq(0.1, 2, 0.1), seq(2.5, 15, 0.5), seq(16, 25, 1), seq(27, 44, 2))
-  # lasso_lambdas_2 = find_all_lambda_vals(com_tab = com, x = x, y = y, lam_vals = best_lam_range)
-  # hist(lasso_lambdas_2$bestlam, breaks = 30)
 
-  # Trace the coefs over the best lambda range
+  if(find_best_lambda_vals == T){
+    lasso_lambdas = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
+    min_lam = min(lasso_lambdas)
+    max_lam = max(lasso_lambdas)
+  } else {
+    min_lam = 0.1
+    max_lam = 40
+  }
 
+  best_lam_range = rev(seq(min_lam, max_lam, 0.1)) #lambdas in reverse order to match coefs output
   lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  plot(lasso_3)
-  coef(lasso_3)
-  View(as.data.frame(as.matrix(coef(lasso_3))))
-  write.csv(x = as.data.frame(as.matrix(coef(lasso_3))), file = "lasso coefficients.csv")
-
-  # evaluate coefficients over the best lambda range
-  coefs = as.data.frame((as.matrix(coef(lasso_3))))
-  # min_val = min(abs(coefs[coefs!=0])) # define upper bound of "0-values"
-  # find the minimum lambda index where the coefficient pops up from 0 to non0
-  non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, FUN = function(x){min(which(abs(x)>0))})
-  # non0_coef_lambda_index[is.infinite(non0_coef_lambda_index)] = NA
-  coefs$lambda_val_coef_appears = best_lam_range[non0_coef_lambda_index]
-  coef_lambda_non0_vals = as.data.frame(cbind(rownames(coefs), coefs$lambda_val_coef_appears))
-  colnames(coef_lambda_non0_vals) = c("predictor","lambda_non0_val_appears")
-  coef_lambda_non0_vals$lambda_non0_val_appears = as.numeric(coef_lambda_non0_vals$lambda_non0_val_appears)
-  # View predictors in order of when they enter the regression by increasing lambda value
-  coef_lambda_non0_vals[order(coef_lambda_non0_vals$lambda_non0_val_appears),]
-
-  # build table of each model's error for each lambda value
-  out_tab = t(coefs)
-  out_tab$lambda_val = best_lam_range
-
-
-  #     lasso.pred=predict(lasso_3, s=lambda_options, newx=x)
-#   sqrt(mean((lasso.pred-y)^2))
-
-
-  # don't divide test and train
-  lasso_1 = glmnet(x, y, alpha = 1, lambda = lam_vals)
-  set.seed(1)
-  cv.out=cv.glmnet(x, y, alpha = 1)
-  lasso.pred=predict(lasso_1, s=bestlam, newx=x)
-  mean((lasso.pred-y)^2)
-  # plot(lasso_1)
-
-  coef(lasso_1)
-
-
-  # 1.c. Ridge Regression
-  ridge_1 = glmnet(x, y, alpha = 0, lambda = lam_vals)
-  set.seed(1)
-  train = sample(1:nrow(x), nrow(x)/2)
-  test = (-train)
-  y.test = y[test]
-  ridge_2 = glmnet(x[train,], y[train], alpha=0, lambda = lam_vals, thresh = 1e-12)
-  cv.out=cv.glmnet(x, y, alpha = 1)
-  lasso.pred=predict(lasso_1, s=bestlam, newx=x)
-  mean((lasso.pred-y)^2)
-  plot(lasso_1)
+  pred_appear_tab = generate_pred_appear_tab(lasso_3)
+  # Plots
+  par(mfrow=c(3,1))
+  plot_lasso_coefs(lasso_mod = lasso_3, pred_appear_tab = pred_appear_tab)
+  plot_lasso_diagnostics(x=x, y=y, best_lam_range = best_lam_range)
 
 }
 

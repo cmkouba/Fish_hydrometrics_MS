@@ -48,6 +48,7 @@ if(!exists("full_dissertation_format")){ # if this has not been called from Full
   library(grid) # for inset maps
   library(cowplot) # for inset maps
   library(ggplot2) # for barplots for climate fig
+  library(ggthemes) # for colorblind palette
   library(plyr)  # for barplots for climate fig
   # library(boot) # for linear model selection
   library(xtable)
@@ -277,7 +278,7 @@ Chinook and coho salmon are distinct in several ways relevant to this study and 
 
 # Methods: Quantitative analysis
 
-We used linear regression to assess the feasibility of predicting an ecological response using dozens of potential hydrologic predictor metrics. The objectives of the linear model selection exercise were to 1) empirically estimate which hydrologic flows were related to coho and Chinook reproductive outcomes and 2) assign weights of relative importance to develop a predictive Hydrologic Benefit formula, using slopes of the linear models.
+We used lasso regression to assess the feasibility of predicting an ecological response using dozens of potential hydrologic predictor metrics. The objectives of the linear model selection exercise were to 1) empirically estimate which hydrologic flows were related to coho and Chinook reproductive outcomes and 2) assign weights of relative importance to develop a predictive Hydrologic Benefit formula, using slopes of the linear models.
 
 ## Predictors: Flow metrics to describe Scott River flow regime
 
@@ -403,6 +404,8 @@ write.csv(x = metrics_tab, quote = F, row.names = F,
 
 
 ## Predicting ecological outcomes for the species of concern
+
+### Lasso regression analysis
 
 ### Correlation analysis - ecological metric selection
 
