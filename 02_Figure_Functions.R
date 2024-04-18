@@ -1615,7 +1615,7 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 generate_pred_appear_tab = function(lasso_mod){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
-  non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, FUN = function(x){min(which(abs(x)>0))})
+  non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, function(x){min(which(abs(x)>0))})
   coefs$lambda_val_coef_appears = best_lam_range[non0_coef_lambda_index]
   coef_lambda_non0_vals = as.data.frame(cbind(rownames(coefs), coefs$lambda_val_coef_appears))
   colnames(coef_lambda_non0_vals) = c("predictor","lambda_non0_val_appears")
@@ -1627,9 +1627,10 @@ generate_pred_appear_tab = function(lasso_mod){
   return(pred_appear_tab)
 }
 
-lasso_regression_plots = function(metrics_tab,
+lasso_regression_plots = function(metrics_tab,   y_val = "coho_smolt_per_fem",
                                   find_best_lambdas = F,
-                                  remove_extra_recon_thresholds = F){
+                                  remove_extra_recon_thresholds = F,
+                                  remove_SY_metrics = F){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
 
@@ -1656,7 +1657,9 @@ lasso_regression_plots = function(metrics_tab,
     return(output_tab)
   }
 
-  plot_lasso_diagnostics = function(x, y, best_lam_range){  # Plot lasso diagnostics.
+  # CURRENTLY: MAKE new function that produces lasso lambdas table? save those tables?
+
+  plot_lasso_diagnostics = function(x, y, lasso_lambdas, best_lam_range){  # Plot lasso diagnostics.
     # par(mfrow=(c(2,1)))
     #A: deviance and non-0 coefficients
     lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
@@ -1693,7 +1696,7 @@ lasso_regression_plots = function(metrics_tab,
            pch = c(19,23),
            legend = c("Individual model RMSE", "Binned average RMSE"))}
 
-  plot_lasso_coefs = function(lasso_mod, pred_appear_tab){
+  plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range){
     coefs = as.data.frame((as.matrix(coef(lasso_mod))))
 
     # Plot lambda vs highlighted coefs
@@ -1733,14 +1736,17 @@ lasso_regression_plots = function(metrics_tab,
   # 0 run manuscript .Rmd through line 395
   # 1a. remove rows with no response var
   mt = metrics_tab
-  y_val = "coho_smolt_per_fem"
   non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
-                    "chinook_juv_per_adult", "coho_spawner_abundance",
+                    # "chinook_juv_per_adult",
+                    # "coho_smolt_per_fem",
+                    "coho_spawner_abundance",
                     "coho_smolt_per_fem", "coho_smolt_abun_est",
                     "percent_coho_smolt_survival", "coho_redds_in_brood")
+  if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
+  if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
   non_y_vals = non_pred_vals[non_pred_vals != y_val]
   mt = mt[,!(colnames(mt) %in% non_y_vals)]
-  mt = mt[!is.na(mt$coho_smolt_per_fem),]
+  mt = mt[!is.na(mt[,y_val]),]
   na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
   mt = mt[,!is.na(na_col_detector) ]
   # colnames(mt)
@@ -1753,35 +1759,46 @@ lasso_regression_plots = function(metrics_tab,
                      "SY_discon_80")
     mt = mt[,!(colnames(mt) %in% remove_these)]
   }
+  if(remove_SY_metrics == T){
+    remove_these = grepl(pattern = "SY", x=colnames(mt))
+    mt = mt[,!remove_these]
+
+  }
 
 
   # 2a. Lasso Regression
 
-  x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
-  y = mt$coho_smolt_per_fem
+  # x and y
+  if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
+  if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
+  y = mt[,y_val]
   # find all combinations of test and train data points
   com = t(combn(x = 1:11, m = 5))
 
-  if(find_best_lambda_vals == T){
+  if(find_best_lambdas == T){
     lasso_lambdas = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
     min_lam = min(lasso_lambdas)
     max_lam = max(lasso_lambdas)
-  } else {
-    min_lam = 0.1
-    max_lam = 40
+    by_val = diff(range(lasso_lambdas))/100
+  } else { #stored values for best lambdas
+    if(y_val=="coho_smolt_per_fem"){min_lam = 0.1; max_lam = 40; by_val = 0.1}
+    if(y_val=="chinook_juv_per_adult"){min_lam = 0.5; max_lam = 195; by_val = 2}
   }
 
-  best_lam_range = rev(seq(min_lam, max_lam, 0.1)) #lambdas in reverse order to match coefs output
+  best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
   lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
   pred_appear_tab = generate_pred_appear_tab(lasso_3)
   # Plots
   par(mfrow=c(3,1))
-  plot_lasso_coefs(lasso_mod = lasso_3, pred_appear_tab = pred_appear_tab)
+  plot_lasso_coefs(lasso_mod = lasso_3, pred_appear_tab = pred_appear_tab, best_lam_range = best_lam_range)
   plot_lasso_diagnostics(x=x, y=y, best_lam_range = best_lam_range)
 
 }
 
-
+lasso_regression_plots(metrics_tab = metrics_tab)
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
+                       remove_SY_metrics=T)
 
 # Supplemental lm tables --------------------------------------------------
 
