@@ -13,83 +13,75 @@ bibliography: library.bib
 ```{r setup_dirs_load_data, include = FALSE}
 
 
-if(!exists("full_dissertation_format")){ # if this has not been called from Full Dissertation
-  
-  knitr::opts_chunk$set(echo = TRUE)
-  
-  
-  library(lubridate)
-  library(rpostgis)
-  library(postGIStools)
-  library(httr)
-  library(stringr)
-  library(rstudioapi)
-  library(PerformanceAnalytics) # for data exploration/correlation plots
-  library(corrplot)  # for data exploration/correlation plots
-  library(dataRetrieval) # for usgs data
-  library(data.table) #month function
-  library(zoo) # rolling means
-  library(tidyverse) #for read_field_data function
-  library(readxl) # for read_field_data function
-  library(qpcR) # for AICc function
-  # library(reshape2) # melt
-  # library(grid)  # water budget figures
-  # library(magrittr) # water budget figures
-  #spatial data libraries
-  
-  library(rgdal)
-  library(rgeos)
-  library(sf)
-  library(maptools)
-  library(RANN)
-  library(RColorBrewer)
-  library(tmap)
-  library(raster)
-  library(grid) # for inset maps
-  library(cowplot) # for inset maps
-  library(ggplot2) # for barplots for climate fig
-  library(ggthemes) # for colorblind palette
-  library(plyr)  # for barplots for climate fig
-  # library(boot) # for linear model selection
-  library(xtable)
-  library(flextable)
-  library(glmnet)
-  library(here)
+knitr::opts_chunk$set(echo = TRUE)
 
-  
-  
-  # Directories
-  # ms_dir <- dirname(getActiveDocumentContext()$path ) 
-  ms_dir = here::here()
-  scratch_dir = file.path(ms_dir, "scratch_work")
-  data_dir = file.path(ms_dir, "Data")
-  graphics_dir = file.path(ms_dir, "Graphics and Supplements")
 
-  # Directory for postprocessed, tabulated results
-  # svihm_results_dir = file.path(ms_dir, "Data", "SVIHM Model Results")
-  # # Directories for SVIHM inputs and outputs, not yet postprocessed
-  # svihm_scenarios_dir = "C:/Users/Claire/Documents/GitHub/SVIHM/Scenarios"
-  # svihm_scenarios_backup_dir = "G:/SVIHM Scenarios Storage"
-  
-  # Load spatial and tabular data
-  # If the data files don't exist locally,
-  if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
-    # source(file.path(ms_dir,"01_Database connection.R"))   # connect to AWS server
-    source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) #pulls data off server, local files, and internet
-  }
-  load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
-  source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
-  
-  # Save figures as images, yes or no?
-  save_figs_here = graphics_dir#"C:/Users/Claire/Dropbox/Documents/UCD/Presentations_Talks_Workshops_miniprojects/2022.02.17 Peer Group presentation Ch. 1/figs"
-  save_imgs=F
-  replace_setting_fig = F
-  fig_i = 1
-  
+library(lubridate)
+library(rpostgis)
+library(postGIStools)
+library(httr)
+library(stringr)
+library(rstudioapi)
+library(PerformanceAnalytics) # for data exploration/correlation plots
+library(corrplot)  # for data exploration/correlation plots
+library(dataRetrieval) # for usgs data
+library(data.table) #month function
+library(zoo) # rolling means
+library(tidyverse) #for read_field_data function
+# library(readxl) # for read_field_data function
+library(qpcR) # for AICc function
+#spatial data libraries
+library(rgdal)
+library(rgeos)
+library(sf)
+library(maptools)
+library(RANN)
+library(RColorBrewer)
+library(tmap)
+library(raster)
+library(grid) # for inset maps
+library(cowplot) # for inset maps
+library(ggplot2) # for barplots for climate fig
+library(ggthemes) # for colorblind palette
+library(plyr)  # for barplots for climate fig
+library(xtable)
+library(flextable)
+library(glmnet) # lasso regression
+library(here)
+
+
+
+# Directories
+# ms_dir <- dirname(getActiveDocumentContext()$path ) 
+ms_dir = here::here()
+scratch_dir = file.path(ms_dir, "scratch_work")
+data_dir = file.path(ms_dir, "Data")
+graphics_dir = file.path(ms_dir, "Graphics and Supplements")
+
+# Directory for postprocessed, tabulated results
+# svihm_results_dir = file.path(ms_dir, "Data", "SVIHM Model Results")
+# # Directories for SVIHM inputs and outputs, not yet postprocessed
+# svihm_scenarios_dir = "C:/Users/Claire/Documents/GitHub/SVIHM/Scenarios"
+# svihm_scenarios_backup_dir = "G:/SVIHM Scenarios Storage"
+
+# Load spatial and tabular data
+# If the data files don't exist locally,
+if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
+  # source(file.path(ms_dir,"01_Database connection.R"))   # connect to AWS server
+  source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) #pulls data off server, local files, and internet
 }
+load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
+source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
+
+# Save figures as images, yes or no?
+save_figs_here = graphics_dir#"C:/Users/Claire/Dropbox/Documents/UCD/Presentations_Talks_Workshops_miniprojects/2022.02.17 Peer Group presentation Ch. 1/figs"
+save_imgs=F
+replace_setting_fig = F
+fig_i = 1
+
 
 # pick last water year for the HB function to calculate a value for
-last_wy = 2021
+last_wy = 2023
 ```
 
 # Abstract {-}
@@ -278,7 +270,7 @@ Chinook and coho salmon are distinct in several ways relevant to this study and 
 
 # Methods: Quantitative analysis
 
-We used lasso regression to assess the feasibility of predicting an ecological response using dozens of potential hydrologic predictor metrics. The objectives of the linear model selection exercise were to 1) empirically estimate which hydrologic flows were related to coho and Chinook reproductive outcomes and 2) assign weights of relative importance to develop a predictive Hydrologic Benefit formula, using slopes of the linear models.
+We used lasso regression [@ISLR; @RanstamCook2018] to assess the feasibility of predicting an ecological response using dozens of potential hydrologic predictor metrics. The objectives of the lasso exercise were to 1) perform predictor selection, i.e., empirically estimate which hydrologic flows were most related to coho and Chinook reproductive outcomes and 2) estimate the uncertainty of a predictive Hydrologic Benefit formula, using the selected set of predictors.
 
 ## Predictors: Flow metrics to describe Scott River flow regime
 
@@ -387,8 +379,8 @@ Because Chinook migrate to the ocean in their first year of life, the duration o
 ```{r smolt_year_metrics_master_tab, echo = F, warning =F}
 
 # retrieve hydrology tabulated by STP
-smolt_year_hydro_tab = tabulate_hydro_by_affected_smolt_year(brood_years = 1999:2020,#2004:2020, 
-                                                             smolt_years = 2001:2022)#2006:2022)
+smolt_year_hydro_tab = tabulate_hydro_by_affected_smolt_year(brood_years = 1999:2022,
+                                                             smolt_years = 2001:2024)
 
 thresh_for_corr_fig = c(10,15,20,50,80,100)
 
@@ -407,23 +399,18 @@ write.csv(x = metrics_tab, quote = F, row.names = F,
 
 ### Lasso regression analysis
 
-### Correlation analysis - ecological metric selection
+With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @RastamCook2018] between 40 hydrologic predictors and 7 ecological metrics (four for coho and three for Chinook).  
 
-With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by calculating Pearson correlation coefficients [@Pearson1895] between 49 hydrologic predictors and 7 ecological metrics (4 four for coho and three for Chinook) (*Supplemental Figure 1*). The ecological variable most correlated hydrologic metrics was selected for further statistical model development. 
+We used the R programming environment [@RManual] and the linear modeling function `glmnet()` [@Friedman2010] to perform variable selection using lasso regression. Lasso regression is a less-flexible method than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@James2013]. 
 
-### Linear modeling and model performance assessment
+Lasso (Least Absolute Shrinkage and Selection Operator) regression minimizes the following quantity:
 
-We used the R programming environment [@RManual] and the linear modeling function `lm()` [@Chambers1992] to build a complete set of two-predictor linear regression models of the selected ecological response variable, using the set of hydrologic predictor variables described above:
+$$\sum_{i=1}^{n}{(y_i-\beta_0-\sum_{j=1}^{p}{\beta_jx_{ij}})^2}+\lambda\sum_{j=1}{p}{|\beta_j|}$$
 
-$$y_{BY}=a+b_1 x_{1,BY}+b_2 x_{2,BY}$$
+thereby enforcing that the sum of the all coefficient absolute values must be less than a fixed value $\lambda [@RastamCook2018]. In this formulation, higher values of lambda generally shrink the values of all coefficients to 0. [infinite lambda case]. The selection of an appropriate lambda value is critical, and is best done using cross-validation within the training dataset.
 
-A complete set of one-predictor models ($b_2=0$) was also produced for comparative purposes. Linear models with more than two predictors were not evaluated; with a dataset this small, the risk of overfitting such higher order linear models would be unacceptably high [@James2013].
 
-Criteria used to evaluate model performance included degree of variability explained by the predictors ($R^2$ and adjusted $R^2$, where adjusted $R^2$ includes a penalty for small sample size or large number of predictors), statistical significance (p-value and F-statistic), and the amount of total non-correlated information contained in the set of predictors (corrected AIC, or AIC~c~, a statistic used for small sample sizes).
-
-For each of the one-and two-predictor models, we calculated the estimated average model error using leave-one-out cross-validation (LOOCV; Table \@ref(tab:modelErrorTab)). In the LOOCV method, for a dataset with $n$ observations, the LOOCV error of a predictive model is obtained by recalculating the model coefficients $n$ times, each time leaving out one observation, and comparing the resulting prediction to the single left-out observation. The root mean square of these $n$ errors is the LOOCV error used to evaluate model performance in Results.
-
-Finally, minimum performance criteria were established to select the models which were incorporated into the ultimate HB function (discussed further in Results).
+*Finally, minimum performance criteria were established to select the models which were incorporated into the ultimate HB function (discussed further in Results).*
 
 ### Hydrologic Benefit formulation
 
@@ -581,6 +568,42 @@ fig_i = fig_i +1
 
 ```
 
+
+## Lasso regression
+
+```{r lassoResults, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho spf with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
+
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+
+  lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
+
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
+
+
+```
+
+
+```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook jpa with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResultsChinook}"}
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+
+  lasso_regression_plots(metrics_tab = metrics_tab, 
+                         y_val = "chinook_juv_per_adult", remove_SY_metrics=T)
+
+  dev.off()
+}
+knitr::include_graphics(fig_path)
+fig_i = fig_i +1
+
+```
 
 
 ## Linear modeling

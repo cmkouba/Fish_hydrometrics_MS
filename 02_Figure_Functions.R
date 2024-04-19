@@ -1627,131 +1627,128 @@ generate_pred_appear_tab = function(lasso_mod){
   return(pred_appear_tab)
 }
 
-lasso_regression_plots = function(metrics_tab,   y_val = "coho_smolt_per_fem",
-                                  find_best_lambdas = F,
+find_all_best_lambda_vals = function(com_tab, x, y,
+                                     lam_vals = 10^seq(-2, 5,length=100)){
+  output_tab = as.data.frame(com_tab)
+  output_tab$bestlam = NA
+  output_tab$rmse = NA
+  for(i in 1:nrow(com)){
+    train = com[i,]
+    test = -com[i,]
+    y.test = y[test]
+    lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
+    set.seed(1)
+    cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
+    output_tab$bestlam[i] = cv.out$lambda.min
+    # calculate an RMSE for this test set
+    lasso_i=glmnet(x=x[test,], y=y.test, alpha = 1, lambda = output_tab$bestlam[i])
+    lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x)
+    output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
+
+  }
+
+  return(output_tab)
+}
+
+plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Plot lasso diagnostics.
+  # par(mfrow=(c(2,1)))
+  #A: deviance and non-0 coefficients
+  lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+  deg_free_tab = print(lasso_3)
+  par(mar=c(5,5,3,5))
+  plot(deg_free_tab$Lambda, deg_free_tab$`%Dev`,  type = "l",
+       ylab = "% of null deviation explained by model",
+       xlab = "Lambda value (shrinkage penalty)",
+       main = "Adding more coefficients explains more variation...")
+  grid()
+  par(new=T)
+  plot(deg_free_tab$Lambda, deg_free_tab$Df, col = "dodgerblue", lwd = 2,
+       xlab="",ylab="", axes=F, type = "l")
+  axis(side=4,at=pretty(range(deg_free_tab$Df)))
+  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3)
+  legend(x = "topright", col=c("black","dodgerblue"), lwd = c(1,2),
+         legend = c("% Deviance", "Degrees of freedom"))
+
+  # B) Plot lambda vs test error - setup
+  nbins = 30
+  bin_centers = seq(from=min(lambdas_and_rmse$bestlam), to = max(lambdas_and_rmse$bestlam),
+                    length.out=nbins)
+  categs = cut(x = lambdas_and_rmse$bestlam, breaks = nbins)
+  avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean)
+  # plot
+  plot(lambdas_and_rmse$bestlam, lambdas_and_rmse$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
+       main = "... but test error is larger with more coefficients",
+       xlab = "Lambda value (shrinkage penalty)",
+       ylab = "Test error (RMSE) of models made \n from each set of 5 data points")
+  # summarize by binning
+  grid()
+  points(bin_centers, avg_by_bin$x, pch=23, cex = 1.2, bg = "firebrick", type = "o")
+  legend(x="topright", col = c("gray","firebrick"),bg=c(NA,"firebrick"),
+         pch = c(19,23),
+         legend = c("Individual model RMSE", "Binned average RMSE"))}
+
+plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range, y_val_label){
+  coefs = as.data.frame((as.matrix(coef(lasso_mod))))
+
+  # Plot lambda vs highlighted coefs
+  # standardize coefficients
+  plot_tab = coefs / apply(X = coefs, MARGIN = 1, FUN = sd)
+  plot_tab = as.data.frame(t(plot_tab))
+  plot_tab[plot_tab==0] = NA # remove 0-values for plotting
+  # add in lambda values for plotting
+  plot_tab$lambda_val = best_lam_range
+
+  # setup for plot
+  tot_preds = sum(!is.na(pred_appear_tab$lambda_non0_val_appears))
+  n_high = 7
+  pred_names = pred_appear_tab$predictor
+  pred_pal = colorblind_pal()(n_high)
+  # Initialize plot
+  plot(x=range(plot_tab$lambda_val), col=NA,
+       # main = "Higher shrinkage penalties produce models with fewer and smaller coefficients",
+       main = paste("Regression coefficients - predicting",y_val_label, "with hydrologic metrics"),
+       y = range(plot_tab[,colnames(plot_tab)!="lambda_val"],na.rm=T),# ylim = c(-2,2),
+       xlab = "Lambda value (shrinkage penalty)", ylab = "Standardized predictor coefficients")
+  for(i in tot_preds:1){
+    if(i>n_high){
+      pred_col = "gray70"; pred_width = 1
+    } else {
+      pred_col = pred_pal[i]; pred_width = 2
+    }
+    pred_name = pred_names[i]
+    lines(x=plot_tab$lambda_val, y = plot_tab[,pred_name], lwd=pred_width, col = pred_col)
+  }
+  grid()
+  legend(x = "bottomright", legend = c(pred_names[1:n_high],"Other non-0 coef."),
+         col = c(pred_pal[1:n_high],"gray70"), lwd = c(rep(2,n_high),1),
+         ncol=2)
+}
+
+
+lasso_regression_plots = function(metrics_tab,
+                                  y_val = "coho_smolt_per_fem",
                                   remove_extra_recon_thresholds = F,
                                   remove_SY_metrics = F){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
 
-  find_all_best_lambda_vals = function(com_tab, x, y,
-                                       lam_vals = 10^seq(-3, 4,length=100)){
-    output_tab = as.data.frame(com_tab)
-    output_tab$bestlam = NA
-    output_tab$rmse = NA
-    for(i in 1:nrow(com)){
-      train = com[i,]
-      test = -com[i,]
-      y.test = y[test]
-      lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
-      set.seed(1)
-      cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
-      output_tab$bestlam[i] = cv.out$lambda.min
-      # calculate an RMSE for this test set
-      lasso_i=glmnet(x=x[test,], y=y.test, alpha = 1, lambda = output_tab$bestlam[i])
-      lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x)
-      output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
-
-    }
-
-    return(output_tab)
-  }
-
-  # CURRENTLY: MAKE new function that produces lasso lambdas table? save those tables?
-
-  plot_lasso_diagnostics = function(x, y, lasso_lambdas, best_lam_range){  # Plot lasso diagnostics.
-    # par(mfrow=(c(2,1)))
-    #A: deviance and non-0 coefficients
-    lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-    deg_free_tab = print(lasso_3)
-    par(mar=c(5,5,3,5))
-    plot(deg_free_tab$Lambda, deg_free_tab$`%Dev`,  type = "l",
-         ylab = "% of null deviation explained by model",
-         xlab = "Lambda value (shrinkage penalty)",
-         main = "Adding more coefficients explains more variation")
-    grid()
-    par(new=T)
-    plot(deg_free_tab$Lambda, deg_free_tab$Df, col = "dodgerblue", lwd = 2,
-         xlab="",ylab="", axes=F, type = "l")
-    axis(side=4,at=pretty(range(deg_free_tab$Df)))
-    mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3)
-    legend(x = "topright", col=c("black","dodgerblue"), lwd = c(1,2),
-           legend = c("% Deviance", "Degrees of freedom"))
-
-    # B) Plot lambda vs test error - setup
-    nbins = 30
-    bin_centers = seq(from=min(lasso_lambdas$bestlam), to = max(lasso_lambdas$bestlam),
-                      length.out=nbins)
-    categs = cut(x = lasso_lambdas$bestlam, breaks = nbins)
-    avg_by_bin = aggregate(lasso_lambdas$rmse, by = list(categs), FUN=mean)
-    # plot
-    plot(lasso_lambdas$bestlam, lasso_lambdas$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
-         main = "Test error is larger with more coefficients",
-         xlab = "Lambda value (shrinkage penalty)",
-         ylab = "Test error (RMSE) of models made \n from each set of 5 data points")
-    # summarize by binning
-    grid()
-    points(bin_centers, avg_by_bin$x, pch=23, cex = 1.2, bg = "firebrick", type = "o")
-    legend(x="topright", col = c("gray","firebrick"),bg=c(NA,"firebrick"),
-           pch = c(19,23),
-           legend = c("Individual model RMSE", "Binned average RMSE"))}
-
-  plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range){
-    coefs = as.data.frame((as.matrix(coef(lasso_mod))))
-
-    # Plot lambda vs highlighted coefs
-    # standardize coefficients
-    plot_tab = coefs / apply(X = coefs, MARGIN = 1, FUN = sd)
-    plot_tab = as.data.frame(t(plot_tab))
-    plot_tab[plot_tab==0] = NA # remove 0-values for plotting
-    # add in lambda values for plotting
-    plot_tab$lambda_val = best_lam_range
-
-    # setup for plot
-    tot_preds = sum(!is.na(pred_appear_tab$lambda_non0_val_appears))
-    n_high = 7
-    pred_names = pred_appear_tab$predictor
-    pred_pal = colorblind_pal()(n_high)
-    # Initialize plot
-    plot(x=range(plot_tab$lambda_val), col=NA,
-         main = "Higher shrinkage penalties produce models with fewer and smaller coefficients",
-         y = range(plot_tab[,colnames(plot_tab)!="lambda_val"],na.rm=T),# ylim = c(-2,2),
-         xlab = "Lambda value (shrinkage penalty)", ylab = "Standardized predictor coefficients")
-    for(i in tot_preds:1){
-      if(i>n_high){
-        pred_col = "gray70"; pred_width = 1
-      } else {
-        pred_col = pred_pal[i]; pred_width = 2
-      }
-      pred_name = pred_names[i]
-      lines(x=plot_tab$lambda_val, y = plot_tab[,pred_name], lwd=pred_width, col = pred_col)
-    }
-    grid()
-    legend(x = "bottomright", legend = c(pred_names[1:n_high],"Other non-0 pred."),
-           col = c(pred_pal[1:n_high],"gray70"), lwd = c(rep(2,n_high),1),
-           ncol=2)
-  }
-
-  #step 1. remove NA vals
-  # 0 run manuscript .Rmd through line 395
+  #step 1. Prep x matrix and y array
+  # (Dev: run manuscript .Rmd through line 395)
   # 1a. remove rows with no response var
   mt = metrics_tab
   non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
-                    # "chinook_juv_per_adult",
-                    # "coho_smolt_per_fem",
-                    "coho_spawner_abundance",
-                    "coho_smolt_per_fem", "coho_smolt_abun_est",
+                    "chinook_juv_per_adult", "coho_smolt_per_fem",
+                    "coho_spawner_abundance", "coho_smolt_per_fem", "coho_smolt_abun_est",
                     "percent_coho_smolt_survival", "coho_redds_in_brood")
-  if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
-  if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
+  # if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
+  # if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
   non_y_vals = non_pred_vals[non_pred_vals != y_val]
   mt = mt[,!(colnames(mt) %in% non_y_vals)]
   mt = mt[!is.na(mt[,y_val]),]
   na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
   mt = mt[,!is.na(na_col_detector) ]
-  # colnames(mt)
 
-  # 1b. Optional. Remove the other thresholds?
+  # 1b. Optional. Remove the other thresholds or Smolt Year metrics
   if(remove_extra_recon_thresholds==T){
     remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
                      "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
@@ -1766,39 +1763,64 @@ lasso_regression_plots = function(metrics_tab,   y_val = "coho_smolt_per_fem",
   }
 
 
-  # 2a. Lasso Regression
+  # 2. Lasso Regression
 
-  # x and y
-  if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
-  if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
+  # Set up x and y, and retrieve table of best lambda and rmse values
   y = mt[,y_val]
-  # find all combinations of test and train data points
-  com = t(combn(x = 1:11, m = 5))
-
-  if(find_best_lambdas == T){
-    lasso_lambdas = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
-    min_lam = min(lasso_lambdas)
-    max_lam = max(lasso_lambdas)
-    by_val = diff(range(lasso_lambdas))/100
-  } else { #stored values for best lambdas
-    if(y_val=="coho_smolt_per_fem"){min_lam = 0.1; max_lam = 40; by_val = 0.1}
-    if(y_val=="chinook_juv_per_adult"){min_lam = 0.5; max_lam = 195; by_val = 2}
+  if(y_val=="coho_smolt_per_fem"){
+    x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
+    lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))
+  }
+  if(y_val=="chinook_juv_per_adult"){
+    x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]
+    if(remove_SY_metrics==T){lambda_tab_path = file.path(data_dir, paste( y_val,"- no_SY lambdas_and_rmse.csv" ))}
+    if(remove_SY_metrics==F){lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))}
   }
 
+  # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
+  if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
+  if(!file.exists(lambda_tab_path)){
+    # find all combinations of test and train data points for lambda values
+    com = t(combn(x = 1:length(y), m = floor(length(y)/2)))
+    # split data set into all possible test and train sets.
+    # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
+    if(length(y)>15){
+      set.seed(1)
+      com = com[sample(x = 1:nrow(com), size = 10000),]
+    }
+    # calculate models across range of lambdas.
+    # use cross-validation to find best lambda value for each set. Save table
+    lambdas_and_rmse = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
+    write.csv(lambdas_and_rmse, lambda_tab_path, quote=F, row.names = F)
+  }
+  min_lam = min(lambdas_and_rmse$bestlam)
+  max_lam = max(lambdas_and_rmse$bestlam)
+  by_val = diff(range(lambdas_and_rmse$bestlam))/99
+  # } else { #stored values for best lambdas
+  #   # if(y_val=="coho_smolt_per_fem"){min_lam = 0.1; max_lam = 40; by_val = 0.1}
+  #   # if(y_val=="chinook_juv_per_adult"){min_lam = 0.5; max_lam = 195; by_val = 2}
+  # }
+
   best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
+
+  # Calculate lasso models over range of lambda values
   lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+  # find lambda values at which each coefficient becomes non-0
   pred_appear_tab = generate_pred_appear_tab(lasso_3)
   # Plots
   par(mfrow=c(3,1))
-  plot_lasso_coefs(lasso_mod = lasso_3, pred_appear_tab = pred_appear_tab, best_lam_range = best_lam_range)
-  plot_lasso_diagnostics(x=x, y=y, best_lam_range = best_lam_range)
+  if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
+  if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
+  plot_lasso_coefs(lasso_mod = lasso_3, pred_appear_tab = pred_appear_tab,
+                   best_lam_range = best_lam_range, y_val_label = y_val_label)
+  plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse)
 
 }
 
-lasso_regression_plots(metrics_tab = metrics_tab)
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
-                       remove_SY_metrics=T)
+# lasso_regression_plots(metrics_tab = metrics_tab)
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult")
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
+#                        remove_SY_metrics=T)
 
 # Supplemental lm tables --------------------------------------------------
 

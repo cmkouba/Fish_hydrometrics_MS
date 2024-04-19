@@ -1881,15 +1881,15 @@ cdfw_2021 = read.csv(file.path(local_data_dir, "cdfw_2021c_emergency_drought_flo
 
 # Fish data ---------------------------------------------------------------
 
-spawners = read.csv(file.path(local_data_dir,"cdfw_2021a_tab5_Klamath and Scott Chinook Natural Spawner escapment.csv"))
-smolt_per_fem = read.csv(file.path(local_data_dir, "cdfw_2021a_tab7_Coho_smolt_production_per_female_2008-2018.csv"))
-chinook_abun = read.csv(file.path(local_data_dir,"cdfw_2021a_tab4_Chinook abundance estimates 2008-2020.csv"))
+spawners = read.csv(file.path(local_data_dir,"cdfw_2023a_tab4_Klamath and Scott Chinook Natural Spawner escapment.csv"))
+smolt_per_fem = read.csv(file.path(local_data_dir, "cdfw_2023a_tab6_Coho_smolt_production_per_female_2008-2020.csv"))
+chinook_abun = read.csv(file.path(local_data_dir,"cdfw_2023a_tab3_Chinook abundance estimates 2008-2022.csv"))
 chinook_spawn_and_juv = read.csv(file.path(local_data_dir,"massie_2020_Scott River Chinook Adult_juv_data_BY_1999_2020.csv"))
-coho_abun = read.csv(file.path(local_data_dir,"cdfw_2021a_fig18_Coho abundance estimates 2007-2020.csv"))
-redds = read.csv(file.path(local_data_dir, "rcd_2020_coho_spawning_surveys.csv"))
-outmigs = read.csv(file.path(local_data_dir,"cdfw_2021a_tab6_Coho smolt outmigrant survival 2004-2017.csv"))
+coho_abun = read.csv(file.path(local_data_dir,"cdfw_2023a_fig18_Coho abundance estimates 2007-2022.csv"))
+outmigs = read.csv(file.path(local_data_dir,"cdfw_2023a_tab5_Coho smolt outmigrant survival 2004-2019.csv"))
 outmigs$conditions_year = (outmigs$Brood.Year + outmigs$Smolt.Year)/2 # take middle year
 outmigs$Percent.smolt.survival = as.numeric(outmigs$Percent.smolt.survival)
+redds = read.csv(file.path(local_data_dir, "rcd_2020_coho_spawning_surveys.csv")) # not updated in 2024
 
 #Clean
 # Clean colnames, remove commas, convert from characters to numbers
