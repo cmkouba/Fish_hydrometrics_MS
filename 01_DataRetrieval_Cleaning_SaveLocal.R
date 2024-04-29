@@ -56,8 +56,8 @@ library(terra)
 
 #Directories and local file name update
 if(!exists("ms_dir")){ms_dir = here::here()}
-local_data_dir = file.path(ms_dir, "Data")
-### wl_dir = file.path(local_data_dir, "Wells and water levels")
+data_dir = file.path(ms_dir, "Data")
+### wl_dir = file.path(data_dir, "Wells and water levels")
 scratch_dir = file.path(ms_dir, "scratch_work")
 
 save_data_to_archive = F
@@ -68,7 +68,7 @@ dms_archive_dir = "" #[INSERT ARCHIVE DIRECTORY]
 
 read_in_model_results = F # no need in this manuscript for multiple management scenarios
 # Directory for postprocessed, tabulated results
-svihm_results_dir = file.path(local_data_dir, "SVIHM Model Results")
+svihm_results_dir = file.path(data_dir, "SVIHM Model Results")
 
 #_SPATIAL DATA ------------------------------------------------------------
 
@@ -91,7 +91,8 @@ unzip(file.path(scratch_dir, zipname), exdir = file.path(scratch_dir)) #, list =
 county_shp_name ="i03_CaliforniaCounties"
 counties_all = st_read( file.path(scratch_dir, paste0(county_shp_name,".shp")))
 county = counties_all[counties_all$COUNTY_NAM=="Siskiyou",]
-county = st_transform(x = county, crs = crs("+init=epsg:3310"))
+# county = st_transform(x = county, crs = crs("+init=epsg:3310"))
+county = st_transform(x = county, crs = st_crs(3310))
 
 #Copy to the box DMS archive
 if(save_data_to_archive==T &
@@ -109,16 +110,22 @@ file.remove(file.path(scratch_dir,paste(county_shp_name, extension_list, sep = "
 cities_url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/436fc714-831c-4070-b44b-b06dcde6bf18/download/ca-places-boundaries.zip"
 
 zipname = strsplit(cities_url, "/")[[1]][length(strsplit(cities_url, "/")[[1]])]
+zipname = gsub("-","_",zipname)
 cities_dl = GET(cities_url, write_disk(file.path(scratch_dir,zipname), overwrite = TRUE))
 # Unzip file and save in the working directory (defaults to Documents folder)
-unzip(file.path(scratch_dir, zipname), exdir = file.path(scratch_dir))#, list = TRUE) # just lists files, does not unzip
+unzip(zipfile = file.path(scratch_dir, zipname), exdir = scratch_dir)#, list = TRUE) # just lists files, does not unzip
 #Read shapefile into R
-## cities_all = st_read(file.path(scratch_dir, "CA_Places_TIGER2016.shp"))
-cities_all = st_read(file.path(scratch_dir, "CA_Places_TIGER2016.shp"))
-## cities_all = st_transform(cities_all, crs("+init=epsg:3310"))
-cities_all = st_transform(cities_all,  crs("+init=epsg:3310"))
-cities = cities_all[county,] # clip to county
-
+# cities_all = st_read(file.path(scratch_dir, "CA_Places_TIGER2016.shp"))
+layer_name = gsub(zipname, pattern = ".zip",replacement="")#
+# layer_name = "ca_places_boundaries"
+cities_all = st_read(file.path(scratch_dir, paste0(layer_name,".shp")))
+cities_all_wgs = st_set_crs(x = cities_all, value = st_crs(4326))
+# cities_all = st_transform(cities_all,  st_crs(3310))
+# cities_all = st_transform(cities_all, crs("+init=epsg:3310"))
+# cities_all = st_transform(cities_all, crs(county))
+county_trans = st_transform(county, crs(cities_all))
+cities = cities_all[county_trans,] # clip to county
+# CURRENTLY HERE. NEED TO FIGURE OUT WHY CITIES ARE fKING ShT UP.
 
 #Copy to the box DMS archive
 if(save_data_to_archive==T &
@@ -128,49 +135,25 @@ if(save_data_to_archive==T &
 #remove files from scratch drive
 file.remove(file.path(scratch_dir, zipname))
 extension_list = c("cpg", "dbf", "prj", "shx", "shp", "xml", "sbn", "sbx", "shp.xml")
-file.remove(file.path(scratch_dir,paste("CA_Places_TIGER2016", extension_list, sep = ".")))
+file.remove(file.path(scratch_dir,paste(layer_name, extension_list, sep = ".")))
 
 
 # California Boundary ------------------------------------------------------
 california = st_union(counties_all)
-california = st_transform(california, crs("+init=epsg:3310"))
-
-# Parcels -----------------------------------------------------------------
-
-# par_url = "https://www.co.siskiyou.ca.us/sites/default/files/fileattachments/community_development/page/2461/siskiyouparcelsnov2017.zip"
-#
-# zipname = strsplit(par_url, "/")[[1]][length(strsplit(par_url, "/")[[1]])]
-# par_dl = GET(par_url, write_disk(file.path(scratch_dir,zipname), overwrite = TRUE))
-# # Unzip file and save in the working directory (defaults to Documents folder)
-# unzip(file.path(scratch_dir, zipname), exdir = file.path(scratch_dir)) #, list = TRUE) # just lists files, does not unzip
-# #Read shapefile into R
-# par_all = st_read(file.path(scratch_dir, "SiskiyouParcelsNov2017.shp"))
-# par = st_transform(par_all, crs("+init=epsg:3310"))
-#
-# #Copy to the box DMS archive
-# # TO DO: when this wrote to file, it threw a bunch of errors saying:
-# #Warning 1: Value 490894360.912 of field Shape_Area of feature 37797 not successfully written. Possibly due to too larger number with respect to field width
-# # Figure out why it's throwing that error
-# if(save_data_to_archive==T &
-#    !file.exists(file.path(dms_archive_dir, "parcels.shp"))){
-#   st_write(obj = par, dsn = dms_archive_dir, layer = "parcels", driver = "ESRI Shapefile")
-# }
-# #remove files from scratch drive
-# file.remove(file.path(scratch_dir, zipname))
-# extension_list = c("cpg", "dbf", "prj", "shx", "shp", "xml", "sbn", "sbx", "shp.xml")
-# file.remove(file.path(scratch_dir,paste("SiskiyouParcelsNov2017", extension_list, sep = ".")))
-
+california = st_transform(california, st_crs(3310))
 
 # Roads (TIGER) -----------------------------------------------------------
 # Accessed from https://catalog.data.gov/dataset/tiger-line-shapefile-2018-county-siskiyou-county-ca-all-roads-county-based-shapefile
 roads_url = "https://www2.census.gov/geo/tiger/TIGER2018/ROADS/tl_2018_06093_roads.zip"
 zipname = strsplit(roads_url, "/")[[1]][length(strsplit(roads_url, "/")[[1]])]
+layer_name = gsub(zipname, pattern = ".zip",replacement="")
 roads_dl = GET(roads_url, write_disk(file.path(scratch_dir,zipname), overwrite = TRUE))
 # Unzip file and save in the working directory (defaults to Documents folder)
 unzip(file.path(scratch_dir, zipname), exdir = file.path(scratch_dir))
 #Read shapefiles into R
-roads_all = st_read( file.path(scratch_dir, "tl_2018_06093_roads.shp"))
-roads_all = st_transform(roads_all, crs("+init=epsg:3310"))
+
+roads_all = st_read( file.path(scratch_dir, paste0(layer_name,".shp")))
+roads_all = st_transform(roads_all, st_crs(3310))
 
 # #Copy to the box DMS archive
 if(save_data_to_archive==T &
@@ -179,8 +162,8 @@ if(save_data_to_archive==T &
 }
 #remove files from scratch drive
 file.remove(file.path(scratch_dir, zipname))
-extension_list = c("cpg", "dbf", "prj", "shx", "shp")
-file.remove(file.path(scratch_dir,paste("tl_2018_06093_roads", extension_list, sep = ".")))
+extension_list = c("cpg", "dbf", "prj", "shx", "shp", "shp.ea.iso.xml", "shp.iso.xml")
+file.remove(file.path(scratch_dir,paste(layer_name, extension_list, sep = ".")))
 
 
 # DWR Basin Boundaries ----------------------------------------------------
@@ -198,7 +181,7 @@ gw_basin_name = "i08_B118_CA_GroundwaterBasins"
 basins_all = st_read(file.path(scratch_dir, paste0(gw_basin_name,".shp")))
 #subset the Scott GSP basin and reproject to 3310
 basin = basins_all[basins_all$Basin_Numb %in% c("1-005"),]
-basin = st_transform(basin, crs("+init=epsg:3310"))
+basin = st_transform(basin, st_crs(3310))
 # Write to Dropbox
 if(save_data_to_archive==T &
    !file.exists(file.path(dms_archive_dir, "scott_basin_boundary_2018.shp"))){
@@ -244,9 +227,9 @@ valley_name = ("scott")#, "shasta", "butte")
   named_streams$gnis_name[named_streams$reachcode == 18010208002394] = "Johnson Creek"
 
   #reproject
-  watershed = st_transform(wbdhu8, crs("+init=epsg:3310"))
-  nhdwaterbody = st_transform(nhdwaterbody, crs("+init=epsg:3310"))
-  named_streams = st_transform(named_streams, crs("+init=epsg:3310"))
+  watershed = st_transform(wbdhu8, st_crs(3310))
+  nhdwaterbody = st_transform(nhdwaterbody, st_crs(3310))
+  named_streams = st_transform(named_streams, st_crs(3310))
 
   # Write shapefiles to Box archive
   if(save_data_to_archive==T &
@@ -392,7 +375,7 @@ if(save_data_to_archive==T &
 #remove files from scratch drive
 extension_list = c("cpg", "dbf", "prj", "shx", "shp", "xml", "shp.ea.iso.xml", "shp.iso.xml")
 file.remove(file.path(scratch_dir,paste("tl_2021_us_aiannh", extension_list, sep = ".")))
-
+file.remove(file.path(scratch_dir,zipname))
 
 
 #_TABULAR DATA ------------------------------------------------------------
@@ -828,8 +811,8 @@ fj_flow$wy = year(fj_flow$Date); fj_flow$wy[month(fj_flow$Date) > 9] = fj_flow$w
 #     #Retrieve Scott well location shapefiles from server
 #     # irr_wells = get_postgis_query(siskiyou_spatial, "SELECT * FROM irrigation_wells_svihm_2018", geom_name = "geom")
 #     # mon_wells = get_postgis_query(siskiyou_spatial, "SELECT * FROM monitoring_wells_svihm_2018", geom_name = "geom")
-#     irr_wells = st_read(dsn = file.path(local_data_dir, "Wells and water levels"), layer = "irrigation_wells_svihm_2018")
-#     mon_wells = st_read(dsn = file.path(local_data_dir, "Wells and water levels"), layer = "monitoring_wells_svihm_2018")
+#     irr_wells = st_read(dsn = file.path(data_dir, "Wells and water levels"), layer = "irrigation_wells_svihm_2018")
+#     mon_wells = st_read(dsn = file.path(data_dir, "Wells and water levels"), layer = "monitoring_wells_svihm_2018")
 #
 #     #add coordinates to wells table
 #     irr_wells = st_transform(irr_wells, crs("+init=epsg:4326"))
@@ -1621,7 +1604,7 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 
 # downloaded from: https://cdec.water.ca.gov/dynamicapp/snowQuery
 
-# snow_dir = file.path(local_data_dir,"CDEC Snow Data")
+# snow_dir = file.path(data_dir,"CDEC Snow Data")
 # snow_record_csvs = list.files(path = snow_dir)
 #
 #
@@ -1663,7 +1646,7 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 # CIMIS, ET ref -----------------------------------------------------------
 
 # # Update process: Log in to https://cimis.water.ca.gov, go to Data, request a daily CSV report, 1/1/2015-present day (record starts april 2015)
-# cimis = read.csv(file.path(local_data_dir, "CIMIS Stn 225 Daily 2015.04.19 to 2022.02.27.csv"))
+# cimis = read.csv(file.path(data_dir, "CIMIS Stn 225 Daily 2015.04.19 to 2022.02.27.csv"))
 # cimis$Date=as.Date(cimis$Date, format = "%m/%d/%Y")
 # et_0 = cimis[,c("Date", "ETo..in.")]
 # colnames(et_0)=c("Date","ET_ref_in")
@@ -1673,7 +1656,7 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 # This is only for the Scott watershed
 
 # #Accessed from email sent from Flackus, Todd@DWR <Todd.Flackus@water.ca.gov>
-# lu_zip = file.path(local_data_dir,"Siskiyou2017_Final_WaterSourceDAU003Clip.shp.zip")
+# lu_zip = file.path(data_dir,"Siskiyou2017_Final_WaterSourceDAU003Clip.shp.zip")
 #
 # zipname = strsplit(lu_zip, "/")[[1]][length(strsplit(lu_zip, "/")[[1]])]
 # # Unzip file and save in the working directory (defaults to Documents folder)
@@ -1696,7 +1679,7 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 
 # SVIHM fields: MAR, ILR, Adjudicated Zone layers -----------------------------------------------------------------------
 
-# svihm_ref_dir = file.path(local_data_dir,"SVIHM Reference Data")
+# svihm_ref_dir = file.path(data_dir,"SVIHM Reference Data")
 # svihm_fields = st_read(dsn = svihm_ref_dir, layer = "Landuse_20190219")
 # adj_zone = st_read(dsn = svihm_ref_dir, layer = "Adjudicated Area")
 # svihm_fields = st_transform(svihm_fields, crs(adj_zone))
@@ -1712,7 +1695,7 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 #                       fill = T, sep = "\t", colClasses = fields_column_classes)
 # colnames(fields_tab) = c("Field_ID",colnames(fields_tab)[2:11])
 # # MAR fields table
-# mar_fields = read.table(file.path(local_data_dir,"SVIHM Reference Data","MAR_Fields.txt"),
+# mar_fields = read.table(file.path(data_dir,"SVIHM Reference Data","MAR_Fields.txt"),
 #                         comment.char = "!", skip = 1, header = F)
 # names(mar_fields) = c("Field_poly_num", "Max_infil_rate_m_day")
 #
@@ -1806,7 +1789,7 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 
 # SVIHM grid and Discharge Zone ----------------------------------------------------
 
-# svihm_ref_dir = file.path(local_data_dir,"SVIHM Reference Data")
+# svihm_ref_dir = file.path(data_dir,"SVIHM Reference Data")
 # discharge_zone = st_read(dsn = svihm_ref_dir, layer = "Discharge_Zone")
 # discharge_zone = st_transform(discharge_zone, crs(watershed))
 #
@@ -1870,26 +1853,26 @@ rm(list = c("noaa_updated_dataset", "station_table", "station_sp")) # remove old
 # Flow regimes -------------------------------------------------------------------------
 
 # CDFW 2017 interim instream flows
-cdfw_tab = read.csv(file.path(local_data_dir,"cdfw_2017_instream_flows.csv"))
+cdfw_tab = read.csv(file.path(data_dir,"cdfw_2017_instream_flows.csv"))
 colnames(cdfw_tab) = c("start_date_month","start_date_day","end_date_month","end_date_day","rec_flow_cfs")
 # Forest Service water right
-fs_tab = read.csv(file.path(local_data_dir,"USFS Scott Water Right.csv"))
+fs_tab = read.csv(file.path(data_dir,"USFS Scott Water Right.csv"))
 colnames(fs_tab) = c("start_date_month","start_date_day","end_date_month","end_date_day","rec_flow_cfs")
 # CDFW 2021 emergency drought minimum flows
-cdfw_2021 = read.csv(file.path(local_data_dir, "cdfw_2021c_emergency_drought_flows.csv"))
+cdfw_2021 = read.csv(file.path(data_dir, "cdfw_2021c_emergency_drought_flows.csv"))
 
 
 # Fish data ---------------------------------------------------------------
 
-spawners = read.csv(file.path(local_data_dir,"cdfw_2023a_tab4_Klamath and Scott Chinook Natural Spawner escapment.csv"))
-smolt_per_fem = read.csv(file.path(local_data_dir, "cdfw_2023a_tab6_Coho_smolt_production_per_female_2008-2020.csv"))
-chinook_abun = read.csv(file.path(local_data_dir,"cdfw_2023a_tab3_Chinook abundance estimates 2008-2022.csv"))
-chinook_spawn_and_juv = read.csv(file.path(local_data_dir,"massie_2020_Scott River Chinook Adult_juv_data_BY_1999_2020.csv"))
-coho_abun = read.csv(file.path(local_data_dir,"cdfw_2023a_fig18_Coho abundance estimates 2007-2022.csv"))
-outmigs = read.csv(file.path(local_data_dir,"cdfw_2023a_tab5_Coho smolt outmigrant survival 2004-2019.csv"))
+spawners = read.csv(file.path(data_dir,"cdfw_2023a_tab4_Klamath and Scott Chinook Natural Spawner escapment.csv"))
+smolt_per_fem = read.csv(file.path(data_dir, "cdfw_2023a_tab6_Coho_smolt_production_per_female_2008-2020.csv"))
+chinook_abun = read.csv(file.path(data_dir,"cdfw_2023a_tab3_Chinook abundance estimates 2008-2022.csv"))
+chinook_spawn_and_juv = read.csv(file.path(data_dir,"massie_2020_Scott River Chinook Adult_juv_data_BY_1999_2020.csv"))
+coho_abun = read.csv(file.path(data_dir,"cdfw_2023a_fig18_Coho abundance estimates 2007-2022.csv"))
+outmigs = read.csv(file.path(data_dir,"cdfw_2023a_tab5_Coho smolt outmigrant survival 2004-2019.csv"))
 outmigs$conditions_year = (outmigs$Brood.Year + outmigs$Smolt.Year)/2 # take middle year
 outmigs$Percent.smolt.survival = as.numeric(outmigs$Percent.smolt.survival)
-redds = read.csv(file.path(local_data_dir, "rcd_2020_coho_spawning_surveys.csv")) # not updated in 2024
+redds = read.csv(file.path(data_dir, "rcd_2020_coho_spawning_surveys.csv")) # not updated in 2024
 
 #Clean
 # Clean colnames, remove commas, convert from characters to numbers
@@ -1899,13 +1882,13 @@ spawners$chinook_scott = as.numeric(gsub(pattern = ",", replacement = "", x = sp
 
 
 # Functional flow metrics
-fflows = read.csv(file.path(local_data_dir, "ScottR_FJ_wy1942_2021.08.04_annual_flow_result.csv"))
+fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2021.08.04_annual_flow_result.csv"))
 colnames(fflows)[1] = "Water_Year"
 fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
 
 
 # River Connectivity data ------------------------------------------------------------------
-# connect_dir = file.path(local_data_dir, "Scott R Connectivity Data")
+# connect_dir = file.path(data_dir, "Scott R Connectivity Data")
 # ### 1. Voigt and Yokel river flowing or dry observations
 # ground_obs = read.csv(file.path(connect_dir, "Scott_R_Connectivity_Ground_Obs.csv"))
 # ground_obs$Obs_Date = as.Date(ground_obs$Obs_Date, format = "%m/%d/%Y")
