@@ -752,9 +752,11 @@ calc_recon_days_since_aug_31 = function(dates, flow, recon_threshold){
 
 calc_discon_days_since_aug_31 = function(dates, flow, discon_threshold){
   dates_since_aug_31 = as.numeric(dates - as.Date(paste0(year(min(dates))-1, "-08-31")))
-  discon_day = min(dates_since_aug_31[ flow < discon_threshold], na.rm=T)
+  if(sum(flow < discon_threshold) > 0){ #if it does disconnect, calculate discon day
+    discon_day = min(dates_since_aug_31[ flow < discon_threshold], na.rm=T)
+  }
 
-  if(sum(flow < discon_threshold) < 1){
+  if(sum(flow < discon_threshold) < 1){ # if it does not disconnect, return the end of the analysis period
     return(max(dates_since_aug_31))
   } else {
     return(discon_day)
@@ -876,11 +878,11 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
 
   #2. Assign output metrics
   output_tab$chinook_spawner_abundance = chinook_spawn_and_juv$Spawning_Adult_Chinook_est[match(output_tab$brood_year,
-                                                                       chinook_spawn_and_juv$Brood_Year)] #chinook_abun$Total_Basin_estimate[match(output_tab$brood_year, chinook_abun$Year)]
+                                                                                                chinook_spawn_and_juv$Brood_Year)] #chinook_abun$Total_Basin_estimate[match(output_tab$brood_year, chinook_abun$Year)]
   output_tab$chinook_juvenile_abundance = chinook_spawn_and_juv$Juvenile_Chinook_produced_BY_plus_1[match(output_tab$brood_year,
-                                                                                                chinook_spawn_and_juv$Brood_Year)]
-  output_tab$chinook_juv_per_adult = chinook_spawn_and_juv$Chinook_juv_per_adult[match(output_tab$brood_year,
                                                                                                           chinook_spawn_and_juv$Brood_Year)]
+  output_tab$chinook_juv_per_adult = chinook_spawn_and_juv$Chinook_juv_per_adult[match(output_tab$brood_year,
+                                                                                       chinook_spawn_and_juv$Brood_Year)]
   output_tab$coho_spawner_abundance = coho_abun$Number_of_Coho[match(output_tab$brood_year, coho_abun$Return_Year)]
   output_tab$coho_smolt_abun_est = outmigs$Smolt.point.Estimate[match(output_tab$smolt_year, outmigs$Smolt.Year)]
   output_tab$coho_smolt_per_fem = smolt_per_fem$Smolts_Produced_Per_Female[match(output_tab$smolt_year, smolt_per_fem$Smolt_Year)]
@@ -890,6 +892,7 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
   #3. Assign disconnection and reconnection date predictors
   # 4. Total Flow metrics and 5. Functional Flow metrics assigned inside for loop
   for(i in 1:nrow(output_tab)){
+
     brood_yr = output_tab$brood_year[i]; smolt_yr = brood_yr+2
 
     # Subset dates for metric calcs

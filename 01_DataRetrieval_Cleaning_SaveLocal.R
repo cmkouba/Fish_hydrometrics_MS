@@ -92,6 +92,7 @@ county_shp_name ="i03_CaliforniaCounties"
 counties_all = st_read( file.path(scratch_dir, paste0(county_shp_name,".shp")))
 county = counties_all[counties_all$COUNTY_NAM=="Siskiyou",]
 # county = st_transform(x = county, crs = crs("+init=epsg:3310"))
+# county_wgs84 = county
 county = st_transform(x = county, crs = st_crs(3310))
 
 #Copy to the box DMS archive
@@ -104,10 +105,9 @@ file.remove(file.path(scratch_dir, zipname))
 extension_list = c("cpg", "dbf", "prj", "shx", "shp", "xml")
 file.remove(file.path(scratch_dir,paste(county_shp_name, extension_list, sep = ".")))
 
-# California Cities -------------------------------------------------------
-# Accessed from https://data.ca.gov/dataset/ca-geographic-boundaries
-# cities_url = "https://data.ca.gov/sites/default/files/CA_Places.zip" # old
-cities_url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/436fc714-831c-4070-b44b-b06dcde6bf18/download/ca-places-boundaries.zip"
+# California Cities ----------------------------------------
+# accessed from https://catalog.data.gov/dataset/tiger-line-shapefile-2016-state-california-current-place-state-based
+cities_url = "https://www2.census.gov/geo/tiger/TIGER2016/PLACE/tl_2016_06_place.zip"
 
 zipname = strsplit(cities_url, "/")[[1]][length(strsplit(cities_url, "/")[[1]])]
 zipname = gsub("-","_",zipname)
@@ -119,13 +119,8 @@ unzip(zipfile = file.path(scratch_dir, zipname), exdir = scratch_dir)#, list = T
 layer_name = gsub(zipname, pattern = ".zip",replacement="")#
 # layer_name = "ca_places_boundaries"
 cities_all = st_read(file.path(scratch_dir, paste0(layer_name,".shp")))
-cities_all_wgs = st_set_crs(x = cities_all, value = st_crs(4326))
-# cities_all = st_transform(cities_all,  st_crs(3310))
-# cities_all = st_transform(cities_all, crs("+init=epsg:3310"))
-# cities_all = st_transform(cities_all, crs(county))
-county_trans = st_transform(county, crs(cities_all))
-cities = cities_all[county_trans,] # clip to county
-# CURRENTLY HERE. NEED TO FIGURE OUT WHY CITIES ARE fKING ShT UP.
+cities = st_transform(x=cities_all, crs=st_crs(3310))
+cities = cities[county,]
 
 #Copy to the box DMS archive
 if(save_data_to_archive==T &
@@ -136,7 +131,6 @@ if(save_data_to_archive==T &
 file.remove(file.path(scratch_dir, zipname))
 extension_list = c("cpg", "dbf", "prj", "shx", "shp", "xml", "sbn", "sbx", "shp.xml")
 file.remove(file.path(scratch_dir,paste(layer_name, extension_list, sep = ".")))
-
 
 # California Boundary ------------------------------------------------------
 california = st_union(counties_all)
@@ -295,10 +289,12 @@ usgs_gauges = sw_scott_sp[(watershed),]
 # USGS DEMs 1/3 arc-second
 # Accessed via https://viewer.nationalmap.gov/basic/#productSearch
 
+# old URLs
 # dem123_url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/IMG/n42w123.zip"
 # dem124_url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/IMG/n42w124.zip"
 # dem123_url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/n42w123/USGS_13_n42w123_20210624.tif"
 # dem124_url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/n42w124/USGS_13_n42w124_20210624.tif"
+# Current URL as of May 2024
 dem123_url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w123/USGS_13_n42w123_20210623.tif"
 dem124_url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w124/USGS_13_n42w124_20210623.tif"
 dem_urls = c(dem123_url, dem124_url)
@@ -389,6 +385,8 @@ fj_flow = readNWISdv(siteNumbers = fj_num, parameterCd="00060" )
 fj_flow = renameNWISColumns(fj_flow)
 fj_flow$wy = year(fj_flow$Date); fj_flow$wy[month(fj_flow$Date) > 9] = fj_flow$wy[month(fj_flow$Date) > 9]+1
 
+date_string = format(Sys.Date(), "%Y.%m.%d")
+write.csv(fj_flow, paste("fj flow", date_string,".csv"), row.names = F, quote=F)
 
 # Groundwater level data, 2023.01.11 --------------------------------------
 
@@ -1881,8 +1879,8 @@ spawners$chinook_klamath = as.numeric(gsub(pattern = ",", replacement = "", x = 
 spawners$chinook_scott = as.numeric(gsub(pattern = ",", replacement = "", x = spawners$chinook_scott))
 
 
-# Functional flow metrics
-fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2021.08.04_annual_flow_result.csv"))
+# Functional flow metrics -------------------------------------------------------------------
+fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_result.csv"))
 colnames(fflows)[1] = "Water_Year"
 fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
 
