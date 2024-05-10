@@ -13,9 +13,10 @@ FA_Dur,Fall Pulse Duration,--,Duration (# of days) of the fall pulse event
 Wet_BFL_Mag,Wet Season Baseflow Magnitude,Median (50th daily flow percentile),"The magnitude of the median rate of baseflow (i.e., non-storm flow) during the wet season. Abbreviation: Wet_BFL_Mag_50"
 Wet_Tim,Wet Season Onset Timing,--,Start date of wet-season in water year days
 Wet_BFL_Dur,Wet Season Baseflow Duration,--,Wet-season baseflow duration (# of days from start of wet-season to start of spring season)
+Peak_Dur,Duration of high-flow events,"2, 5, and 10-year return interval","Number of days exceeding the 2, 5 and 10 year recurrence intervals of annual peak flow (50%, 20%, and 10% exceedance values)."
+Peak_Fre,Frequency of high-flow events,"2, 5, and 10-year return interval","Number of events exceeding the 2, 5 and 10 year recurrence intervals of annual peak flow (50%, 20%, and 10% exceedance values)."
 SP_Tim,Spring Onset Timing,--,Start date of spring in water year days
 SP_ROC,Spring Recession Rate of Change,--,Spring flow recession rate (median daily rate of change over decreasing periods during the recession)
 DS_Mag,Dry Season Flow Magnitude,50th and 90th flow percentile,Percentile of daily flow within dry season
 DS_Tim,Dry Season Onset Timing,--,Dry-season baseflow start timing (water year day of dry season)
 DS_Dur_WS,Dry Season Duration,--,Dry-season baseflow duration (# of days from start of dry season to start of wet season)
-,,,

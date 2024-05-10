@@ -829,7 +829,10 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
                                "BY_min_flow_sepdec","RY_min_flow","SY_min_flow_janjul",
                                "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
                                "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", "BY_num_days_gt_90_pctile",
-                               "RY_Wet_BFL_Mag_50","RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_num_days_gt_90_pctile","RY_SP_Tim" ,"RY_SP_ROC",  "RY_DS_Tim","RY_DS_Mag_50", "RY_DS_Mag_90", "RY_DS_Dur_WS","RY_FA_Mag", "RY_FA_Tim", "RY_FA_Dur",
+
+                               "RY_Wet_BFL_Mag_50","RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_num_days_gt_90_pctile",
+                               "RY_SP_Tim" ,"RY_SP_ROC",  "RY_DS_Tim","RY_DS_Mag_50", "RY_DS_Mag_90", "RY_DS_Dur_WS","RY_FA_Mag", "RY_FA_Tim", "RY_FA_Dur",
+
                                "SY_Wet_BFL_Mag_50" ,"SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_num_days_gt_90_pctile", "SY_SP_Tim" ,"SY_SP_ROC")
 
   output_colnames = c("brood_year", "smolt_year",
@@ -846,10 +849,11 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
                       "BY_min_flow_sepdec","RY_min_flow","SY_min_flow_janjul",
                       "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
                       "log_tot_flow_CFLP" ,"log_BY_tot_flow_sepdec" ,"log_RY_tot_flow" ,"log_SY_tot_flow_janjul",
-                      "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", #"BY_num_days_gt_90_pctile",
+                      "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", "BY_num_days_gt_90_pctile",
                       "RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_SP_ROC", "RY_DS_Mag_50", "RY_DS_Mag_90", "RY_FA_Mag",
-                      "RY_FA_Tim", "RY_FA_Dur", "RY_Wet_BFL_Mag_50",#"RY_num_days_gt_90_pctile",
+                      "RY_FA_Tim", "RY_FA_Dur", "RY_Wet_BFL_Mag_50","RY_num_days_gt_90_pctile",
                       "RY_DS_Tim","RY_SP_Tim", "RY_DS_Dur_WS",
+                      "RY_Peak_Dur_2","RY_Peak_Dur_5","RY_Peak_Dur_10","RY_Peak_Fre_2","RY_Peak_Fre_5","RY_Peak_Fre_10",
                       "SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_SP_ROC" #"SY_Wet_BFL_Mag_50" ,"SY_num_days_gt_90_pctile", "SY_SP_Tim" ,
   )
 
@@ -991,6 +995,12 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
       output_tab[i, "RY_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr + 1]
       output_tab[i, "RY_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr + 1]
       output_tab[i, "RY_DS_Dur_WS"] = fflows$DS_Dur_WS[fflows$Water_Year == brood_yr + 1]
+      output_tab[i, "RY_Peak_Dur_2"] = fflows$Peak_Dur_2[fflows$Water_Year == brood_yr + 1]
+      output_tab[i, "RY_Peak_Dur_5"] = fflows$Peak_Dur_5[fflows$Water_Year == brood_yr + 1]
+      output_tab[i, "RY_Peak_Dur_10"] = fflows$Peak_Dur_10[fflows$Water_Year == brood_yr + 1]
+      output_tab[i, "RY_Peak_Fre_2"] = fflows$Peak_Fre_2[fflows$Water_Year == brood_yr + 1]
+      output_tab[i, "RY_Peak_Fre_5"] = fflows$Peak_Fre_5[fflows$Water_Year == brood_yr + 1]
+      output_tab[i, "RY_Peak_Fre_10"] = fflows$Peak_Fre_10[fflows$Water_Year == brood_yr + 1]
       if(is.element(el=brood_yr+2, set = fflows$Water_Year)){
         output_tab[i, "RY_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 2]
         output_tab[i, "RY_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 2]
@@ -1008,8 +1018,8 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
 
     # 6. Storm days
     cfs_90th_pctile = quantile(fj_flow$Flow, 0.9)
-    # output_tab[i, "BY_num_days_gt_90_pctile"] = sum(BY_flow > cfs_90th_pctile)
-    # output_tab[i, "RY_num_days_gt_90_pctile"] = sum(RY_flow > cfs_90th_pctile)
+    output_tab[i, "BY_num_days_gt_90_pctile"] = sum(BY_flow > cfs_90th_pctile)
+    output_tab[i, "RY_num_days_gt_90_pctile"] = sum(RY_flow > cfs_90th_pctile)
     # output_tab[i, "SY_num_days_gt_90_pctile"] = sum(SY_flow > cfs_90th_pctile)
 
   }
@@ -1134,6 +1144,72 @@ corr_matrix_fig = function(corr_matrix, thresholds = c(10,20,30,40,60,100)){
            cl.pos = "b")
 
 }
+
+corr_matrix_fig_2 = function(corr_matrix, thresholds = c(10,20,30,40,60,100)){
+
+  # clear out metrics in RY and SY that don't affect the number of spawners (in BY)
+  ry_and_sy_rows = grepl(pattern = "RY", x = row.names(corr_matrix)) |
+    grepl(pattern = "SY", x = row.names(corr_matrix))
+  corr_matrix$coho_spawner_abundance[ry_and_sy_rows] = NA
+  corr_matrix$coho_redds_in_brood[ry_and_sy_rows] = NA
+
+
+  ## Prepare for plotting
+  #Prettify column names
+  colnames(corr_matrix) = c("Num. Spawners","Num. Redds", "Est. Num. Smolt", "Smolt per Female")
+
+  # Subset into 2 correlation matrices for 2 side by side plots
+
+  # Matrix 1, Subset rows for recon, disconnection dates
+  conn_date_rows = paste(sort(rep(c("BY_recon", "RY_discon","RY_recon","SY_discon"),length(thresholds))),
+                         thresholds,  sep = "_")
+  corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% conn_date_rows,]
+  # Prettify row names for corr matrix 1
+  conn_date_rownames =  paste(sort(rep(c("BY recon.", "RY discon.",
+                                         "RY recon.", "SY discon."),
+                                       length(thresholds))),
+                              "day,", thresholds, "cfs", sep = " ")
+  # extract the SY problem recon dates
+  problem_rownames = paste(rep(c("SY discon."), 4),
+                           "day,", thresholds[thresholds<60],
+                           "cfs", sep = " ")
+  conn_date_rownames = conn_date_rownames[!(conn_date_rownames %in% problem_rownames)]
+  row.names(corr_matrix1) = conn_date_rownames
+
+  # Matrix 2, Subset for total flow and Functional Flow metrics
+  corr_matrix2 = corr_matrix[!(row.names(corr_matrix) %in% conn_date_rows),]
+
+  # Prettify row names for corr matrix 2
+  other_rownames = c("BY min. flow Sep-Dec","RY min. flow","SY min. flow Jan-Jul",
+                     "Total Flow CFLP" ,"BY Tot. Flow Sep-Dec",
+                     "RY Tot. Flow" ,"SY Tot. Flow Jan-Jul",
+                     "log of Tot. Flow CFLP" ,"log of BY Tot. Flow Sep-Dec",
+                     "log of RY Tot. Flow" ,"log of SY Tot. Flow Jan-Jul",
+                     "BY FA_Mag", "BY FA_Tim", "BY FA_Dur",
+                     "RY Wet_Tim","RY Wet_BFL_Dur", "RY SP_ROC",
+                     "RY DS_Mag_50", "RY DS_Mag_90", "RY FA_Mag",
+                     "RY FA_Tim", "RY FA_Dur", "RY Wet_BFL_Mag_50",
+                     "RY DS_Tim","RY SP_Tim", "RY DS_Dur_WS",
+                     "SY Wet_Tim" ,"SY Wet_BFL_Dur", "SY SP_ROC")
+  rownames(corr_matrix2) = other_rownames
+
+  #make plots, side by side
+  par(mfrow = c(1,2))
+
+  corrplot(as.matrix(corr_matrix1), #cex.axis = .5,
+           xlab = "", ylab = "", main = "", na.label = "--",
+           axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
+           col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+           cl.pos = "b")
+
+  corrplot(as.matrix(corr_matrix2), #cex.axis = .5,
+           xlab = "", ylab = "", main = "", na.label = "--",
+           axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
+           col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+           cl.pos = "b")
+
+}
+
 
 correl_scatter_plots= function(metrics_tab, predicted, y_label){
   # add a log flow term
@@ -1616,7 +1692,7 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 # V2 Lasso Regression -----------------------------------------------
 
-generate_pred_appear_tab = function(lasso_mod){
+generate_pred_appear_tab = function(lasso_mod, best_lam_range){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
   non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, function(x){min(which(abs(x)>0))})
   coefs$lambda_val_coef_appears = best_lam_range[non0_coef_lambda_index]
@@ -1668,13 +1744,14 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
   plot(deg_free_tab$Lambda, deg_free_tab$Df, col = "dodgerblue", lwd = 2,
        xlab="",ylab="", axes=F, type = "l")
   axis(side=4,at=pretty(range(deg_free_tab$Df)))
-  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3)
+  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
   legend(x = "topright", col=c("black","dodgerblue"), lwd = c(1,2),
          legend = c("% Deviance", "Degrees of freedom"))
 
   # B) Plot lambda vs test error - setup
   nbins = 30
-  bin_centers = seq(from=min(lambdas_and_rmse$bestlam), to = max(lambdas_and_rmse$bestlam),
+  bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
+                    to = max(lambdas_and_rmse$bestlam, na.rm=T),
                     length.out=nbins)
   categs = cut(x = lambdas_and_rmse$bestlam, breaks = nbins)
   avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean)
@@ -1682,15 +1759,17 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
   plot(lambdas_and_rmse$bestlam, lambdas_and_rmse$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
        main = "... but test error is larger with more coefficients",
        xlab = "Lambda value (shrinkage penalty)",
-       ylab = "Test error (RMSE) of models made \n from each set of 5 data points")
+       ylab = paste("Test error (RMSE) of models made from \n different combinations of data points"))
   # summarize by binning
   grid()
   points(bin_centers, avg_by_bin$x, pch=23, cex = 1.2, bg = "firebrick", type = "o")
-  legend(x="topright", col = c("gray","firebrick"),bg=c(NA,"firebrick"),
+  legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
          pch = c(19,23),
-         legend = c("Individual model RMSE", "Binned average RMSE"))}
+         legend = c("Individual model RMSE", "Binned average RMSE"))
+  }
 
-plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range, y_val_label){
+plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
+                            y_val_label, mt_nrow){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
 
   # Plot lambda vs highlighted coefs
@@ -1703,13 +1782,14 @@ plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range, y_val_la
 
   # setup for plot
   tot_preds = sum(!is.na(pred_appear_tab$lambda_non0_val_appears))
-  n_high = 7
+  n_high = 5
   pred_names = pred_appear_tab$predictor
   pred_pal = colorblind_pal()(n_high)
   # Initialize plot
   plot(x=range(plot_tab$lambda_val), col=NA,
        # main = "Higher shrinkage penalties produce models with fewer and smaller coefficients",
-       main = paste("Regression coefficients - predicting",y_val_label, "with hydrologic metrics"),
+       main = paste0("Regression coefficients - predicting ",y_val_label,
+                     "\n with hydrologic metrics (n=",mt_nrow,")"),
        y = range(plot_tab[,colnames(plot_tab)!="lambda_val"],na.rm=T),# ylim = c(-2,2),
        xlab = "Lambda value (shrinkage penalty)", ylab = "Standardized predictor coefficients")
   for(i in tot_preds:1){
@@ -1764,6 +1844,7 @@ lasso_regression_plots = function(metrics_tab,
     mt = mt[,!remove_these]
 
   }
+  mt_nrow = nrow(mt)
 
 
   # 2. Lasso Regression
@@ -1771,12 +1852,10 @@ lasso_regression_plots = function(metrics_tab,
   # Set up x and y, and retrieve table of best lambda and rmse values
   y = mt[,y_val]
   lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))
+  if(remove_SY_metrics==T){lambda_tab_path = file.path(data_dir, paste( y_val,"- no_SY lambdas_and_rmse.csv" )) }
   if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
   if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
-  if(y_val=="chinook_juv_per_adult"){
-    x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]
-    if(remove_SY_metrics==T){lambda_tab_path = file.path(data_dir, paste( y_val,"- no_SY lambdas_and_rmse.csv" ))}
-  }
+  if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
   if(y_val=="coho_spawner_abundance"){x = model.matrix(object = coho_spawner_abundance~., data = mt)[,-1]}
   if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
   if(y_val=="coho_smolt_abun_est"){x = model.matrix(object = coho_smolt_abun_est~., data = mt)[,-1]}
@@ -1800,9 +1879,9 @@ lasso_regression_plots = function(metrics_tab,
     lambdas_and_rmse = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
     write.csv(lambdas_and_rmse, lambda_tab_path, quote=F, row.names = F)
   }
-  min_lam = min(lambdas_and_rmse$bestlam)
-  max_lam = max(lambdas_and_rmse$bestlam)
-  by_val = diff(range(lambdas_and_rmse$bestlam))/99
+  min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
+  max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
+  by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
   # } else { #stored values for best lambdas
   #   # if(y_val=="coho_smolt_per_fem"){min_lam = 0.1; max_lam = 40; by_val = 0.1}
   #   # if(y_val=="chinook_juv_per_adult"){min_lam = 0.5; max_lam = 195; by_val = 2}
@@ -1813,7 +1892,7 @@ lasso_regression_plots = function(metrics_tab,
   # Calculate lasso models over range of lambda values
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
   # find lambda values at which each coefficient becomes non-0
-  pred_appear_tab = generate_pred_appear_tab(lasso_mod)
+  pred_appear_tab = generate_pred_appear_tab(lasso_mod, best_lam_range = best_lam_range)
   # Plots
   par(mfrow=c(3,1))
   y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance", "chinook_juvenile_abundance",
@@ -1821,31 +1900,45 @@ lasso_regression_plots = function(metrics_tab,
                                          "coho_smolt_per_fem", "coho_smolt_abun_est",
                                          "percent_coho_smolt_survival", "coho_redds_in_brood"),
                                y_val_title = c("Chinook escapement", " Chinook juv. abundance",
-                                               "Chinook (jpa)","coho escapement",
+                                               "Chinook jpa","coho escapement",
                                                "coho spf","est. coho smolt abundance",
                                                "percent coho smolt survival","coho redd abundace"),
                                y_val_label = c("Num. Chinook spawners (escapement)", "Num. Chinook juveniles",
                                                "Chinook juv. per adult (jpa)","Num. coho spawners (escapement)",
                                                "Coho smolt per female spawner (spf)","Est. num. coho smolt",
                                                "% coho smolt survival","Num. obs. coho redds"))
-  y_val_label = y_val_label_tab$y_val_label[y_val_label_tab$yval==y_val]
+  y_val_label = y_val_label_tab$y_val_title[y_val_label_tab$y_val==y_val]
   # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
   # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
-  plot_lasso_coefs(lasso_mod = lasso_mod, pred_appear_tab = pred_appear_tab,
-                   best_lam_range = best_lam_range, y_val_label = y_val_label)
+  plot_lasso_coefs(lasso_mod = lasso_mod,
+                   pred_appear_tab = pred_appear_tab,
+                   best_lam_range = best_lam_range,
+                   y_val_label = y_val_label,
+                   mt_nrow = mt_nrow)
   plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse)
 
 }
 
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
-                       remove_SY_metrics=T)
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance")
+# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+# png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+#
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
+# #                        remove_SY_metrics=T)
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood",
+#                        remove_SY_metrics=T)
+#
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance",
+#                        remove_SY_metrics=T)
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
+#
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance",
+#                                               remove_SY_metrics=T)
+#
+# dev.off(); fig_i = fig_i + 1
+
 
 
 
