@@ -347,9 +347,13 @@ Multiple observed quantities were evaluated as candidates to best represent the 
 Factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions. In this study, because we are interested only in the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system. The key ecological observations used in this study are:
 
 1. Number of adults migrating from the ocean to freshwater natal streams to spawn. This quantity, the 'escapement', is measured at a CDFW counting facility, using a resistance board weir and video counting flume in the Scott River [e.g., @CDFW2021a]. 
-2. Number of salmon gravel nests, or redds, observed during spawning window [e.g., @SiskiyouRCD2017b].
-3. Number of juvenile yearling, or smolt, salmon. Smolt are counted as outmigrants, often from rotary screw trap observations [e.g., @Massie2020]. 
-4. In addition to these three metrics, we calculate a combined metric that normalizes for the annual escapement using monitoring data across multiple years to capture both the spawning and outmigrating events for the relevant cohort: the number of coho smolt produced per spawning female (coho spf) and the Chinook juvenile per adult metric (Chinook jpa).
+2. Number of juvenile yearling, or smolt, salmon. Smolt are counted as outmigrants, often from rotary screw trap observations [e.g., @Massie2020]. 
+3. Number of salmon gravel nests, or redds, observed during spawning window [e.g., @SiskiyouRCD2017b] (for coho only).
+
+Based on these observations, two other combined metrics have historically been calculated and reported by regional agencies [e.g., @CDFW2023a]. These metrics use data from multiple years to capture multiple life stages for a given cohort:
+
+4. The number of outmigrating coho smolt produced per spawning female (coho spf) and the outmigrating Chinook juveniles per adult metric (Chinook jpa).
+5. The percent of each smolt cohort which survived its freshwater dwelling period and migrated to the ocean as smolt (for coho only).
 
 ## Data alignment and correlation coefficients
 
@@ -990,7 +994,7 @@ corrplot(cor(metrics_tab, use = "pairwise.complete.obs"),
          col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
          na.label = " ", main = NA)#"Correlation Matrix of Hydrologic and Fish Outcome Metrics")
 text(x=15,y=68, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
-polygon(x=c(10,60,60,10,10)+.5, y = c(50,50,55,55,50)+.4, border = "deeppink", lwd = 6, lty = 2)
+polygon(x=c(10,60,60,10,10)+.5, y = c(49,49,55,55,49)+.4, border = "deeppink", lwd = 6, lty = 2)
 polygon(x=c(10,60,60,10,10)+.5, y = c(55,55,58,58,55)+.6, border = "darkviolet", lwd = 6, lty = 4)
 dev.off()
 

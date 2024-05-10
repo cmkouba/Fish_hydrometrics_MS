@@ -1614,7 +1614,7 @@ hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
 
 
 
-# V2 Linear Model Selection -----------------------------------------------
+# V2 Lasso Regression -----------------------------------------------
 
 generate_pred_appear_tab = function(lasso_mod){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
@@ -1656,8 +1656,8 @@ find_all_best_lambda_vals = function(com_tab, x, y,
 plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Plot lasso diagnostics.
   # par(mfrow=(c(2,1)))
   #A: deviance and non-0 coefficients
-  lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  deg_free_tab = print(lasso_3)
+  lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+  deg_free_tab = print(lasso_mod)
   par(mar=c(5,5,3,5))
   plot(deg_free_tab$Lambda, deg_free_tab$`%Dev`,  type = "l",
        ylab = "% of null deviation explained by model",
@@ -1770,15 +1770,19 @@ lasso_regression_plots = function(metrics_tab,
 
   # Set up x and y, and retrieve table of best lambda and rmse values
   y = mt[,y_val]
-  if(y_val=="coho_smolt_per_fem"){
-    x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]
-    lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))
-  }
+  lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))
+  if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
+  if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
   if(y_val=="chinook_juv_per_adult"){
     x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]
     if(remove_SY_metrics==T){lambda_tab_path = file.path(data_dir, paste( y_val,"- no_SY lambdas_and_rmse.csv" ))}
-    if(remove_SY_metrics==F){lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))}
   }
+  if(y_val=="coho_spawner_abundance"){x = model.matrix(object = coho_spawner_abundance~., data = mt)[,-1]}
+  if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
+  if(y_val=="coho_smolt_abun_est"){x = model.matrix(object = coho_smolt_abun_est~., data = mt)[,-1]}
+  if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
+  if(y_val=="coho_redds_in_brood"){x = model.matrix(object = coho_redds_in_brood~., data = mt)[,-1]}
+
 
   # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
   if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
@@ -1807,23 +1811,43 @@ lasso_regression_plots = function(metrics_tab,
   best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
 
   # Calculate lasso models over range of lambda values
-  lasso_3 = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+  lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
   # find lambda values at which each coefficient becomes non-0
-  pred_appear_tab = generate_pred_appear_tab(lasso_3)
+  pred_appear_tab = generate_pred_appear_tab(lasso_mod)
   # Plots
   par(mfrow=c(3,1))
-  if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
-  if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
-  plot_lasso_coefs(lasso_mod = lasso_3, pred_appear_tab = pred_appear_tab,
+  y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance", "chinook_juvenile_abundance",
+                                         "chinook_juv_per_adult", "coho_spawner_abundance",
+                                         "coho_smolt_per_fem", "coho_smolt_abun_est",
+                                         "percent_coho_smolt_survival", "coho_redds_in_brood"),
+                               y_val_title = c("Chinook escapement", " Chinook juv. abundance",
+                                               "Chinook (jpa)","coho escapement",
+                                               "coho spf","est. coho smolt abundance",
+                                               "percent coho smolt survival","coho redd abundace"),
+                               y_val_label = c("Num. Chinook spawners (escapement)", "Num. Chinook juveniles",
+                                               "Chinook juv. per adult (jpa)","Num. coho spawners (escapement)",
+                                               "Coho smolt per female spawner (spf)","Est. num. coho smolt",
+                                               "% coho smolt survival","Num. obs. coho redds"))
+  y_val_label = y_val_label_tab$y_val_label[y_val_label_tab$yval==y_val]
+  # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
+  # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
+  plot_lasso_coefs(lasso_mod = lasso_mod, pred_appear_tab = pred_appear_tab,
                    best_lam_range = best_lam_range, y_val_label = y_val_label)
   plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse)
 
 }
 
-# lasso_regression_plots(metrics_tab = metrics_tab)
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult")
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
-#                        remove_SY_metrics=T)
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
+                       remove_SY_metrics=T)
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance")
+
+
 
 # Supplemental lm tables --------------------------------------------------
 
