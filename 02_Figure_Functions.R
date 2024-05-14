@@ -1043,8 +1043,7 @@ calc_corr_matrix=function(metrics_tab, corr_method = "pearson", min_pairs = 4,
   if(sum(is.na(fish_outcome_cols)) >0){
     fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "coho", x = colnames(metrics_tab)) |
                                                 grepl(pattern = "chinook", x = colnames(metrics_tab))]
-  }
-  if(fish_outcome_cols == "coho" & fish_outcome_cols != "chinook"){
+  } else if(fish_outcome_cols == "coho" & fish_outcome_cols != "chinook"){
     # fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "coho", x = colnames(metrics_tab)) &
     #                                             colnames(metrics_tab) != "percent_coho_smolt_survival"]
     fish_outcome_cols = c("coho_spawner_abundance", "coho_redds_in_brood",
@@ -1060,7 +1059,8 @@ calc_corr_matrix=function(metrics_tab, corr_method = "pearson", min_pairs = 4,
                                            grepl(pattern = "min", x = colnames(metrics_tab)) ]
 
   #Initialize output matrix
-  output_tab = data.frame(matrix(data=NA, nrow = length(predictor_cols),ncol = length(fish_outcome_cols)))
+  output_tab = data.frame(matrix(data=NA, nrow = length(predictor_cols),
+                                 ncol = length(fish_outcome_cols)))
   for(j in 1:length(fish_outcome_cols)){
     outcome_col = fish_outcome_cols[j]
     y = metrics_tab[,outcome_col]
@@ -1068,13 +1068,29 @@ calc_corr_matrix=function(metrics_tab, corr_method = "pearson", min_pairs = 4,
       predictor_col = predictor_cols[i]
       x = metrics_tab[,predictor_col]
 
-      if(sum(!is.na(x) & !is.na(y)) >= min_pairs){
+      if(sum(!is.na(x*y)) >= min_pairs){
         output_tab[i, j] = cor(x = x, y = y, use = "pairwise.complete.obs", method = corr_method)
       }
     }
   }
+  # assign row and column names
   colnames(output_tab) = fish_outcome_cols
   rownames(output_tab) = predictor_cols
+
+  # remove NA values (currently just 5- and 10-year flood metrics. They have too few obs. to make a corr calculation)
+  output_tab = output_tab[!is.na(output_tab$coho_smolt_per_fem),]
+
+  # clear out metrics in RY and SY that don't affect the number of spawners (in BY)
+  ry_rows = grepl(pattern = "RY", x = row.names(output_tab))
+  sy_rows = grepl(pattern = "SY", x = row.names(output_tab))
+  ry_and_sy_rows = ry_rows | sy_rows
+
+  output_tab$chinook_spawner_abundance[ry_and_sy_rows] = NA
+  output_tab$chinook_juvenile_abundance[sy_rows] = NA
+  output_tab$chinook_juv_per_adult[sy_rows] = NA
+  output_tab$coho_spawner_abundance[ry_and_sy_rows] = NA
+  output_tab$coho_redds_in_brood[ry_and_sy_rows] = NA
+
   return(output_tab)
 }
 
@@ -1145,25 +1161,37 @@ corr_matrix_fig = function(corr_matrix, thresholds = c(10,20,30,40,60,100)){
 
 }
 
-corr_matrix_fig_2 = function(corr_matrix, thresholds = c(10,20,30,40,60,100)){
-
-  # clear out metrics in RY and SY that don't affect the number of spawners (in BY)
-  ry_and_sy_rows = grepl(pattern = "RY", x = row.names(corr_matrix)) |
-    grepl(pattern = "SY", x = row.names(corr_matrix))
-  corr_matrix$coho_spawner_abundance[ry_and_sy_rows] = NA
-  corr_matrix$coho_redds_in_brood[ry_and_sy_rows] = NA
-
+corr_matrix_fig_2 = function(corr_matrix, thresholds = c(10,20,30,40,60,100),
+                             pred_subset){
 
   ## Prepare for plotting
   #Prettify column names
-  colnames(corr_matrix) = c("Num. Spawners","Num. Redds", "Est. Num. Smolt", "Smolt per Female")
+  colname_matching_df = data.frame(data_name = c("chinook_spawner_abundance",
+                                              "chinook_juvenile_abundance",
+                                              "chinook_juv_per_adult",
+                                              "coho_spawner_abundance",
+                                              "coho_smolt_per_fem",
+                                              "coho_smolt_abun_est",
+                                              "percent_coho_smolt_survival",
+                                              "coho_redds_in_brood"),
+                                   fig_name = c("Num. Ch. Spawners",
+                                                "Num. Ch. Juveniles",
+                                                "Chinook jpa",
+                                                "Num. Co. Spawners",
+                                                "Coho spf",
+                                                "Co. Juv. Abun. Est.",
+                                                "% Co. Smolt Survival",
+                                                "Num. Co. Redds"))
+  colnames(corr_matrix) = colname_matching_df$fig_name[match(colnames_corr_matrix,
+                                                    colname_matching_df$data_name)]
 
   # Subset into 2 correlation matrices for 2 side by side plots
 
   # Matrix 1, Subset rows for recon, disconnection dates
-  conn_date_rows = paste(sort(rep(c("BY_recon", "RY_discon","RY_recon","SY_discon"),length(thresholds))),
-                         thresholds,  sep = "_")
-  corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% conn_date_rows,]
+  # conn_date_rows = paste(sort(rep(c("BY_recon", "RY_discon","RY_recon","SY_discon"),length(thresholds))),
+  #                        thresholds,  sep = "_")
+  # corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% conn_date_rows,]
+  corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset,]
   # Prettify row names for corr matrix 1
   conn_date_rownames =  paste(sort(rep(c("BY recon.", "RY discon.",
                                          "RY recon.", "SY discon."),
