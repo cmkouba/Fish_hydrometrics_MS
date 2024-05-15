@@ -43,6 +43,7 @@ fall_col = "darkgoldenrod"
 spring_col = "green4"
 wet_sn_col = "royalblue3"
 dry_sn_col = "orangered"
+peak_col = "black"
 
 # subset data -------------------------------------------------------------
 
@@ -1037,7 +1038,9 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
 
 
 
-calc_corr_matrix=function(metrics_tab, corr_method = "pearson", min_pairs = 4,
+calc_corr_matrix=function(metrics_tab,
+                          corr_method = "pearson",
+                          min_pairs = 10,
                           fish_outcome_cols = NA){
 
   if(sum(is.na(fish_outcome_cols)) >0){
@@ -1161,8 +1164,7 @@ corr_matrix_fig = function(corr_matrix, thresholds = c(10,20,30,40,60,100)){
 
 }
 
-corr_matrix_fig_2 = function(corr_matrix, thresholds = c(10,20,30,40,60,100),
-                             pred_subset){
+corr_matrix_fig_2 = function(corr_matrix, pred_subset){
 
   ## Prepare for plotting
   #Prettify column names
@@ -1182,59 +1184,20 @@ corr_matrix_fig_2 = function(corr_matrix, thresholds = c(10,20,30,40,60,100),
                                                 "Co. Juv. Abun. Est.",
                                                 "% Co. Smolt Survival",
                                                 "Num. Co. Redds"))
-  colnames(corr_matrix) = colname_matching_df$fig_name[match(colnames_corr_matrix,
+  colnames(corr_matrix) = colname_matching_df$fig_name[match(colnames(corr_matrix),
                                                     colname_matching_df$data_name)]
 
-  # Subset into 2 correlation matrices for 2 side by side plots
-
-  # Matrix 1, Subset rows for recon, disconnection dates
-  # conn_date_rows = paste(sort(rep(c("BY_recon", "RY_discon","RY_recon","SY_discon"),length(thresholds))),
-  #                        thresholds,  sep = "_")
-  # corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% conn_date_rows,]
   corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset,]
-  # Prettify row names for corr matrix 1
-  conn_date_rownames =  paste(sort(rep(c("BY recon.", "RY discon.",
-                                         "RY recon.", "SY discon."),
-                                       length(thresholds))),
-                              "day,", thresholds, "cfs", sep = " ")
-  # extract the SY problem recon dates
-  problem_rownames = paste(rep(c("SY discon."), 4),
-                           "day,", thresholds[thresholds<60],
-                           "cfs", sep = " ")
-  conn_date_rownames = conn_date_rownames[!(conn_date_rownames %in% problem_rownames)]
-  row.names(corr_matrix1) = conn_date_rownames
 
-  # Matrix 2, Subset for total flow and Functional Flow metrics
-  corr_matrix2 = corr_matrix[!(row.names(corr_matrix) %in% conn_date_rows),]
-
-  # Prettify row names for corr matrix 2
-  other_rownames = c("BY min. flow Sep-Dec","RY min. flow","SY min. flow Jan-Jul",
-                     "Total Flow CFLP" ,"BY Tot. Flow Sep-Dec",
-                     "RY Tot. Flow" ,"SY Tot. Flow Jan-Jul",
-                     "log of Tot. Flow CFLP" ,"log of BY Tot. Flow Sep-Dec",
-                     "log of RY Tot. Flow" ,"log of SY Tot. Flow Jan-Jul",
-                     "BY FA_Mag", "BY FA_Tim", "BY FA_Dur",
-                     "RY Wet_Tim","RY Wet_BFL_Dur", "RY SP_ROC",
-                     "RY DS_Mag_50", "RY DS_Mag_90", "RY FA_Mag",
-                     "RY FA_Tim", "RY FA_Dur", "RY Wet_BFL_Mag_50",
-                     "RY DS_Tim","RY SP_Tim", "RY DS_Dur_WS",
-                     "SY Wet_Tim" ,"SY Wet_BFL_Dur", "SY SP_ROC")
-  rownames(corr_matrix2) = other_rownames
-
-  #make plots, side by side
-  par(mfrow = c(1,2))
 
   corrplot(as.matrix(corr_matrix1), #cex.axis = .5,
            xlab = "", ylab = "", main = "", na.label = "--",
            axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
            col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
            cl.pos = "b")
-
-  corrplot(as.matrix(corr_matrix2), #cex.axis = .5,
-           xlab = "", ylab = "", main = "", na.label = "--",
-           axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
-           col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
-           cl.pos = "b")
+  vert_line_y1 = length(pred_subset)+0.5
+  arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
+         length=0, lwd=2)
 
 }
 
@@ -1947,25 +1910,25 @@ lasso_regression_plots = function(metrics_tab,
 
 }
 
-# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-# png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-#
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
-# #                        remove_SY_metrics=T)
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
+#                        remove_SY_metrics=T)
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
 # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood",
 #                        remove_SY_metrics=T)
 #
 # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance",
 #                        remove_SY_metrics=T)
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
 #
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance",
-#                                               remove_SY_metrics=T)
-#
-# dev.off(); fig_i = fig_i + 1
+lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance",
+                       remove_SY_metrics=T)
+
+dev.off(); fig_i = fig_i + 1
 
 
 
