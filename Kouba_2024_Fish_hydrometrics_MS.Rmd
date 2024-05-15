@@ -86,10 +86,6 @@ In many rural areas in arid and semi-arid regions, balancing agricultural and en
 
 <!-- # To Do list -->
 
-<!-- *Possible new analyses, from GW Peer meeting on 2/17/2022* -->
-
-<!-- * New figure: x-axis is, every model combination (10s of 1000s), organized by inclusion of top 5 predictors. y-axis is the average model error. -->
-
 <!-- *writing* -->
 
 <!-- * make sure OCAR, and the 2-3-1 formula, is reflected in each subsection. what's the point of each section? -->
@@ -98,7 +94,6 @@ In many rural areas in arid and semi-arid regions, balancing agricultural and en
 
 <!-- *comments from Noelle* -->
 
-<!-- * add significance of lines of best fit to FF time series in Fig 3 -->
 <!-- * possibly add note about value of reach-specific flow metrics in ecohydro analysis ("although the standard func flow metrics can be a good starting point, flow metrics fit to a site's reach morphology are highly valuable") -->
 
 <!-- *comments from Thomas review* -->
@@ -111,14 +106,7 @@ In many rural areas in arid and semi-arid regions, balancing agricultural and en
 <!-- * Discussion should be ~1000 words. mine is 2000 -->
 <!-- * Conclusion, 300-500 words -->
 <!-- * Total paper is 10,000 words. Probably need to cut some from Section 2 -->
-<!-- * Methods background section could go in discussion. -->
-<!-- * journal idea - river research and applications? -->
 
-<!-- *comments from SRWC meeting* -->
-
-<!-- * chinook data? different models? -->
-<!-- * Chinook expectations. Don't need summer flows as much, since they don't rear in the summer; they migrate out asap. (really?) but would be more hammered by late fall flows. so would expect different weights than for coho. Maybe add chinook to chapter 1. -->
-<!-- * add scouring flows metric -->
 
 # Introduction
 
@@ -383,8 +371,9 @@ Because spawning occurs in the fall for both coho and Chinook salmon in the Scot
 smolt_year_hydro_tab = tabulate_hydro_by_affected_smolt_year(brood_years = 1999:2022,
                                                              smolt_years = 2001:2024)
 
-thresh_for_corr_fig = c(8,10,15, 20, 30, seq(from=40,to=120,by=20), 
-                        seq(from=150, to = 300, by = 50))
+thresh_for_corr_fig = c(8, 10, 15, 20, 40, 
+                        70, 100, 150, 200, 300, 
+                        400, 500, 750, 1000)
 
 metrics_tab = calc_metrics_hydro_by_affected_smolt_year(
   hydro_by_smolt_year = smolt_year_hydro_tab,
@@ -403,7 +392,7 @@ After aligning the hydrologic predictors and ecological responses, we calculated
 
 ## 5. Select ecological response metrics
 
-For each of the two species of concern, we wanted to find the ecological metric most related to the measured hydrology. We used the full suite of correlation coefficients to select one ecological metric for further analysis: the ecological metric that generated the highest number of $R$ values greater than 0.5  (i.e., the ecological metric that was the most predictable).
+For each of the two species of concern, we wanted to find the ecological metric most related to the measured hydrology. We used the full suite of correlation coefficients to select one ecological metric for further analysis: the ecological metric that generated the highest mean $R$ value (i.e., the ecological metric that appears to be the most predictable).
 
 ## 4. Predicting ecological outcomes 
 
@@ -411,7 +400,7 @@ For each of the two species of concern, we wanted to find the ecological metric 
 
 ### Lasso regression analysis
 
-With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @RastamCook2018] between 40 hydrologic predictors and 7 ecological metrics (five for coho and three for Chinook).  
+With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @RastamCook2018] between **40** hydrologic predictors and the two selected ecological metrics (one for coho and one for Chinook).  
 
 We used the R programming environment [@RManual] and the linear modeling function `glmnet()` [@Friedman2010] to perform variable selection using lasso regression. Lasso regression is less flexible than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@James2013]. Because the solution can set some coefficients to 0, thereby removing their associated predictors from the final model, lasso regression can also perform predictor selection.
 
@@ -517,6 +506,151 @@ fig_i = fig_i +1
 
 In the correlation analysis we assessed relatedness of ecological outcome metrics with both types of hydrologic metric (reconnection/disconnection and functional flows). Degree of correlation was evaluated broadly: a threshold of $|R|>0.5$ (Figure \@ref(fig:corrMatrixFig); *Supplemental Figure 1*) was selected to identify the best candidates among those available, even if it does not denote particularly strong predictive power on its own.
 
+* correlations between ecological metrics
+* coho smolt per fem vs coho % smolt survival metrics - why negatively correlated? which is worse? Possibly smolt survival, since smolt estimation is less constrained than the camera trap method at the counting station. 
+* smolt abundance estimates bias high or low?
+
+```{r inter_corr_matrix_supp_fig, echo = F, warning =F, comment = F}
+
+nthresh = length (thresh_for_corr_fig)
+nthresh_gt_70 = sum(thresh_for_corr_fig >= 70)
+
+# Calculate correlation matrix and remove values that don't make temporal sense 
+# (i.e., the wet season values in water year 2011 would not influence the
+# number of spawners that arrived in fall of 2010)
+corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs")
+
+# ry_rows = grepl(pattern = "RY", x = row.names(corr_matrix))
+# sy_rows = grepl(pattern = "SY", x = row.names(corr_matrix))
+# ry_and_sy_rows = ry_rows + sy_rows
+# corr_matrix$coho_spawner_abundance[ry_and_sy_rows] = NA
+# corr_matrix$coho_redds_in_brood[ry_and_sy_rows] = NA
+
+metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
+                              rep("darkgray",8), # fish outcome metrics
+                              rep(fall_col,nthresh), # BY fall recon 
+                              rep(spring_col,nthresh), # RY spring discon
+                              rep(fall_col,nthresh),   # RY fall discon
+                              rep(spring_col, nthresh_gt_70), #SY spring discon
+                              rep("darkorchid",3), # min. flow metrics
+                              rep("peachpuff3",4),    # total flow metrics
+                              rep("peachpuff4", 4),    # log total flow metrics
+                              rep(fall_col,3),
+                              rep(wet_sn_col, 3),
+                              spring_col,
+                              rep(dry_sn_col, 2),
+                              rep(fall_col,3),
+                              rep(wet_sn_col,2),
+                              rep(dry_sn_col,1),
+                              spring_col,
+                              rep(dry_sn_col,1),
+                              rep(peak_col,6),
+                              rep(wet_sn_col,2),
+                              spring_col
+                              )
+
+if(save_imgs==T){
+  pdf(file = file.path(graphics_dir, "corr_explorer_2.pdf"), width = 40, height = 40)
+par(mar=c(5,4,6,2))
+corrplot(corr_tab_all_metrics,
+         tl.col = metrics_tab_column_colors, tl.cex = 1.1,
+         col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+         na.label = "--", main = NA)#"Correlation Matrix of Hydrologic and Fish Outcome Metrics")
+text(x=30,y=68, cex=3, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
+polygon(x=c(10,59,59,10,10)+.5, y = c(49,49,54,54,49)+.4, border = "deeppink", lwd = 6, lty = 2)
+polygon(x=c(10,59,59,10,10)+.5, y = c(54,54,57,57,54)+.6, border = "darkviolet", lwd = 6, lty = 4)
+dev.off()
+
+}
+
+```
+
+
+
+```{r select_eco_metric, echo = F, warning =F, comment = F}
+
+# 1. Restrict flow thresholds to avoid redundant info
+
+# select one flow threshold for each recon and discon category
+get_best_flow_threshold_tab = function(corr_tab_all_metrics,
+                                       species = c("coho", "chinook"),
+                                       categories = c("BY_recon", 
+                                                      "RY_discon",
+                                                      "RY_recon",
+                                                      "SY_discon")){
+  output_tab = data.frame(species = sort(rep(species,length(categories))),
+                          category = rep(categories, length(species)),
+                          threshold_col_name = NA,
+                          mean_threshold_R_val = NA)
+  
+  for(i in 1:nrow(output_tab)){
+    species = output_tab$species[i]
+    category = output_tab$category[i]
+    y_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab), 
+                                         pattern = species)]
+    x_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab), 
+                                         pattern = category)]
+    flow_threshold_corr_values = corr_tab_all_metrics[x_names,y_names]
+    flow_threshold_corr_mean_abs = apply(X = flow_threshold_corr_values,
+                                         MARGIN = 1,
+                                         function(x){mean(abs(x),na.rm=T)})
+    max_mean_index = which.max(flow_threshold_corr_mean_abs)
+    max_mean_val = max(flow_threshold_corr_mean_abs, na.rm=T)
+    selected_threshold = names(flow_threshold_corr_mean_abs[max_mean_index])
+    output_tab$threshold_col_name[i] = selected_threshold
+    output_tab$mean_threshold_R_val[i] = max_mean_val
+    # flow_threshold_corr_max_index = apply(X = flow_threshold_corr_values,
+    #                                 MARGIN = 2, 
+    #                                 function(x){which.max(abs(x))})
+    
+    # flow_threshold_corr_max_vals = x_names[flow_threshold_corr_max_index]
+  }
+  
+  return(output_tab)
+  
+  
+}
+best_flow_thresholds = get_best_flow_threshold_tab(corr_tab_all_metrics = corr_tab_all_metrics)
+
+recon_discon_cols = colnames(metrics_tab)[grepl(x=colnames(metrics_tab), "recon") | grepl(x=colnames(metrics_tab), "discon") ]
+
+remove_these = setdiff(x=recon_discon_cols,
+                       y=best_flow_thresholds$threshold_col_name)
+keep_these = !(colnames(metrics_tab) %in% remove_these)
+
+
+
+metrics_tab2 = metrics_tab[,keep_these]
+corr_tab_2 = cor(x=metrics_tab2, use="pairwise.complete.obs",)
+corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1
+
+# corrplot(corr_tab_2,
+#          tl.col = metrics_tab_column_colors, tl.cex = 1.1,
+#          col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+#          na.label = "--", main = NA) 
+
+# 2. pick eco response metric with highest mean R value with hydro metrics
+
+y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
+                                grepl(pattern = "chinook", x = colnames(corr_tab_2))]
+corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
+num_top_pred = 10
+
+for(i in 1:length(y_vals)){
+  y_val = y_vals[i]
+  top10 = sort(abs(corr_tab_2[,y_val]), decreasing = T)[1:num_top_pred]
+  corr_summary$mean_R_top_pred[i] = mean(top10)
+}
+
+corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),]
+corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),]
+
+y_val_chinook = corr_ch$y_vals[which.max(corr_ch$mean_R_top_pred)]
+y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
+
+```
+
+
 **revise rest of text in this section**
 
 For coho salmon number of spawners, the only hydrologic predictor exceeding the correlation threshold is the brood year reconnection date, BY_recon. day, at 100 cfs. No significant correlations are found between coho salmon number of redds and any of the hydrologic variables. Two hydrologic variables show significant predictive power for the coho salmon number of smolt: rearing year fall pulse duration, RY FA_Dur, and rearing year dry season onset timing, RY DS_Tim.
@@ -560,64 +694,19 @@ fig_i = fig_i +1
 
 
 ```
-```{r inter_corr_matrix_supp_fig, echo = F, warning =F, comment = F}
-
-nthresh = length (thresh_for_corr_fig)
-nthresh_lt_80 = sum(thresh_for_corr_fig <= 80)
-
-# Calculate correlation matrix and remove values that don't make temporal sense 
-# (i.e., the wet season values in water year 2011 would not influence the
-# number of spawners that arrived in fall of 2010)
-corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs")
-
-# ry_rows = grepl(pattern = "RY", x = row.names(corr_matrix))
-# sy_rows = grepl(pattern = "SY", x = row.names(corr_matrix))
-# ry_and_sy_rows = ry_rows + sy_rows
-# corr_matrix$coho_spawner_abundance[ry_and_sy_rows] = NA
-# corr_matrix$coho_redds_in_brood[ry_and_sy_rows] = NA
-
-metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
-                              rep("darkgray",8), # fish outcome metrics
-                              rep(fall_col,nthresh), # BY fall recon 
-                              rep(spring_col,nthresh), # RY spring discon
-                              rep(fall_col,nthresh),   # RY fall discon
-                              rep(spring_col, nthresh_lt_80), #SY spring discon
-                              rep("darkorchid",3), # min. flow metrics
-                              rep("peachpuff3",4),    # total flow metrics
-                              rep("peachpuff4", 4),    # log total flow metrics
-                              rep(fall_col,3),
-                              rep(wet_sn_col, 3),
-                              spring_col,
-                              rep(dry_sn_col, 2),
-                              rep(fall_col,3),
-                              rep(wet_sn_col,2),
-                              rep(dry_sn_col,1),
-                              spring_col,
-                              rep(dry_sn_col,1),
-                              rep(peak_col,6),
-                              rep(wet_sn_col,2),
-                              spring_col
-                              )
-
-if(save_imgs==T){
-  pdf(file = file.path(graphics_dir, "corr_explorer_2.pdf"), width = 30, height = 30)
-par(mar=c(5,4,6,2))
-corrplot(corr_tab_all_metrics,
-         tl.col = metrics_tab_column_colors, tl.cex = 1.1,
-         col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
-         na.label = "--", main = NA)#"Correlation Matrix of Hydrologic and Fish Outcome Metrics")
-text(x=30,y=68, cex=3, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
-polygon(x=c(10,59,59,10,10)+.5, y = c(49,49,54,54,49)+.4, border = "deeppink", lwd = 6, lty = 2)
-polygon(x=c(10,59,59,10,10)+.5, y = c(54,54,57,57,54)+.6, border = "darkviolet", lwd = 6, lty = 4)
-dev.off()
-
-}
-
-```
 
 
+### Selection of thresholds for flow reconnection and disconnection dates
 
-### Selection of thresholds for fall reconnection dates
+* selected one flow threshold (the one with the highest $R$) from each category (BY discon, RY recon, etc)
+* while it's possible that multiple flow thresholds can carry independent information, for this watershed, for each species, we narrowed it to one flow threshold per category. This decision could be revisited for different watersheds.
+
+Discussion
+
+* We did this because the correlation analysis did not identify multiple 
+* In this watershed, salmon passage to access the lower mainstem is possible at a Fort Jones flowrate (~20-40 cfs), while access to upper tributaries is generally associated with a Fort Jones flowrate of 100 cfs [@Sommarstrom2020]. 
+
+**revise text below this section**
 
 We examined relationships between reconnection dates and biological monitoring data to identify the flow threshold(s) with the highest predictive power and potentially the lowest redundancy
 (shown for BY_recon and coho spf in Figure \@ref(fig:explanationForBYReconCFSSelection)). The trends in slope value and $R^2$ suggest that the date of crossing lower flow thresholds such as 10 and 15 cfs has greater biological significance than the date of crossing thresholds like 40 cfs, with 20 cfs being somewhat intermediate. In the context of this watershed, it suggests that a Fort Jones gauge flowrate of 10 cfs is a critical threshold for coho passage into the mainstem Scott River.
@@ -630,73 +719,78 @@ At reconnection dates for 100 cfs, the $R^2$ of the relationship is higher than 
 
 Choosing the two models with the highest $R^2$, we selected the reconnection and disconnection date flow thresholds of 10 cfs and 100 cfs for further analysis (Figure \@ref(fig:explanationForBYReconCFSSelection)). This decision could be revisited if additional years of data become available.
 
-```{r explanationForBYReconCFSSelection, echo = F, warning = F,  fig.height = 8, fig.cap = "Correlations between the 'reconnection' dates, or dates of fall flow rising above the designated flow threshold, for six flowrates.  X-axis units are days after Aug. 31 of the coho salmon cohort Birth Year.\\label{fig:explanationForBYReconCFSSelection}"}
+<!-- ```{r explanationForBYReconCFSSelection, echo = F, warning = F,  fig.height = 8, fig.cap = "Correlations between the 'reconnection' dates, or dates of fall flow rising above the designated flow threshold, for six flowrates.  X-axis units are days after Aug. 31 of the coho salmon cohort Birth Year.\\label{fig:explanationForBYReconCFSSelection}"} -->
 
 
-#rerun metrics tab with mostly-low cfs thresholds for these explainer figures
-thresh_for_explain_fig = c(8,10,15,20, 40,100)
+<!-- #rerun metrics tab with mostly-low cfs thresholds for these explainer figures -->
+<!-- thresh_for_explain_fig = c(10,40,100, 200) -->
 
-metrics_tab_for_explainer = calc_metrics_hydro_by_affected_smolt_year(
-  hydro_by_smolt_year = smolt_year_hydro_tab,
-  thresholds = thresh_for_explain_fig) 
+<!-- metrics_tab_for_explainer = calc_metrics_hydro_by_affected_smolt_year( -->
+<!--   hydro_by_smolt_year = smolt_year_hydro_tab, -->
+<!--   thresholds = thresh_for_explain_fig)  -->
 
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-  
-threshold_explainer_trendlines(data_tab = metrics_tab_for_explainer,
-                               thresholds = thresh_for_explain_fig,
-                               y_name = "coho_smolt_per_fem")
+<!-- fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png")) -->
+<!-- if(save_imgs == TRUE){ -->
+<!--   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300) -->
 
-# threshold_explainer_trendlines(data_tab = metrics_tab_for_explainer,
-#                                thresholds = thresh_for_explain_fig,
-#                                # y_name = "chinook_juvenile_abundance",
-#                                # y_name = "chinook_spawner_abundance",
-#                                y_name = "chinook_juv_per_adult",
-#                                print_r2 = T)
-  
-  dev.off()
-}
-knitr::include_graphics(fig_path)
-fig_i = fig_i +1
+<!-- threshold_explainer_trendlines(data_tab = metrics_tab_for_explainer, -->
+<!--                                thresholds = thresh_for_explain_fig, -->
+<!--                                y_name = "coho_smolt_per_fem") -->
 
-```
+<!-- # threshold_explainer_trendlines(data_tab = metrics_tab_for_explainer, -->
+<!-- #                                thresholds = thresh_for_explain_fig, -->
+<!-- #                                # y_name = "chinook_juvenile_abundance", -->
+<!-- #                                # y_name = "chinook_spawner_abundance", -->
+<!-- #                                y_name = "chinook_juv_per_adult", -->
+<!-- #                                print_r2 = T) -->
+
+<!--   dev.off() -->
+<!-- } -->
+<!-- knitr::include_graphics(fig_path) -->
+<!-- fig_i = fig_i +1 -->
+
+<!-- ``` -->
 
 
 ## Lasso regression
 
-```{r lassoResults, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho spf with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
+```{r lassoResults_coho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
 
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
   
-  lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
+  pred_tab_co = lasso_regression_plots(metrics_tab = metrics_tab, y_val = y_val_coho)
 
   dev.off()
 }
 knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
-
+lam_co = 3.5 # for 5 coefs
 ```
 
 
-```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook jpa with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResultsChinook}"}
+```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResultsChinook}"}
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
 
-  lasso_regression_plots(metrics_tab = metrics_tab, 
-                         y_val = "chinook_juv_per_adult", remove_SY_metrics=T)
+  pred_tab_ch = lasso_regression_plots(metrics_tab = metrics_tab, 
+                         y_val = y_val_chinook, remove_SY_metrics=T)
 
   dev.off()
 }
 knitr::include_graphics(fig_path)
 fig_i = fig_i +1
+
+# select chinook lambda value
+lam_ch = 44
+
+
 
 ```
 
@@ -971,6 +1065,38 @@ $m_{4} = 0.12~spf~equiv. / (day~of~wet~season~baseflow~duration)$
 
 
 ```{r calc_hbf_values_tab, echo = F, warning =F}
+
+hbf_coho = get_hbf_from_lasso_mod(metrics_tab,
+                                  y_val = y_val_coho,
+                                  lambda_val = lam_co,
+                                  remove_extra_recon_thresholds = F,
+                                  remove_SY_metrics = F)
+
+coho_coefs = as.data.frame(t(as.matrix(coef(hbf_coho))))
+# coef_names = row.names(coef(hbf_coho))
+#removing the intercept will make the row names unusable
+
+int_picker = 1
+intercept = coho_coefs[int_picker]
+coho_coefs = coho_coefs[-int_picker]
+# coef_names = coef_names[-int_picker]
+
+# CURRENTLY HERE. WRITE FUNCTION TO APPLY COEFFICIENTS TO ANNUAL VALUES
+# TO CALCULATE ANNUAL HB VALUES
+
+output_tab=metrics_tab
+output_tab$hb_i = NA
+# match metrics tab to coefficients
+term_matcher = match( colnames(coho_coefs), colnames(metrics_tab))
+output_tab[,term_matcher] = 0
+
+
+for(i in 1:nrow(metrics_tab)){
+  by_vals = metrics_tab[i,]
+  hb_components = by_vals [term_matcher] * coho_coefs
+  output_tab[term_matcher,i] = hb_components
+  output_tab$hb_i[i] = sum(intercept, hb_components, na.rm=T)
+}
 
 
 

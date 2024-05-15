@@ -1193,7 +1193,7 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
   corrplot(as.matrix(corr_matrix1), #cex.axis = .5,
            xlab = "", ylab = "", main = "", na.label = "--",
            axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
-           col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+           # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
            cl.pos = "b")
   vert_line_y1 = length(pred_subset)+0.5
   arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
@@ -1802,7 +1802,8 @@ plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
 lasso_regression_plots = function(metrics_tab,
                                   y_val = "coho_smolt_per_fem",
                                   remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = F){
+                                  remove_SY_metrics = F,
+                                  return_pred_appear_tab = T){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
 
@@ -1908,29 +1909,85 @@ lasso_regression_plots = function(metrics_tab,
                    mt_nrow = mt_nrow)
   plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse)
 
+  if(return_pred_appear_tab==T){return(pred_appear_tab)}
 }
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
-#                        remove_SY_metrics=T)
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood",
+# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+# png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+#
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
+# #                        remove_SY_metrics=T)
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood",
+# #                        remove_SY_metrics=T)
+# #
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance",
+# #                        remove_SY_metrics=T)
+# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
+# #
+# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance",
 #                        remove_SY_metrics=T)
 #
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance",
-#                        remove_SY_metrics=T)
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
-#
-lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance",
-                       remove_SY_metrics=T)
-
-dev.off(); fig_i = fig_i + 1
+# dev.off(); fig_i = fig_i + 1
 
 
+get_hbf_from_lasso_mod = function(metrics_tab,
+                                  y_val = "coho_smolt_per_fem",
+                                  lambda_val,
+                                  remove_extra_recon_thresholds = F,
+                                  remove_SY_metrics = F){
+  #step 1. Prep x matrix and y array
+  # (Dev: run manuscript .Rmd through line 395)
+  # 1a. remove rows with no response var
+  mt = metrics_tab
+  non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
+                    "chinook_juv_per_adult", "coho_smolt_per_fem",
+                    "coho_spawner_abundance", "coho_smolt_per_fem", "coho_smolt_abun_est",
+                    "percent_coho_smolt_survival", "coho_redds_in_brood")
+  # if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
+  # if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
+  non_y_vals = non_pred_vals[non_pred_vals != y_val]
+  mt = mt[,!(colnames(mt) %in% non_y_vals)]
+  mt = mt[!is.na(mt[,y_val]),]
+  na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
+  mt = mt[,!is.na(na_col_detector) ]
+
+  # 1b. Optional. Remove the other thresholds or Smolt Year metrics
+  if(remove_extra_recon_thresholds==T){
+    remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
+                     "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
+                     "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
+                     "SY_discon_80")
+    mt = mt[,!(colnames(mt) %in% remove_these)]
+  }
+  if(remove_SY_metrics == T){
+    remove_these = grepl(pattern = "SY", x=colnames(mt))
+    mt = mt[,!remove_these]
+
+  }
+  mt_nrow = nrow(mt)
+
+
+  # 2. Lasso Regression
+
+  # Set up x and y, and retrieve table of best lambda and rmse values
+  y = mt[,y_val]
+  if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
+  if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
+  if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
+  if(y_val=="coho_spawner_abundance"){x = model.matrix(object = coho_spawner_abundance~., data = mt)[,-1]}
+  if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
+  if(y_val=="coho_smolt_abun_est"){x = model.matrix(object = coho_smolt_abun_est~., data = mt)[,-1]}
+  if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
+  if(y_val=="coho_redds_in_brood"){x = model.matrix(object = coho_redds_in_brood~., data = mt)[,-1]}
+
+
+  lasso_mod = glmnet(x, y, alpha = 1, lambda = lambda_val)
+
+  return(lasso_mod)
+}
 
 
 # Supplemental lm tables --------------------------------------------------
