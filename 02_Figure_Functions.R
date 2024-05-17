@@ -766,11 +766,11 @@ calc_discon_days_since_aug_31 = function(dates, flow, discon_threshold){
 
 
 
-tabulate_hydro_by_affected_smolt_year = function(smolt_years = smolt_per_fem$Smolt_Year,
+tabulate_hydro_by_affected_brood_year = function(smolt_years = smolt_per_fem$Smolt_Year,
                                                  brood_years = smolt_per_fem$Adult_Year_Brood_Year){
-  hydro_by_smolt_year = fj_flow[0:0,] # Get table structure with 0 rows
-  hydro_by_smolt_year$smolt_year = vector(mode="integer",length=0)
-  hydro_by_smolt_year$smolt_year_cum_flow = vector(mode="numeric",length=0)
+  hydro_by_brood_year = fj_flow[0:0,] # Get table structure with 0 rows
+  hydro_by_brood_year$smolt_year = vector(mode="integer",length=0)
+  hydro_by_brood_year$smolt_year_cum_flow = vector(mode="numeric",length=0)
 
   #if no m3 per day units, create it
   if(!is.element(el = "Flow_m3day",colnames(fj_flow))){fj_flow$Flow_m3day = fj_flow$Flow*cfs_to_m3day}
@@ -782,18 +782,19 @@ tabulate_hydro_by_affected_smolt_year = function(smolt_years = smolt_per_fem$Smo
     affecting_hydro = fj_flow[fj_flow$Date %in% affecting_hydro_dates,]
     affecting_hydro$smolt_year = smolt_year
     affecting_hydro$smolt_year_cum_flow = cumsum(affecting_hydro$Flow_m3day)
-    hydro_by_smolt_year = rbind(hydro_by_smolt_year, affecting_hydro)
+    hydro_by_brood_year = rbind(hydro_by_brood_year, affecting_hydro)
 
   }
 
-  return(hydro_by_smolt_year)
+  return(hydro_by_brood_year)
 
 }
 
-calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
-                                                     thresholds = c(10, 20, 30, 40, 60, 100)){
+calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
+                                                     thresholds = c(10, 20, 30, 40, 60, 100),
+                                                     reduce_to_eco_data_years_only = T){
 
-  hbsm = hydro_by_smolt_year
+  hbbm = hydro_by_brood_year
 
   # metric table column names
 
@@ -860,12 +861,17 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
 
   #1. Initialize table
   ## Identify brood year coverage to find number of rows
-  brood_years_min = min(c(smolt_per_fem$Adult_Year_Brood_Year,
-                          outmigs$Brood.Year, coho_abun$Return_Year,
-                          chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
-  brood_years_max = max(c(smolt_per_fem$Adult_Year_Brood_Year,
-                          outmigs$Brood.Year,coho_abun$Return_Year,
-                          chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
+  if(reduce_to_eco_data_years_only==T){
+    brood_years_min = min(c(smolt_per_fem$Adult_Year_Brood_Year,
+                            outmigs$Brood.Year, coho_abun$Return_Year,
+                            chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
+    brood_years_max = max(c(smolt_per_fem$Adult_Year_Brood_Year,
+                            outmigs$Brood.Year,coho_abun$Return_Year,
+                            chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
+  } else {
+    brood_years_min=min(year(hbbm$Date[month(hbbm$Date)>8]))
+    brood_years_max=max(year(hbbm$Date[month(hbbm$Date)>8]))
+  }
   brood_years = brood_years_min:brood_years_max
 
   # structure initial output dataframe and label columns
@@ -877,7 +883,7 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
   output_tab$smolt_year = brood_years + 2
 
   # eliminate incomplete smolt years. Filter by number of days available in flow record.
-  flow_days_avail = aggregate(hbsm$smolt_year, by = list(hbsm$smolt_year), FUN = length)
+  flow_days_avail = aggregate(hbbm$smolt_year, by = list(hbbm$smolt_year), FUN = length)
   keep_these_smolt_years = flow_days_avail$Group.1[flow_days_avail$x >= 669]
   output_tab = output_tab[output_tab$smolt_year %in% keep_these_smolt_years,]
 
@@ -928,14 +934,14 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
     SY_dates_discon = seq.Date(from=SY_date1_discon, to = SY_date2, by="day")
 
     # Subset flow for metric calcs
-    BY_flow = hbsm$Flow[hbsm$Date %in% BY_dates & hbsm$smolt_year == smolt_yr]
-    RY_flow = hbsm$Flow[hbsm$Date %in% RY_dates & hbsm$smolt_year == smolt_yr]
-    SY_flow = hbsm$Flow[hbsm$Date %in% SY_dates & hbsm$smolt_year == smolt_yr]
+    BY_flow = hbbm$Flow[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
+    RY_flow = hbbm$Flow[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
+    SY_flow = hbbm$Flow[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
 
-    BY_flow_recon = hbsm$Flow[hbsm$Date %in% BY_dates_recon & hbsm$smolt_year == smolt_yr]
-    RY_flow_discon = hbsm$Flow[hbsm$Date %in% RY_dates_discon & hbsm$smolt_year == smolt_yr]
-    RY_flow_recon = hbsm$Flow[hbsm$Date %in% RY_dates_recon & hbsm$smolt_year == smolt_yr]
-    SY_flow_discon = hbsm$Flow[hbsm$Date %in% SY_dates_discon & hbsm$smolt_year == smolt_yr]
+    BY_flow_recon = hbbm$Flow[hbbm$Date %in% BY_dates_recon & hbbm$smolt_year == smolt_yr]
+    RY_flow_discon = hbbm$Flow[hbbm$Date %in% RY_dates_discon & hbbm$smolt_year == smolt_yr]
+    RY_flow_recon = hbbm$Flow[hbbm$Date %in% RY_dates_recon & hbbm$smolt_year == smolt_yr]
+    SY_flow_discon = hbbm$Flow[hbbm$Date %in% SY_dates_discon & hbbm$smolt_year == smolt_yr]
 
     for(j in 1:length(thresholds)){
       thresh = thresholds[j]
@@ -952,12 +958,12 @@ calc_metrics_hydro_by_affected_smolt_year = function(hydro_by_smolt_year,
 
     # 4. Assign Total Flow metric predictors (if data's availble)
     # Subset flow for TAF calcs
-    BY_flow_m3d = hbsm$Flow_m3day[hbsm$Date %in% BY_dates & hbsm$smolt_year == smolt_yr]
-    RY_flow_m3d = hbsm$Flow_m3day[hbsm$Date %in% RY_dates & hbsm$smolt_year == smolt_yr]
-    SY_flow_m3d = hbsm$Flow_m3day[hbsm$Date %in% SY_dates & hbsm$smolt_year == smolt_yr]
+    BY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
+    RY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
+    SY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
 
     n_BY = length(BY_flow_m3d); n_RY = length(RY_flow_m3d); n_SY = length(SY_flow_m3d)
-    n_CFLP = sum(hbsm$smolt_year == smolt_yr)
+    n_CFLP = sum(hbbm$smolt_year == smolt_yr)
     if(n_BY==122){
       output_tab[i,"BY_min_flow_sepdec"] =  min(BY_flow_m3d)
       output_tab[i, "BY_tot_flow_sepdec"] = sum(BY_flow_m3d) / (10^6)
@@ -1500,6 +1506,7 @@ homebrew_loocv = function(data_tab, lm_name = "lm1",
 
     output_tab$loocv_obs_minus_predicted[i] = obs_i - predicted_val_i
   }
+
   output_tab$MSE = (output_tab$loocv_obs_minus_predicted)^2
   CV_n = 1/nrow(output_tab) * sum(output_tab$MSE)
 
@@ -1635,46 +1642,67 @@ calc_hbf_tab_mar2022 = function(thresholds_hbf = c(10,100), last_wy = 2021,
 }
 
 
-hbf_over_time_fig = function(hbf_tab, write_hist_HB_vals=F){
+hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
+                             y_val_axis, write_hist_HB_vals=F){
   # plot details
   neg_values = hbf_tab$hbf_total < 0
-  neg_value_col = "red"; neg_val_pch = 5
+  if(sum(neg_values)>0){
+    neg_value_col = "red"; neg_val_pch = 5
+  }
   obs_col = "goldenrod"
 
+
   if(write_hist_HB_vals == T){
+    file_name = paste0("hist_HBF_vals_",y_val,"_",Sys.Date(),".csv")
     write.csv(hbf_tab[,c("water_year","hbf_total")],
-              file = "hist_HBV_2022.04.29.csv", quote = F, row.names = F)}
+              file = file_name, quote = F, row.names = F)}
 
   # Plot predicted values
-  plot(hbf_tab$water_year, hbf_tab$hbf_total, col = NA, yaxt = "n",
-       xlab = "Water Year", ylab = "Hydrologic Benefit value (predicted coho spf-equiv.)")
-  axis(side = 2, at = seq(from = -100, to = 200, by = 20))
+  par(mar=c(5,5,2,2))
+  plot(x=hbf_tab$brood_year, y=hbf_tab$hbf_total,
+       col = NA,
+       ylim = c(min(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T),
+                max(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)), #yaxt = "n",
+       xlab = "Brood Year",
+       ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
+  # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
   abline(v = seq(from = 1940, to = 2140, by = 10), h = seq(from = -100, to = 200, by = 20),
          lty = 3, col = "gray")
   abline(h=0, col = "darkgray")
-  points(hbf_tab$water_year, hbf_tab$hbf_total, pch = 19)
-  lines(hbf_tab$water_year, hbf_tab$hbf_total)
+  points(hbf_tab$brood_year, hbf_tab$hbf_total, pch = 19)
+  lines(hbf_tab$brood_year, hbf_tab$hbf_total)
   # Add observed values
-  points(metrics_tab$brood_year+1, metrics_tab$coho_smolt_per_fem,
+  points(metrics_tab$brood_year, metrics_tab[,y_val],
          pch = 24, bg= obs_col, cex = 1.1)
   # Add arrows connecting predicted values with observed
-  arrows_x = metrics_tab$brood_year+1
-  arrows_y0 = metrics_tab$coho_smolt_per_fem
-  arrows_y1 = hbf_tab$hbf_total[hbf_tab$water_year %in% arrows_x]
+  arrows_x = metrics_tab$brood_year
+  arrows_y0 = metrics_tab[,y_val]
+  arrows_y1 = hbf_tab$hbf_total[hbf_tab$brood_year %in% arrows_x]
   arrows(x0 = arrows_x, y0 = arrows_y0, x1 = arrows_x, y1 = arrows_y1,
          length = 0, lty = 1, col = obs_col, lwd = 2)
 
-  points(hbf_tab$water_year[neg_values], hbf_tab$hbf_total[neg_values],
-         pch = neg_val_pch, col = neg_value_col, lwd=2)
-
+  if(sum(neg_values)>0){
+    points(hbf_tab$brood_year[neg_values], hbf_tab$hbf_total[neg_values],
+           pch = neg_val_pch, col = neg_value_col, lwd=2)
+  }
 
   abline(h=0, col = "darkgray")
-  legend("bottomleft", pch = c(19,neg_val_pch,24, NA),
+  if(sum(neg_values)>0){
+  legend("topleft", pch = c(19,neg_val_pch,24, NA),
          pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
          col = c("black", neg_value_col,"black", obs_col),
          pt.bg=c(NA,NA,obs_col, NA), lwd = c(NA,NA,NA,2), lty = c(NA,NA,NA,1),
-         legend = c("Predicted coho spf", "Predicted coho spf (neg. value)",
-                    "Observed coho spf", "Pred. - Obs. difference"))
+         legend = c("Predicted", "Predicted (neg. value)",
+                    "Observed", "Pred. - Obs. difference"))
+  } else {
+    legend("topleft", pch = c(19,24, NA),
+           pt.lwd = c(NA,2, NA), pt.cex = c(1,1.2, NA), bg="white",
+           col = c("black", "black", obs_col),
+           pt.bg=c(NA,obs_col, NA), lwd = c(NA,NA,2), lty = c(NA,NA,1),
+           legend = c("Predicted",
+                      "Observed", "Pred. - Obs. difference"))
+
+  }
 }
 
 
@@ -1933,7 +1961,7 @@ lasso_regression_plots = function(metrics_tab,
 # dev.off(); fig_i = fig_i + 1
 
 
-get_hbf_from_lasso_mod = function(metrics_tab,
+get_lasso_mod = function(metrics_tab,
                                   y_val = "coho_smolt_per_fem",
                                   lambda_val,
                                   remove_extra_recon_thresholds = F,
@@ -1989,6 +2017,40 @@ get_hbf_from_lasso_mod = function(metrics_tab,
   return(lasso_mod)
 }
 
+get_hbf_tab = function(metrics_tab, lasso_mod){
+  coefs = as.data.frame(t(as.matrix(coef(lasso_mod))))
+  # coef_names = row.names(coef(hbf_coho))
+  #removing the intercept will make the row names unusable
+
+  int_picker = 1
+  intercept = coefs[int_picker]
+  coefs = coefs[-int_picker]
+
+  # store relevant metric values in an intermediate table
+  intermed_tab=metrics_tab
+  intermed_tab=intermed_tab[,colnames(intermed_tab) %in%
+                              c(colnames(coefs),"brood_year")]
+  # match metrics tab to coefficients
+  term_matcher = match( colnames(coefs), colnames(intermed_tab))
+
+  # record HB contribution values in an output tab. initialize all values to NA
+  output_tab = intermed_tab
+  output_tab[,term_matcher] = NA
+
+
+  for(i in 1:nrow(intermed_tab)){
+    by_vals = intermed_tab[i,]
+    hb_components = by_vals [term_matcher] * coefs
+    output_tab[i,term_matcher] = hb_components
+  }
+
+  # sum all components for annual HB values
+  brood_year_col = which(colnames(output_tab)=="brood_year")
+  output_tab$hbf_total = as.numeric(intercept) + apply(X=output_tab[,-brood_year_col],
+                                                  MARGIN = 1, FUN=sum,na.rm=T)
+
+  return(output_tab)
+}
 
 # Supplemental lm tables --------------------------------------------------
 
@@ -2932,8 +2994,8 @@ calc_water_year_rank=function(basis = "population growth rate",
   return(rank_tab)
 }
 
-cum_flow_CFLP=function(hydro_by_smolt_year, sy_rank_tab){
-  hbsy = hydro_by_smolt_year
+cum_flow_CFLP=function(hydro_by_brood_year, sy_rank_tab){
+  hbsy = hydro_by_brood_year
   if(is.na(plot_colors)){plot_colors = gray.colors(n=length(smolt_years))}
 
   # plot affecting hydro
