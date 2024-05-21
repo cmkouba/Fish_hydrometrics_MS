@@ -37,6 +37,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(lubridate)
 library(httr)
 library(ggplot2) # for barplots 
+library(gridExtra)
 library(corrplot)  # for data exploration/correlation plots
 library(dataRetrieval) # for usgs data
 library(data.table) #month function
@@ -409,16 +410,36 @@ write.csv(x = metrics_tab, quote = F, row.names = F,
                    "Supplemental Table 2 - Flow Metrics by Brood Year.csv"))
 
 # calculate number of predictors for text below
-non_pred_tab = data.frame( abbrev = c("brood_year", "smolt_year",                 "chinook_spawner_abundance", 
-                 "chinook_juvenile_abundance",
-                 "chinook_juv_per_adult",
-                 "coho_spawner_abundance",
-                 "coho_smolt_per_fem",
-                 "coho_smolt_abun_est",
-                 "percent_coho_smolt_survival",
-                 "coho_redds_in_brood"),
-                 title_text = NA, yaxis_text = NA)
-num_predictors = length(colnames(metrics_tab))- nrow(non_pred_tab)
+
+y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance",
+                                       "chinook_juvenile_abundance",
+                                       "chinook_juv_per_adult",
+                                       "coho_spawner_abundance",
+                                       "coho_smolt_per_fem", 
+                                       "coho_smolt_abun_est",
+                                       "percent_coho_smolt_survival",
+                                       "coho_redds_in_brood"),
+                             y_val_title = c("Chinook escapement", 
+                                             " Chinook juv. abundance",
+                                             "Chinook jpa","coho escapement",
+                                             "coho spf",
+                                             "est. coho smolt abundance",
+                                             "percent coho smolt survival",
+                                             "coho redd abundace"),
+                             y_val_label = c("Num. Chinook spawners (escapement)",
+                                             "Num. Chinook juveniles",
+                                             "Chinook juv. per adult",
+                                             "Num. coho spawners (escapement)",
+                                             "Coho smolt per female spawner",
+                                             "Est. num. coho smolt",
+                                             "% coho smolt survival",
+                                             "Num. obs. coho redds"))
+non_preds = c("brood_year", "smolt_year", y_val_label_tab$y_val)
+
+
+num_predictors = length(colnames(metrics_tab))- length(non_preds)
+
+
 
 ```
 
@@ -665,7 +686,7 @@ corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1
 y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
                                 grepl(pattern = "chinook", x = colnames(corr_tab_2))]
 corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
-num_top_pred =3
+num_top_pred =10
 
 for(i in 1:length(y_vals)){
   y_val = y_vals[i]
@@ -759,18 +780,24 @@ fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
   
-  pred_tab_co = lasso_regression_plots(metrics_tab = metrics_tab, y_val = y_val_coho)
+  pred_tab_co = lasso_regression_plots(metrics_tab = metrics_tab, 
+                                       y_val = y_val_coho,
+                                       remove_SY_metrics = T, # for redds or spawners
+                                       y_val_label_tab=y_val_label_tab)
 
   dev.off()
+
+  # save predictor appearance tab
+  pred_tab_filename = "Supplemental Table 3. Coho Salmon Lasso Coefficients.csv"
+  write.csv(x=pred_tab_co, file=file.path(graphics_dir,pred_tab_filename),
+            quote=F, row.names = F)
 }
 knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
-pred_tab_filename = "Supplemental Table 3. Coho Salmon Lasso Coefficients.csv"
 
-write.csv(x=pred_tab_co, file=file.path(graphics_dir,pred_tab_filename))
-
-lam_co = 3.5 # for 5 coefs
+if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 3.5} 
+if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 ```
 
 
@@ -781,16 +808,24 @@ if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
 
   pred_tab_ch = lasso_regression_plots(metrics_tab = metrics_tab, 
-                         y_val = y_val_chinook, remove_SY_metrics=T)
+                         y_val = y_val_chinook, remove_SY_metrics=T,
+                         y_val_label_tab = y_val_label_tab)
 
   dev.off()
+  
+    # save predictor appearance tab
+  pred_tab_filename = "Supplemental Table 4. Chinook Salmon Lasso Coefficients.csv"
+  write.csv(x=pred_tab_ch, file=file.path(graphics_dir,pred_tab_filename),
+            quote=F, row.names = F)
+
 }
 knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
-# select chinook lambda value
-lam_ch = 10
 
+# select chinook lambda value
+if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 21} # for Chinook jpa
+if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 15000} # for Chinook jpa
 
 
 ```
@@ -899,16 +934,27 @@ Since 1990, the low predicted coho spf values in dry water years have become pro
 The relative influence of different terms in the ensemble average model varies over time: most variability in the 1940s-1970s is due to changes in wet season onset and wet season baseflow duration, but starting in the 1980s the fall flow reconnection timing tends to dominate predictions, especially during low-coho spf years (Figure \@ref(fig:hbfBarchart); the intercept term is excluded for ease of visualization).
 
 
-```{r hbfOverTimeCoho, echo = F, warning = F, fig.height = 5, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf). Predicted coho spf quantities are shown as Hydrologic Benefit (HB) function values. The coho spf values are plotted in the water year spanning each cohort's Brood and Rearing Year. Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.\\label{fig:hbfOverTime_coho}"}
+```{r hbfOverTime, echo = F, warning = F, fig.height = 8, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf). Predicted coho spf quantities are shown as Hydrologic Benefit (HB) function values. The coho spf values are plotted in the water year spanning each cohort's Brood and Rearing Year. Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.\\label{fig:hbfOverTime}"}
 
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 7, units = "in", res = 300)
-
-      hbf_over_time_fig(metrics_tab = metrics_tab,
-                        hbf_tab = hbf_coho, y_val = y_val_coho,
-                        y_val_axis = "% coho smolt surv.") 
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  y_axis_label =  y_val_label_tab$y_val_label[y_val_label_tab$y_val==y_val_coho]
+  par(mfrow=c(2,1))
+  # Panel 1. Coho
+  hbf_over_time_fig(metrics_tab = metrics_tab,
+                    hbf_tab = hbf_coho, y_val = y_val_coho,
+                    y_val_axis = y_axis_label)
+  
+  # Panel 2. Chinook
+  hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
+  y_axis_label =  y_val_label_tab$y_val_label[y_val_label_tab$y_val==y_val_chinook] 
+  hbf_over_time_fig(metrics_tab = metrics_tab,
+                    hbf_tab = hbf_chinook, 
+                    y_val = y_val_chinook,
+                    y_val_axis = y_axis_label) 
+  
   
   dev.off()
 }
@@ -917,100 +963,113 @@ fig_i = fig_i +1
 
 ```
 
-```{r hbfOverTimeChinook, echo = F, warning = F, fig.height = 5, fig.cap = "Annual observed and predicted values of selected Chinook ecological outcome. Predicted quantities are shown as Hydrologic Benefit (HB) function values. The ecological values are plotted in eeach cohort's Brood Year. \\label{fig:hbfOverTime_Chinook}"}
 
+```{r hbfBarchart, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values (coho spf-equivalent). A positive value (i.e., one associated with a water year's Wet Season Baseflow Duration) indicates that a longer wet season baseflow duration contributes a positive value to the predicted number of coho spf produced in that cohort. A negative value (e.g., one associated with a water year's Fall Reconnection Day at 10 cfs) indicates that a later reconnection date contributes a negative value to the predicted number of coho spf produced in that cohort.\\label{fig:hbfBarchart}"}
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 7, units = "in", res = 300)
+# arrange data - Coho
+# only plot if there are at least 1 non-0 coefficient
 
-hbf_over_time_fig(metrics_tab = metrics_tab,
-                  hbf_tab = hbf_chinook, 
-                  y_val = y_val_chinook,
-                  y_val_axis = paste("Chinook juv. per adult, lam",
-                                     lam_ch)) 
-
-  dev.off()
-}
-knitr::include_graphics(fig_path)
-fig_i = fig_i +1
-
-```
-
-
-
-```{r hbfBarchart_coho, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values (coho spf-equivalent). A positive value (i.e., one associated with a water year's Wet Season Baseflow Duration) indicates that a longer wet season baseflow duration contributes a positive value to the predicted number of coho spf produced in that cohort. A negative value (e.g., one associated with a water year's Fall Reconnection Day at 10 cfs) indicates that a later reconnection date contributes a negative value to the predicted number of coho spf produced in that cohort.\\label{fig:hbfBarchart_coho}"}
-
-# arrange data
 hbf_coho$hbf_total = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_coho, MARGIN = 2, FUN = mean, na.rm=T)
-keep_cols = colnames(hbf_coho[is_it_0>0])
-comp_names = keep_cols[keep_cols != "brood_year"]
-bar_data = hbf_coho[,keep_cols]
-
-graph_cols = c("Brood Year", comp_names)
-colnames(bar_data) = graph_cols
-bd_melt = melt(dat = bar_data, id.vars = "Brood Year")
-colnames(bd_melt)[3] = "Contribution to Hydrologic Benefit value"
-
-
-# Bar charrrt
-
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs==T){
-
-hbf_bar = ggplot(data = bd_melt, 
-                 aes(x = `Brood Year`, 
-                     y = `Contribution to Hydrologic Benefit value`,
-                     fill = variable)) + 
-  geom_bar(stat = "identity") + 
-  scale_fill_brewer(palette = "Spectral") +
-  theme(legend.position = "bottom", legend.direction = "vertical")
-
-ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 7, units="in")
+keep_cols = colnames(hbf_coho[abs(is_it_0)>0])
+comp_names_co = keep_cols[keep_cols != "brood_year"]
+if(length(comp_names_co)>0){
+  bar_data_co = hbf_coho[,keep_cols]
+  graph_cols = c("Brood Year", comp_names_co)
+  colnames(bar_data_co) = graph_cols
+  bd_melt_co = melt(dat = bar_data_co, id.vars = "Brood Year")
+  colnames(bd_melt_co)[3] = paste0("Contribution to Hyd. Ben. value (",
+                                  y_val_label_tab$y_val_label[
+                                    y_val_label_tab$y_val==y_val_coho],")")
 }
 
-knitr::include_graphics(fig_path)
-fig_i = fig_i +1
-
-```
-
-
-```{r hbfBarchart_chinook, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values. A positive value (i.e., one associated with a water year's Wet Season Baseflow Duration) indicates that a longer wet season baseflow duration contributes a positive value to the predicted number of coho spf produced in that cohort. A negative value (e.g., one associated with a water year's Fall Reconnection Day at 10 cfs) indicates that a later reconnection date contributes a negative value to the predicted number of coho spf produced in that cohort.\\label{fig:hbfBarchart_chinook}"}
-
-# arrange data
+# Arrange data - chinook
 hbf_chinook$hbf_total = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_chinook, MARGIN = 2, FUN = mean, na.rm=T)
-keep_cols = colnames(hbf_chinook[is_it_0>0])
-comp_names = keep_cols[keep_cols != "brood_year"]
-bar_data = hbf_chinook[,keep_cols]
-
-graph_cols = c("Brood Year", comp_names)
-colnames(bar_data) = graph_cols
-bd_melt = melt(dat = bar_data, id.vars = "Brood Year")
-colnames(bd_melt)[3] = "Contribution to Hydrologic Benefit value"
-
-
+keep_cols = colnames(hbf_chinook[abs(is_it_0)>0])
+comp_names_ch = keep_cols[keep_cols != "brood_year"]
+if(length(comp_names_ch)>0){
+  bar_data_ch = hbf_chinook[,keep_cols]
+  graph_cols = c("Brood Year", comp_names_ch)
+  colnames(bar_data_ch) = graph_cols
+  bd_melt_ch = melt(dat = bar_data_ch, id.vars = "Brood Year")
+  colnames(bd_melt_ch)[3] = paste0("Contribution to Hyd. Ben. value (",
+                                  y_val_label_tab$y_val_label[
+                                    y_val_label_tab$y_val==y_val_chinook],")")
+}
 # Bar charrrt
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs==T){
-
-hbf_bar = ggplot(data = bd_melt, 
-                 aes(x = `Brood Year`, 
-                     y = `Contribution to Hydrologic Benefit value`,
-                     fill = variable)) + 
-  geom_bar(stat = "identity") + 
-  scale_fill_brewer(palette = "Spectral") +
-  theme(legend.position = "bottom", legend.direction = "vertical")
-
-ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 7, units="in")
+  if(length(comp_names_co)>0){
+    y_text = colnames(bd_melt_co)[3]
+    hbf_bar_co = ggplot(data = bd_melt_co, 
+                        aes(x = `Brood Year`, 
+                            y = `Contribution to Hyd. Ben. value (% coho smolt survival)`,
+                            fill = variable)) + 
+      geom_bar(stat = "identity") + 
+      scale_fill_brewer(palette = "Spectral") +
+      theme(legend.position = "right", legend.direction = "vertical")
+  }
+  
+  if(length(comp_names_ch)>0){
+        y_text = colnames(bd_melt_ch)[3]
+        hbf_bar_ch = ggplot(data = bd_melt_ch, 
+                        aes(x = `Brood Year`, 
+                            y = `Contribution to Hyd. Ben. value (Chinook juv. per adult)`,
+                            fill = variable)) + 
+      geom_bar(stat = "identity") + 
+      scale_fill_brewer(palette = "Spectral") +
+      theme(legend.position = "right", legend.direction = "vertical")
+  }
+  
+  if(length(comp_names_co)>0 & length(comp_names_ch)>0){
+        hbf_bar = arrangeGrob(hbf_bar_co, hbf_bar_ch, 
+                               nrow=2, ncol=1)
+  } else if(length(comp_names_co)>0 & length(comp_names_ch)==0){
+        hbf_bar =  hbf_bar_co
+  } else if(length(comp_names_co)==0 & length(comp_names_ch)>0){
+        hbf_bar =  hbf_bar_ch
+  }
+  
+    ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 8, units="in")
+ 
 }
+  
 
 knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
 ```
+
+
+<!-- ```{r hbfBarchartChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values. A positive value (i.e., one associated with a water year's Wet Season Baseflow Duration) indicates that a longer wet season baseflow duration contributes a positive value to the predicted number of coho spf produced in that cohort. A negative value (e.g., one associated with a water year's Fall Reconnection Day at 10 cfs) indicates that a later reconnection date contributes a negative value to the predicted number of coho spf produced in that cohort.\\label{fig:hbfBarchartChinook}"} -->
+
+<!-- # arrange data -->
+<!-- hbf_chinook$hbf_total = NULL # remove this column for this figure -->
+<!-- is_it_0 = apply(X=hbf_chinook, MARGIN = 2, FUN = mean, na.rm=T) -->
+<!-- keep_cols = colnames(hbf_chinook[is_it_0>0]) -->
+<!-- comp_names = keep_cols[keep_cols != "brood_year"] -->
+<!-- bar_data = hbf_chinook[,keep_cols] -->
+
+<!-- graph_cols = c("Brood Year", comp_names) -->
+<!-- colnames(bar_data) = graph_cols -->
+<!-- bd_melt = melt(dat = bar_data, id.vars = "Brood Year") -->
+<!-- colnames(bd_melt)[3] = "Contribution to Hydrologic Benefit value" -->
+
+
+<!-- # Bar charrrt -->
+
+<!-- fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png")) -->
+<!-- if(save_imgs==T){ -->
+
+<!-- ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 7, units="in") -->
+<!-- } -->
+
+<!-- knitr::include_graphics(fig_path) -->
+<!-- fig_i = fig_i +1 -->
+
+<!-- ``` -->
 
 
 

@@ -1646,7 +1646,7 @@ hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
                              y_val_axis, write_hist_HB_vals=F){
   # plot details
   neg_values = hbf_tab$hbf_total < 0
-  if(sum(neg_values)>0){
+  if(sum(neg_values,na.rm=T)>0){
     neg_value_col = "red"; neg_val_pch = 5
   }
   obs_col = "goldenrod"
@@ -1681,13 +1681,13 @@ hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
   arrows(x0 = arrows_x, y0 = arrows_y0, x1 = arrows_x, y1 = arrows_y1,
          length = 0, lty = 1, col = obs_col, lwd = 2)
 
-  if(sum(neg_values)>0){
+  if(sum(neg_values,na.rm=T)>0){
     points(hbf_tab$brood_year[neg_values], hbf_tab$hbf_total[neg_values],
            pch = neg_val_pch, col = neg_value_col, lwd=2)
   }
 
   abline(h=0, col = "darkgray")
-  if(sum(neg_values)>0){
+  if(sum(neg_values,na.rm=T)>0){
   legend("topleft", pch = c(19,neg_val_pch,24, NA),
          pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
          col = c("black", neg_value_col,"black", obs_col),
@@ -1767,12 +1767,12 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
          legend = c("% Deviance", "Degrees of freedom"))
 
   # B) Plot lambda vs test error - setup
-  nbins = 30
+  nbreaks = 20
   bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
                     to = max(lambdas_and_rmse$bestlam, na.rm=T),
-                    length.out=nbins)
-  categs = cut(x = lambdas_and_rmse$bestlam, breaks = nbins)
-  lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA# remove inf values
+                    length.out=nbreaks-1)
+  categs = cut(x = lambdas_and_rmse$bestlam, breaks = length(bin_centers))
+  lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA # remove inf values
   avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T)
   # plot
   plot(lambdas_and_rmse$bestlam, lambdas_and_rmse$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
@@ -1832,7 +1832,8 @@ lasso_regression_plots = function(metrics_tab,
                                   y_val = "coho_smolt_per_fem",
                                   remove_extra_recon_thresholds = F,
                                   remove_SY_metrics = F,
-                                  return_pred_appear_tab = T){
+                                  return_pred_appear_tab = T,
+                                  y_val_label_tab){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
 
@@ -1916,18 +1917,6 @@ lasso_regression_plots = function(metrics_tab,
   pred_appear_tab = generate_pred_appear_tab(lasso_mod, best_lam_range = best_lam_range)
   # Plots
   par(mfrow=c(3,1))
-  y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance", "chinook_juvenile_abundance",
-                                         "chinook_juv_per_adult", "coho_spawner_abundance",
-                                         "coho_smolt_per_fem", "coho_smolt_abun_est",
-                                         "percent_coho_smolt_survival", "coho_redds_in_brood"),
-                               y_val_title = c("Chinook escapement", " Chinook juv. abundance",
-                                               "Chinook jpa","coho escapement",
-                                               "coho spf","est. coho smolt abundance",
-                                               "percent coho smolt survival","coho redd abundace"),
-                               y_val_label = c("Num. Chinook spawners (escapement)", "Num. Chinook juveniles",
-                                               "Chinook juv. per adult (jpa)","Num. coho spawners (escapement)",
-                                               "Coho smolt per female spawner (spf)","Est. num. coho smolt",
-                                               "% coho smolt survival","Num. obs. coho redds"))
   y_val_label = y_val_label_tab$y_val_title[y_val_label_tab$y_val==y_val]
   # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
   # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
