@@ -1730,9 +1730,9 @@ find_all_best_lambda_vals = function(com_tab, x, y,
   output_tab = as.data.frame(com_tab)
   output_tab$bestlam = NA
   output_tab$rmse = NA
-  for(i in 1:nrow(com)){
-    train = com[i,]
-    test = -com[i,]
+  for(i in 1:nrow(com_tab)){
+    train = com_tab[i,]
+    test = -com_tab[i,]
     y.test = y[test]
     lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
     set.seed(1)
@@ -1752,17 +1752,16 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
   # par(mfrow=(c(2,1)))
   #A: deviance and non-0 coefficients
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  deg_free_tab = print(lasso_mod)
   par(mar=c(5,5,3,5))
-  plot(deg_free_tab$Lambda, deg_free_tab$`%Dev`,  type = "l",
+  plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
        ylab = "% of null deviation explained by model",
        xlab = "Lambda value (shrinkage penalty)",
        main = "Adding more coefficients explains more variation...")
   grid()
   par(new=T)
-  plot(deg_free_tab$Lambda, deg_free_tab$Df, col = "dodgerblue", lwd = 2,
+  plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
        xlab="",ylab="", axes=F, type = "l")
-  axis(side=4,at=pretty(range(deg_free_tab$Df)))
+  axis(side=4,at=pretty(range(lasso_mod$df)))
   mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
   legend(x = "topright", col=c("black","dodgerblue"), lwd = c(1,2),
          legend = c("% Deviance", "Degrees of freedom"))
@@ -1773,11 +1772,13 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
                     to = max(lambdas_and_rmse$bestlam, na.rm=T),
                     length.out=nbins)
   categs = cut(x = lambdas_and_rmse$bestlam, breaks = nbins)
-  avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean)
+  lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA# remove inf values
+  avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T)
   # plot
   plot(lambdas_and_rmse$bestlam, lambdas_and_rmse$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
        main = "... but test error is larger with more coefficients",
        xlab = "Lambda value (shrinkage penalty)",
+       log="y",
        ylab = paste("Test error (RMSE) of models made from \n different combinations of data points"))
   # summarize by binning
   grid()
