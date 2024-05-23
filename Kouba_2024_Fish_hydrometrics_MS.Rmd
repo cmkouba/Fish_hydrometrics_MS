@@ -433,8 +433,11 @@ y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance",
                                              "Coho smolt per female spawner",
                                              "Est. num. coho smolt",
                                              "% coho smolt survival",
-                                             "Num. obs. coho redds"))
-non_preds = c("brood_year", "smolt_year", y_val_label_tab$y_val)
+                                             "Num. obs. coho redds"),
+                             remove_sy = c(T,T,T,T,F,F,F,T),
+                             remove_ry = c(T,F,F,T,F,F,F,T))
+yvlt = y_val_label_tab
+non_preds = c("brood_year", "smolt_year", yvlt$y_val)
 
 
 num_predictors = length(colnames(metrics_tab))- length(non_preds)
@@ -455,11 +458,12 @@ For each of the two species of concern, we wanted to find the ecological metric 
 * **mean of top-10 predictors **
 * **clear selection for chinook. less clear for coho**
 
-## Step 6. Predicting ecological outcomes 
-
-### Lasso regression analysis
+## Step 6. Lasso regression 
 
 With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two selected ecological metrics (one for coho and one for Chinook).  
+
+### General approach
+
 
 We used the R programming environment [@RManual] and the linear modeling function `glmnet()` [@Friedman2010] to perform variable selection using lasso regression. Lasso regression is less flexible than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@James2013]. Because the solution can set some coefficients to 0, thereby removing their associated predictors from the final model, lasso regression can also perform predictor selection.
 
@@ -483,8 +487,13 @@ In this formulation, sufficiently large values of lambda generally shrink the va
  <!-- If you perform the minimization calculation for a range of lambda values, you can identify points along the range at which it becomes favorable to include one, two, and then three or more predictors - these reprent the points when the information introduced by those predictors .  -->
 The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@James2013]. In this analysis a range of $\lambda$ values was explored for each species.
 
+### Build table of lambda values and resulting coefficients
 
-### Hydrologic Benefit formulation
+### Select a lambda value for each species
+
+
+
+## Step 7. Formulate Hydrologic Benefit
 
 The final lambda value selection produced the linear model which can be used to predict ecological outcomes with hydrologic predictors. We referred to this model as the Hydrologic Benefit (HB) function. The predicted HB value, with units of the selected ecological response type, in Brood Year $i$ calculated as:
 
@@ -496,10 +505,12 @@ $x_{ij}$ is the value of predictor $j$ in the cohort with Brood Year $i$.
 We note that ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. 
 
 
-### Hydrologic Benefit Function sensitivity
+## Step 8. Hydrologic Benefit Function sensitivity
 
 **To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive ensemble average model was estimated by adding an additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. The missing value for brood year 2015 was replaced by 0, as well as the minimum, mean and maximum values of observed coho spf (5.8, 60.0, and 101.8 coho spf, respectively). The ensemble average coefficients in the HB function were recalculated based on each revised dataset. This sensitivity analysis was not implemented for Chinook (see Results).
 **
+
+* make metrics_tab_sa
 
 # Results
 
@@ -782,8 +793,11 @@ if(save_imgs == TRUE){
   
   pred_tab_co = lasso_regression_plots(metrics_tab = metrics_tab, 
                                        y_val = y_val_coho,
-                                       remove_SY_metrics = T, # for redds or spawners
-                                       y_val_label_tab=y_val_label_tab)
+                                       remove_SY_metrics =
+                                         yvlt$remove_sy[yvlt$y_val==y_val_coho],
+                                       remove_RY_metrics =
+                                         yvlt$remove_ry[yvlt$y_val==y_val_coho],
+                                       yvlt=yvlt)
 
   dev.off()
 
@@ -796,7 +810,7 @@ knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
 
-if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 3.5} 
+if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 5} 
 if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 ```
 
@@ -808,8 +822,12 @@ if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
 
   pred_tab_ch = lasso_regression_plots(metrics_tab = metrics_tab, 
-                         y_val = y_val_chinook, remove_SY_metrics=T,
-                         y_val_label_tab = y_val_label_tab)
+                         y_val = y_val_chinook, 
+                         remove_SY_metrics =
+                                         yvlt$remove_sy[yvlt$y_val==y_val_coho],
+                                       remove_RY_metrics =
+                                         yvlt$remove_ry[yvlt$y_val==y_val_coho],
+                         yvlt = yvlt)
 
   dev.off()
   
@@ -824,7 +842,7 @@ fig_i = fig_i +1
 
 
 # select chinook lambda value
-if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 21} # for Chinook jpa
+if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 40} # for Chinook jpa
 if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 15000} # for Chinook jpa
 
 
@@ -833,6 +851,8 @@ if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 15000} # for Chinook 
 
 ### Ranked predictor importance
 
+* Discuss 
+
 ```{r predAppearTabCoho, echo = FALSE, results = 'asis'}
 
 pred_tab_co$lambda_non0_val_appears =
@@ -840,7 +860,9 @@ pred_tab_co$lambda_non0_val_appears =
 pred_tab_co = pred_tab_co[!is.na(pred_tab_co$lambda_non0_val_appears),]
 
 #Create caption and column labels
-caption_text = "Predictors informing the lasso regression at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values are the point at which a non-0 coefficient appears for the designated predictor."
+caption_text = paste0("Predictors informing the lasso regression for ",
+                      yvlt$y_val_title[yvlt$y_val==y_val_coho],
+                      "at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
 column_labels = c("Predictor","Lambda value")
 colnames(pred_tab_co) = column_labels
 
@@ -857,7 +879,9 @@ pred_tab_ch$lambda_non0_val_appears =
 pred_tab_ch = pred_tab_ch[!is.na(pred_tab_ch$lambda_non0_val_appears),]
 
 #Create caption and column labels
-caption_text = "Predictors informing the lasso regression at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values are the point at which a non-0 coefficient appears for the designated predictor."
+caption_text = paste0("Predictors informing the lasso regression for ",
+                      yvlt$y_val_title[yvlt$y_val==y_val_chinook],
+                      "at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
 column_labels = c("Predictor","Lambda value")
 colnames(pred_tab_ch) = column_labels
 
@@ -866,6 +890,11 @@ ptc_ft = set_caption(ptc_ft, caption = caption_text)
 ptc_ft = autofit(ptc_ft)
 ptc_ft
 ```
+
+### Variation explained at different lambda values
+
+* coho - more variation explained with fewer coefficients
+* possible interp: in this watershed, Chinook outcomes are less sensitive to flow (or less limited by flow) than coho outcomes
 
 ## Hydrologic Benefit Function
 
@@ -940,8 +969,10 @@ The relative influence of different terms in the ensemble average model varies o
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-  y_axis_label =  y_val_label_tab$y_val_label[y_val_label_tab$y_val==y_val_coho]
-  par(mfrow=c(2,1))
+   # png(filename = fig_path, width = 11.5, height = 4.2, units = "in", res = 300)
+  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
+  # par(mfrow=c(2,1))
+  par(mfrow = c(1,2))
   # Panel 1. Coho
   hbf_over_time_fig(metrics_tab = metrics_tab,
                     hbf_tab = hbf_coho, y_val = y_val_coho,
@@ -949,7 +980,7 @@ if(save_imgs == TRUE){
   
   # Panel 2. Chinook
   hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
-  y_axis_label =  y_val_label_tab$y_val_label[y_val_label_tab$y_val==y_val_chinook] 
+  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook] 
   hbf_over_time_fig(metrics_tab = metrics_tab,
                     hbf_tab = hbf_chinook, 
                     y_val = y_val_chinook,
@@ -978,9 +1009,9 @@ if(length(comp_names_co)>0){
   graph_cols = c("Brood Year", comp_names_co)
   colnames(bar_data_co) = graph_cols
   bd_melt_co = melt(dat = bar_data_co, id.vars = "Brood Year")
-  colnames(bd_melt_co)[3] = paste0("Contribution to Hyd. Ben. value (",
-                                  y_val_label_tab$y_val_label[
-                                    y_val_label_tab$y_val==y_val_coho],")")
+  colnames(bd_melt_co)[3] = paste0("Contrib. to Hyd. Ben. value (",
+                                  yvlt$y_val_label[
+                                    yvlt$y_val==y_val_coho],")")
 }
 
 # Arrange data - chinook
@@ -993,9 +1024,9 @@ if(length(comp_names_ch)>0){
   graph_cols = c("Brood Year", comp_names_ch)
   colnames(bar_data_ch) = graph_cols
   bd_melt_ch = melt(dat = bar_data_ch, id.vars = "Brood Year")
-  colnames(bd_melt_ch)[3] = paste0("Contribution to Hyd. Ben. value (",
-                                  y_val_label_tab$y_val_label[
-                                    y_val_label_tab$y_val==y_val_chinook],")")
+  colnames(bd_melt_ch)[3] = paste0("Contrib. to Hyd. Ben. value (",
+                                  yvlt$y_val_label[
+                                    yvlt$y_val==y_val_chinook],")")
 }
 # Bar charrrt
 
@@ -1005,7 +1036,7 @@ if(save_imgs==T){
     y_text = colnames(bd_melt_co)[3]
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
-                            y = `Contribution to Hyd. Ben. value (% coho smolt survival)`,
+                            y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
       scale_fill_brewer(palette = "Spectral") +
@@ -1016,7 +1047,7 @@ if(save_imgs==T){
         y_text = colnames(bd_melt_ch)[3]
         hbf_bar_ch = ggplot(data = bd_melt_ch, 
                         aes(x = `Brood Year`, 
-                            y = `Contribution to Hyd. Ben. value (Chinook juv. per adult)`,
+                            y = `Contrib. to Hyd. Ben. value (Chinook juv. per adult)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
       scale_fill_brewer(palette = "Spectral") +
@@ -1025,7 +1056,8 @@ if(save_imgs==T){
   
   if(length(comp_names_co)>0 & length(comp_names_ch)>0){
         hbf_bar = arrangeGrob(hbf_bar_co, hbf_bar_ch, 
-                               nrow=2, ncol=1)
+                               # nrow=2, ncol=1)
+                              nrow=1,ncol=2) # for ppt slide
   } else if(length(comp_names_co)>0 & length(comp_names_ch)==0){
         hbf_bar =  hbf_bar_co
   } else if(length(comp_names_co)==0 & length(comp_names_ch)>0){
@@ -1033,7 +1065,7 @@ if(save_imgs==T){
   }
   
     ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 8, units="in")
- 
+  # ggsave(filename = fig_path, plot = hbf_bar, width = 11.5, height = 4.2, units="in")
 }
   
 
@@ -1074,6 +1106,36 @@ fig_i = fig_i +1
 
 
 ### Sensitivity of the Hydrologic Benefit function to one additional data point
+
+
+```{r lasso_SA, echo = F, warning =F}
+
+metrics_tab_sa = metrics_tab
+repl_row = which(metrics_tab_sa$brood_year==2015)
+two_y_vals = data.frame(y_vals = c(y_val_coho, y_val_chinook),
+                        lambda_vals = c(lam_co,lam_ch))
+
+for(i in 1:2){
+  y_val = two_y_vals$y_vals[i]
+  lam_val = two_y_vals$lambda_vals[i]
+  obs = metrics_tab_sa[,y_val]
+  repl_range = c(0, min(obs,na.rm=T), mean(obs,na.rm=T),
+                 max(obs,na.rm=T))
+
+  for(j in 1:length(repl_range)){
+    repl_val = repl_range[j]
+    metrics_tab_sa = metrics_tab
+    metrics_tab_sa[repl_row, y_val] == repl_val
+    
+    lasso_mod = get_lasso_mod(metrics_tab_sa,
+                                  y_val = y_val,
+                                  lambda_val = lam_val,
+                                  remove_extra_recon_thresholds = F,
+                                  remove_SY_metrics = F)
+  }
+}
+
+```
 
 Testing different values for the missing coho spf observation for brood year 2015 suggests that the best-fit HB function weights are relatively sensitive to the addition of one new data point, as can be expected for a small dataset. Flow conditions in and just before water year 2016 (affecting brood year 2015) were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (-35.9; see Figure \@ref(fig:hbfOverTime)). 
 

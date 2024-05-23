@@ -1666,7 +1666,8 @@ hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
        xlab = "Brood Year",
        ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
   # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
-  abline(v = seq(from = 1940, to = 2140, by = 10), h = seq(from = -100, to = 200, by = 20),
+  abline(v = seq(from = 1940, to = 2140, by = 10),
+         h = pretty(range(hbf_tab$hbf_total)),
          lty = 3, col = "gray")
   abline(h=0, col = "darkgray")
   points(hbf_tab$brood_year, hbf_tab$hbf_total, pch = 19)
@@ -1831,9 +1832,10 @@ plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
 lasso_regression_plots = function(metrics_tab,
                                   y_val = "coho_smolt_per_fem",
                                   remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = F,
+                                  remove_SY_metrics = T,
+                                  remove_RY_metrics = F,
                                   return_pred_appear_tab = T,
-                                  y_val_label_tab){
+                                  yvlt){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
 
@@ -1864,7 +1866,10 @@ lasso_regression_plots = function(metrics_tab,
   if(remove_SY_metrics == T){
     remove_these = grepl(pattern = "SY", x=colnames(mt))
     mt = mt[,!remove_these]
-
+  }
+  if(remove_RY_metrics == T){
+    remove_these = grepl(pattern = "RY", x=colnames(mt))
+    mt = mt[,!remove_these]
   }
   mt_nrow = nrow(mt)
 
@@ -1873,8 +1878,13 @@ lasso_regression_plots = function(metrics_tab,
 
   # Set up x and y, and retrieve table of best lambda and rmse values
   y = mt[,y_val]
-  lambda_tab_path = file.path(data_dir,paste( y_val,"- lambdas_and_rmse.csv" ))
-  if(remove_SY_metrics==T){lambda_tab_path = file.path(data_dir, paste( y_val,"- no_SY lambdas_and_rmse.csv" )) }
+
+  # name rmse file
+  fname = paste( y_val,"- lambdas_and_rmse")
+  if(remove_SY_metrics==T){fname = paste(fname, "no SY")  }
+  if(remove_SY_metrics==T){fname = paste(fname,"no RY")  }
+  lambda_tab_path = file.path(data_dir,paste(fname,".csv" ))
+
   if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
   if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
   if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
@@ -1917,7 +1927,7 @@ lasso_regression_plots = function(metrics_tab,
   pred_appear_tab = generate_pred_appear_tab(lasso_mod, best_lam_range = best_lam_range)
   # Plots
   par(mfrow=c(3,1))
-  y_val_label = y_val_label_tab$y_val_title[y_val_label_tab$y_val==y_val]
+  y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
   # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
   # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
   plot_lasso_coefs(lasso_mod = lasso_mod,
