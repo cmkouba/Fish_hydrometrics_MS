@@ -120,7 +120,7 @@ In practice, these questions are often asked and answered locally [@Tarlock1993]
 
 One method for estimating ecological water needs is the functional flows framework [@Poff1997; @Poff2010a]. Functional flow metrics are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics for California hydrology and made the metric-calculating algorithms publicly available [@Yarnell2020; @Patterson2020].
 
-To learn if it is possible to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed), we examine correlations between several dozen hydrologic metrics and local salmon observations. **We then use linear models to predict salmon outcomes based on potential combinations of hydrologic metric predictors. We use the best of these linear models to formulate a Hydrologic Benefit function for each species, distilling the varying ecological services provided by hydrology across different seasons into a single index value per water year.** This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
+To learn if it is possible to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed), we examine correlations between several dozen hydrologic metrics and local salmon observations. **We then used lasso regression to select the hydrologic metric predictors used to predict salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
 
 ## History of flow-ecology relationships
 
@@ -262,7 +262,7 @@ Firstly, a series of metrics from the catalog of California-specific functional 
 
 Secondly, we devised two additional metrics for this study area related to timing of anadromous fish access to preferred spawning habitat (illustrated in Figure \@ref(fig:reconnectExplainerHydrograph)). These metrics are referred to as "reconnection" and "disconnection" dates. They assume a flow threshold, defined at the Fort Jones gauge, that corresponds to a certain degree of "connectivity" in the Scott River stream system. The date on which this connectivity is lost in the spring/summer or gained in the fall has implications for whether salmon passage exists during the preferred migrating time window. These metrics are related to the California-specific functional flows, namely, the timing and slope of spring recess and the timing of a fall pulse flow (Table \@ref(tab:funcFlowTermsTab)). More importantly, they add value to this analysis because of their direct relation to fish passage in the watershed.
 
-**Finally, based on input from local experts [@SRWC2023], we designed a metric to identify the presence of scouring flows. Scouring flows are storm events that can mobilize large amounts of sediment and either bury or wash away salmonid eggs [].** 
+Finally, to identify the presence of scouring flows [i.e., storm events that can mobilize large amounts of sediment and either bury or wash away salmonid eggs; @SRWC2018], we calculated the number of days in each year with average daily flow greater than the 90th flow percentile (for the full Fort Jones hydrologic record). 
 
 ### Selecting flow thresholds for dis- and re-connection timing
 
@@ -350,7 +350,7 @@ fig_i = fig_i +1
 
 ```
 
-## Step 2. Assemble response data: Ecological monitoring data
+## Step 2. Assemble responses: Ecological monitoring data
 
 Multiple observed quantities were evaluated as candidates to best represent the ecological response in the flow-ecology relationship. 
 
@@ -460,10 +460,9 @@ For each of the two species of concern, we wanted to find the ecological metric 
 
 ## Step 6. Lasso regression 
 
-With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two selected ecological metrics (one for coho and one for Chinook).  
+With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two ecological metrics selected in the previous step (one for coho and one for Chinook).  
 
 ### General approach
-
 
 We used the R programming environment [@RManual] and the linear modeling function `glmnet()` [@Friedman2010] to perform variable selection using lasso regression. Lasso regression is less flexible than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@James2013]. Because the solution can set some coefficients to 0, thereby removing their associated predictors from the final model, lasso regression can also perform predictor selection.
 
@@ -487,15 +486,25 @@ In this formulation, sufficiently large values of lambda generally shrink the va
  <!-- If you perform the minimization calculation for a range of lambda values, you can identify points along the range at which it becomes favorable to include one, two, and then three or more predictors - these reprent the points when the information introduced by those predictors .  -->
 The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@James2013]. In this analysis a range of $\lambda$ values was explored for each species.
 
-### Build table of lambda values and resulting coefficients
+### Predictor restriction based on overlapping sample size
 
-### Select a lambda value for each species
+Some ecological records have gaps (e.g., when funding was not available in one year to conduct a redd survey). Additionally, some predictor metrics are not available in all years (i.e., FA_Mag, or magnitude of a fall pulse flow, cannot be calculated if no discrete fall pulse flow is observed). For the lasso regression exercise, we restricted the set of considered predictors to those which had at least 10 years of overlap with the selected ecological response.
 
+### Test error and range of lambda values
 
+In lasso regression, the standard method to pick the value of lambda (the "shrinkage penalty") is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models using a range of lambda values. These models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error (RMSE). The lambda value that produces the regression model with the minimum test error is selected, and using this value, a final regression model is generated based on the full data set [@James2013]. 
+
+However, we decided this was not appropriate for the size of the available ecological datasets, which ranged from 15 to 20 years of observations. To address this, we generated 10,000 non-repeating random sets of testing and training data, and calculated the optimal lambda value for each set. 
+
+Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. The number of predictors incorporated in these models ranged from zero (i.e., the model consisted of the intercept value only) to a maximum of 20 and 27 (**predictors**) for coho and Chinook respectively.  
+
+### Selection of final lambda values 
+
+To select a final lambda value, we considered the percentage of deviation explained, 
 
 ## Step 7. Formulate Hydrologic Benefit
 
-The final lambda value selection produced the linear model which can be used to predict ecological outcomes with hydrologic predictors. We referred to this model as the Hydrologic Benefit (HB) function. The predicted HB value, with units of the selected ecological response type, in Brood Year $i$ calculated as:
+The final lambda value selection produced the linear model which can be used to predict ecological outcomes with hydrologic predictors. We referred to this model as the Hydrologic Benefit (HB) function. The predicted HB value, with units of the selected ecological response type, in Brood Year $i$ is calculated as:
 
 $$HB_i = \beta_0 +\sum_{j=1}^{p}{\beta_j x_{ij}}$$
 
@@ -697,7 +706,7 @@ corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1
 y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
                                 grepl(pattern = "chinook", x = colnames(corr_tab_2))]
 corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
-num_top_pred =10
+num_top_pred =4
 
 for(i in 1:length(y_vals)){
   y_val = y_vals[i]
@@ -787,6 +796,9 @@ Choosing the two models with the highest $R^2$, we selected the reconnection and
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
 
 
+if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 5.3} 
+if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
+
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
@@ -797,7 +809,8 @@ if(save_imgs == TRUE){
                                          yvlt$remove_sy[yvlt$y_val==y_val_coho],
                                        remove_RY_metrics =
                                          yvlt$remove_ry[yvlt$y_val==y_val_coho],
-                                       yvlt=yvlt)
+                                       yvlt=yvlt,
+                                       selected_lam = lam_co)
 
   dev.off()
 
@@ -810,12 +823,16 @@ knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
 
-if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 5} 
-if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 ```
 
 
 ```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResultsChinook}"}
+
+
+# select chinook lambda value
+if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 40} # for Chinook jpa
+if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 15000} # for Chinook jpa
+
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
@@ -827,7 +844,8 @@ if(save_imgs == TRUE){
                                          yvlt$remove_sy[yvlt$y_val==y_val_coho],
                                        remove_RY_metrics =
                                          yvlt$remove_ry[yvlt$y_val==y_val_coho],
-                         yvlt = yvlt)
+                         yvlt = yvlt,
+                                       selected_lam = lam_ch)
 
   dev.off()
   
@@ -841,9 +859,6 @@ knitr::include_graphics(fig_path)
 fig_i = fig_i +1
 
 
-# select chinook lambda value
-if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 40} # for Chinook jpa
-if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 15000} # for Chinook jpa
 
 
 ```
@@ -971,8 +986,8 @@ if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
    # png(filename = fig_path, width = 11.5, height = 4.2, units = "in", res = 300)
   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
-  # par(mfrow=c(2,1))
-  par(mfrow = c(1,2))
+  par(mfrow=c(2,1))
+  # par(mfrow = c(1,2))
   # Panel 1. Coho
   hbf_over_time_fig(metrics_tab = metrics_tab,
                     hbf_tab = hbf_coho, y_val = y_val_coho,
@@ -1056,8 +1071,8 @@ if(save_imgs==T){
   
   if(length(comp_names_co)>0 & length(comp_names_ch)>0){
         hbf_bar = arrangeGrob(hbf_bar_co, hbf_bar_ch, 
-                               # nrow=2, ncol=1)
-                              nrow=1,ncol=2) # for ppt slide
+                               nrow=2, ncol=1)
+                              # nrow=1,ncol=2) # for ppt slide
   } else if(length(comp_names_co)>0 & length(comp_names_ch)==0){
         hbf_bar =  hbf_bar_co
   } else if(length(comp_names_co)==0 & length(comp_names_ch)>0){

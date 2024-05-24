@@ -44,6 +44,7 @@ spring_col = "green4"
 wet_sn_col = "royalblue3"
 dry_sn_col = "orangered"
 peak_col = "black"
+lam_color = "brown"
 
 # subset data -------------------------------------------------------------
 
@@ -1667,7 +1668,7 @@ hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
        ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
   # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
   abline(v = seq(from = 1940, to = 2140, by = 10),
-         h = pretty(range(hbf_tab$hbf_total)),
+         h = pretty(range(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)),
          lty = 3, col = "gray")
   abline(h=0, col = "darkgray")
   points(hbf_tab$brood_year, hbf_tab$hbf_total, pch = 19)
@@ -1749,7 +1750,8 @@ find_all_best_lambda_vals = function(com_tab, x, y,
   return(output_tab)
 }
 
-plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Plot lasso diagnostics.
+plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
+                                  selected_lam){  # Plot lasso diagnostics.
   # par(mfrow=(c(2,1)))
   #A: deviance and non-0 coefficients
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
@@ -1764,8 +1766,10 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
        xlab="",ylab="", axes=F, type = "l")
   axis(side=4,at=pretty(range(lasso_mod$df)))
   mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
-  legend(x = "topright", col=c("black","dodgerblue"), lwd = c(1,2),
-         legend = c("% Deviance", "Degrees of freedom"))
+  abline(v=selected_lam, lty = 2, col = lam_color)
+  legend(x = "topright", col=c("black","dodgerblue",lam_color),
+         lwd = c(1,2,1), lty = c(1,1,2),
+         legend = c("% Deviance", "Degrees of freedom", "Selected lambda"))
 
   # B) Plot lambda vs test error - setup
   nbreaks = 20
@@ -1783,6 +1787,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
        ylab = paste("Test error (RMSE) of models made from \n different combinations of data points"))
   # summarize by binning
   grid()
+  abline(v=selected_lam, lty = 2, col = lam_color)
   points(bin_centers, avg_by_bin$x, pch=23, cex = 1.2, bg = "firebrick", type = "o")
   legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
          pch = c(19,23),
@@ -1790,7 +1795,8 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse){  # Pl
   }
 
 plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
-                            y_val_label, mt_nrow){
+                            y_val_label, mt_nrow,
+                            selected_lam = selected_lam){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
 
   # Plot lambda vs highlighted coefs
@@ -1823,6 +1829,7 @@ plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
     lines(x=plot_tab$lambda_val, y = plot_tab[,pred_name], lwd=pred_width, col = pred_col)
   }
   grid()
+  abline(v=selected_lam, lty = 2, col = lam_color)
   legend(x = "bottomright", legend = c(pred_names[1:n_high],"Other non-0 coef."),
          col = c(pred_pal[1:n_high],"gray70"), lwd = c(rep(2,n_high),1),
          ncol=2)
@@ -1835,7 +1842,8 @@ lasso_regression_plots = function(metrics_tab,
                                   remove_SY_metrics = T,
                                   remove_RY_metrics = F,
                                   return_pred_appear_tab = T,
-                                  yvlt){
+                                  yvlt,
+                                  selected_lam){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
 
@@ -1934,8 +1942,10 @@ lasso_regression_plots = function(metrics_tab,
                    pred_appear_tab = pred_appear_tab,
                    best_lam_range = best_lam_range,
                    y_val_label = y_val_label,
-                   mt_nrow = mt_nrow)
-  plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse)
+                   mt_nrow = mt_nrow,
+                   selected_lam = selected_lam)
+  plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
+                         selected_lam = selected_lam)
 
   if(return_pred_appear_tab==T){return(pred_appear_tab)}
 }
