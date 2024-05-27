@@ -1835,22 +1835,14 @@ plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
          ncol=2)
 }
 
-
-lasso_regression_plots = function(metrics_tab,
-                                  y_val = "coho_smolt_per_fem",
-                                  remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = T,
-                                  remove_RY_metrics = F,
-                                  return_pred_appear_tab = T,
-                                  yvlt,
-                                  selected_lam){
-
-  # Lasso regression. Informed by lab from ISLR 7th printing
-
+get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
+                                             y_val = "coho_smolt_per_fem",
+                                             remove_RY_metrics = F,
+                                             remove_SY_metrics = T){
+  mt = metrics_tab
   #step 1. Prep x matrix and y array
   # (Dev: run manuscript .Rmd through line 395)
   # 1a. remove rows with no response var
-  mt = metrics_tab
   non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
                     "chinook_juv_per_adult", "coho_smolt_per_fem",
                     "coho_spawner_abundance", "coho_smolt_per_fem", "coho_smolt_abun_est",
@@ -1864,34 +1856,28 @@ lasso_regression_plots = function(metrics_tab,
   mt = mt[,!is.na(na_col_detector) ]
 
   # 1b. Optional. Remove the other thresholds or Smolt Year metrics
-  if(remove_extra_recon_thresholds==T){
-    remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
-                     "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
-                     "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
-                     "SY_discon_80")
-    mt = mt[,!(colnames(mt) %in% remove_these)]
-  }
+  # if(remove_extra_recon_thresholds==T){
+  #   remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
+  #                    "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
+  #                    "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
+  #                    "SY_discon_80")
+  #   mt = mt[,!(colnames(mt) %in% remove_these)]
+  # }
   if(remove_SY_metrics == T){
-    remove_these = grepl(pattern = "SY", x=colnames(mt))
+    remove_these = grepl(pattern = "SY", x=colnames(mt)) |
+      grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
     mt = mt[,!remove_these]
   }
   if(remove_RY_metrics == T){
-    remove_these = grepl(pattern = "RY", x=colnames(mt))
+    remove_these = grepl(pattern = "RY", x=colnames(mt)) |
+      grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
     mt = mt[,!remove_these]
   }
-  mt_nrow = nrow(mt)
-
 
   # 2. Lasso Regression
 
   # Set up x and y, and retrieve table of best lambda and rmse values
   y = mt[,y_val]
-
-  # name rmse file
-  fname = paste( y_val,"- lambdas_and_rmse")
-  if(remove_SY_metrics==T){fname = paste(fname, "no SY")  }
-  if(remove_SY_metrics==T){fname = paste(fname,"no RY")  }
-  lambda_tab_path = file.path(data_dir,paste(fname,".csv" ))
 
   if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
   if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
@@ -1902,6 +1888,33 @@ lasso_regression_plots = function(metrics_tab,
   if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
   if(y_val=="coho_redds_in_brood"){x = model.matrix(object = coho_redds_in_brood~., data = mt)[,-1]}
 
+
+  return(list(x=x,y=y))
+}
+
+lasso_regression_plots = function(metrics_tab,
+                                  y_val = "coho_smolt_per_fem",
+                                  remove_extra_recon_thresholds = F,
+                                  remove_SY_metrics = T,
+                                  remove_RY_metrics = F,
+                                  return_pred_appear_tab = T,
+                                  yvlt,
+                                  selected_lam){
+
+  # Lasso regression. Informed by lab from ISLR 7th printing
+  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
+                                              y_val = y_val,
+                                              remove_RY_metrics = remove_RY_metrics,
+                                              remove_SY_metrics = remove_SY_metrics)
+  x = x_and_y[[1]]; y = x_and_y[[2]]
+
+  # name rmse file
+  fname = paste( y_val,"- lambdas_and_rmse")
+  if(remove_SY_metrics==T){fname = paste(fname, "no SY")  }
+  if(remove_RY_metrics==T){fname = paste(fname,"no RY")  }
+  lambda_tab_path = file.path(data_dir,paste(fname,".csv" ))
+
+  # mt = metrics_tab
 
   # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
   if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
@@ -1942,12 +1955,13 @@ lasso_regression_plots = function(metrics_tab,
                    pred_appear_tab = pred_appear_tab,
                    best_lam_range = best_lam_range,
                    y_val_label = y_val_label,
-                   mt_nrow = mt_nrow,
+                   mt_nrow = nrow(x),
                    selected_lam = selected_lam)
   plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
                          selected_lam = selected_lam)
 
-  if(return_pred_appear_tab==T){return(pred_appear_tab)}
+  if(return_pred_appear_tab==T){return(list(pred_appear_tab = pred_appear_tab,
+                                            lasso_mod_range = lasso_mod))}
 }
 
 # fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
@@ -1972,76 +1986,40 @@ lasso_regression_plots = function(metrics_tab,
 
 
 get_lasso_mod = function(metrics_tab,
-                                  y_val = "coho_smolt_per_fem",
-                                  lambda_val,
-                                  remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = F){
+                         y_val = "coho_smolt_per_fem",
+                         lambda_val,
+                         # remove_extra_recon_thresholds = F,
+                         remove_RY_metrics = F,
+                         remove_SY_metrics = T
+){
+
   #step 1. Prep x matrix and y array
-  # (Dev: run manuscript .Rmd through line 395)
-  # 1a. remove rows with no response var
-  mt = metrics_tab
-  non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
-                    "chinook_juv_per_adult", "coho_smolt_per_fem",
-                    "coho_spawner_abundance", "coho_smolt_per_fem", "coho_smolt_abun_est",
-                    "percent_coho_smolt_survival", "coho_redds_in_brood")
-  # if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
-  # if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
-  non_y_vals = non_pred_vals[non_pred_vals != y_val]
-  mt = mt[,!(colnames(mt) %in% non_y_vals)]
-  mt = mt[!is.na(mt[,y_val]),]
-  na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
-  mt = mt[,!is.na(na_col_detector) ]
-
-  # 1b. Optional. Remove the other thresholds or Smolt Year metrics
-  if(remove_extra_recon_thresholds==T){
-    remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
-                     "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
-                     "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
-                     "SY_discon_80")
-    mt = mt[,!(colnames(mt) %in% remove_these)]
-  }
-  if(remove_SY_metrics == T){
-    remove_these = grepl(pattern = "SY", x=colnames(mt))
-    mt = mt[,!remove_these]
-
-  }
-  mt_nrow = nrow(mt)
-
-
-  # 2. Lasso Regression
-
-  # Set up x and y, and retrieve table of best lambda and rmse values
-  y = mt[,y_val]
-  if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
-  if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
-  if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
-  if(y_val=="coho_spawner_abundance"){x = model.matrix(object = coho_spawner_abundance~., data = mt)[,-1]}
-  if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
-  if(y_val=="coho_smolt_abun_est"){x = model.matrix(object = coho_smolt_abun_est~., data = mt)[,-1]}
-  if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
-  if(y_val=="coho_redds_in_brood"){x = model.matrix(object = coho_redds_in_brood~., data = mt)[,-1]}
-
+  # Lasso regression. Informed by lab from ISLR 7th printing
+  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
+                                              y_val = y_val,
+                                              remove_RY_metrics = remove_RY_metrics,
+                                              remove_SY_metrics = remove_SY_metrics)
+  x = x_and_y[[1]]; y = x_and_y[[2]]
 
   lasso_mod = glmnet(x, y, alpha = 1, lambda = lambda_val)
 
   return(lasso_mod)
 }
 
-get_hbf_tab = function(metrics_tab, lasso_mod){
-  coefs = as.data.frame(t(as.matrix(coef(lasso_mod))))
+get_hbf_tab = function(metrics_tab, coefs, int){
+  # coefs = as.data.frame(t(as.matrix(coef(lasso_mod))))
   # coef_names = row.names(coef(hbf_coho))
   #removing the intercept will make the row names unusable
 
-  int_picker = 1
-  intercept = coefs[int_picker]
-  coefs = coefs[-int_picker]
+  # int_picker = 1
+  intercept = int
 
   # store relevant metric values in an intermediate table
   intermed_tab=metrics_tab
   intermed_tab=intermed_tab[,colnames(intermed_tab) %in%
-                              c(colnames(coefs),"brood_year")]
+                              c(names(coefs),"brood_year")]
   # match metrics tab to coefficients
-  term_matcher = match( colnames(coefs), colnames(intermed_tab))
+  term_matcher = match(names(coefs), colnames(intermed_tab))
 
   # record HB contribution values in an output tab. initialize all values to NA
   output_tab = intermed_tab

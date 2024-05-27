@@ -458,9 +458,9 @@ For each of the two species of concern, we wanted to find the ecological metric 
 * **mean of top-10 predictors **
 * **clear selection for chinook. less clear for coho**
 
-## Step 6. Lasso regression 
+## Step 6. Generate predictive model with lasso regression 
 
-With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two ecological metrics selected in the previous step (one for coho and one for Chinook).  
+With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two ecological metrics selected in the previous step (one for coho and one for Chinook). 
 
 ### General approach
 
@@ -492,17 +492,19 @@ Some ecological records have gaps (e.g., when funding was not available in one y
 
 ### Test error and range of lambda values
 
-In lasso regression, the standard method to pick the value of lambda (the "shrinkage penalty") is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models using a range of lambda values. These models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error (RMSE). The lambda value that produces the regression model with the minimum test error is selected, and using this value, a final regression model is generated based on the full data set [@James2013]. 
+In lasso regression, the goal is to select a lambda value (referred to as the "shrinkage penalty" or "tuning parameter") that uses available predictor data to explain the maximum amount of deviation in the response while avoiding overfitting. With high-dimensional data, it is typically possible to perfectly fit the observations (explaining 100% of deviation) by incorporating data from a number of predictors that approaches or exceeds the number of observations [@James2013]. The predictive models that result from this type of overfitting typically perform poorly when applied to new data, since they tend to incorporate random noise to achieve a perfect fit [@James2013].
 
-However, we decided this was not appropriate for the size of the available ecological datasets, which ranged from 15 to 20 years of observations. To address this, we generated 10,000 non-repeating random sets of testing and training data, and calculated the optimal lambda value for each set. 
+The standard method to pick the optimal value of lambda is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models using a range of lambda values. These models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error value (RMSE). The lambda value that produces the regression model with the minimum test error is selected, and using this value, a final regression model is generated based on the full data set [@James2013]. 
 
-Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. The number of predictors incorporated in these models ranged from zero (i.e., the model consisted of the intercept value only) to a maximum of 20 and 27 (**predictors**) for coho and Chinook respectively.  
+However, we decided this was not appropriate for the size of the available ecological datasets, which ranged from 15 to 20 years of observations: we could not be confident that the optimal lambda value was an indicator of the optimal balance point between incorporating useful information and overfitting, since it could just be an artefact of the way we divided the dataset into test and training sets. To address this, we tried to identify the range of all optimal lambda values possible within the available ecological dataset. We generated 10,000 non-repeating random sets of testing and training data, and calculated the optimal lambda value for each set. 
+
+Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. The number of predictors (i.e., the number of non-0 coefficients) incorporated in these models ranged from zero (i.e., the model consisted of the intercept value only) to a maximum of 20 and 27 for coho and Chinook respectively.  
 
 ### Selection of final lambda values 
 
-To select a final lambda value, we considered the percentage of deviation explained, 
+To select a final lambda value, we considered the percentage of deviation explained, the number of coefficients, and the test error of the 10,000 randomly sampled test and training sets.
 
-## Step 7. Formulate Hydrologic Benefit
+## Step 7. Formulate Hydrologic Benefit function
 
 The final lambda value selection produced the linear model which can be used to predict ecological outcomes with hydrologic predictors. We referred to this model as the Hydrologic Benefit (HB) function. The predicted HB value, with units of the selected ecological response type, in Brood Year $i$ is calculated as:
 
@@ -514,12 +516,10 @@ $x_{ij}$ is the value of predictor $j$ in the cohort with Brood Year $i$.
 We note that ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. 
 
 
-## Step 8. Hydrologic Benefit Function sensitivity
+<!-- ## Step 8. Hydrologic Benefit function sensitivity -->
 
-**To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive ensemble average model was estimated by adding an additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. The missing value for brood year 2015 was replaced by 0, as well as the minimum, mean and maximum values of observed coho spf (5.8, 60.0, and 101.8 coho spf, respectively). The ensemble average coefficients in the HB function were recalculated based on each revised dataset. This sensitivity analysis was not implemented for Chinook (see Results).
-**
-
-* make metrics_tab_sa
+<!-- **To further explore the uncertainty associated with such a small dataset, the sensitivity of the predictive ensemble average model was estimated by adding an additional data point. Specifically, a hypothetical value of "observed" coho spf was assigned to brood year 2015 (influenced by conditions in water year 2016). This is a missing value in the existing observational dataset. The missing value for brood year 2015 was replaced by 0, as well as the minimum, mean and maximum values of observed coho spf (5.8, 60.0, and 101.8 coho spf, respectively). The ensemble average coefficients in the HB function were recalculated based on each revised dataset. This sensitivity analysis was not implemented for Chinook (see Results). -->
+<!-- ** -->
 
 # Results
 
@@ -706,12 +706,12 @@ corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1
 y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
                                 grepl(pattern = "chinook", x = colnames(corr_tab_2))]
 corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
-num_top_pred =4
+num_top_pred =10
 
 for(i in 1:length(y_vals)){
   y_val = y_vals[i]
-  top10 = sort(abs(corr_tab_2[,y_val]), decreasing = T)[1:num_top_pred]
-  corr_summary$mean_R_top_pred[i] = mean(top10)
+  top_preds = sort(abs(corr_tab_2[,y_val]), decreasing = T)[1:num_top_pred]
+  corr_summary$mean_R_top_pred[i] = mean(top_preds)
 }
 
 corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),]
@@ -796,14 +796,14 @@ Choosing the two models with the highest $R^2$, we selected the reconnection and
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
 
 
-if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 5.3} 
+if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 5.3}
 if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-  
-  pred_tab_co = lasso_regression_plots(metrics_tab = metrics_tab, 
+
+  lasso_results_co = lasso_regression_plots(metrics_tab = metrics_tab,
                                        y_val = y_val_coho,
                                        remove_SY_metrics =
                                          yvlt$remove_sy[yvlt$y_val==y_val_coho],
@@ -811,7 +811,8 @@ if(save_imgs == TRUE){
                                          yvlt$remove_ry[yvlt$y_val==y_val_coho],
                                        yvlt=yvlt,
                                        selected_lam = lam_co)
-
+  pred_tab_co = lasso_results_co$pred_appear_tab
+  lasso_mod_co = lasso_results_co$lasso_mod_range
   dev.off()
 
   # save predictor appearance tab
@@ -838,17 +839,21 @@ fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
 
-  pred_tab_ch = lasso_regression_plots(metrics_tab = metrics_tab, 
-                         y_val = y_val_chinook, 
+  lasso_results_ch = lasso_regression_plots(metrics_tab = metrics_tab,
+                         y_val = y_val_chinook,
                          remove_SY_metrics =
-                                         yvlt$remove_sy[yvlt$y_val==y_val_coho],
+                                         yvlt$remove_sy[yvlt$y_val==y_val_chinook],
                                        remove_RY_metrics =
-                                         yvlt$remove_ry[yvlt$y_val==y_val_coho],
+                                         yvlt$remove_ry[yvlt$y_val==y_val_chinook],
                          yvlt = yvlt,
                                        selected_lam = lam_ch)
 
   dev.off()
   
+    pred_tab_ch = lasso_results_ch$pred_appear_tab
+  lasso_mod_ch = lasso_results_ch$lasso_mod_range
+
+
     # save predictor appearance tab
   pred_tab_filename = "Supplemental Table 4. Chinook Salmon Lasso Coefficients.csv"
   write.csv(x=pred_tab_ch, file=file.path(graphics_dir,pred_tab_filename),
@@ -864,9 +869,30 @@ fig_i = fig_i +1
 ```
 
 
+<!-- ```{r} -->
+
+<!-- for(y_val in yvlt$y_val){ -->
+<!--   if(!(y_val %in% c(y_val_coho, y_val_chinook))){ -->
+<!--         pred_tab = lasso_regression_plots(metrics_tab = metrics_tab, -->
+<!--                                        y_val = y_val, -->
+<!--                                        remove_SY_metrics = -->
+<!--                                          yvlt$remove_sy[yvlt$y_val==y_val], -->
+<!--                                        remove_RY_metrics = -->
+<!--                                          yvlt$remove_ry[yvlt$y_val==y_val], -->
+<!--                                        yvlt=yvlt, -->
+<!--                                        selected_lam = 10) -->
+
+<!--   } -->
+
+<!-- } -->
+<!-- ``` -->
+
+
+
 ### Ranked predictor importance
 
-* Discuss 
+* As expected in lasso regression, the predictors most correlated with the selected ecological responses (Figure \@ref(fig:corrMatrixFig)) are identified as the most important predictors in terms of the order in which they are incorporated into the predictive model (Figure \@ref(fig:corrMatrixFig); Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)).
+* example of the above
 
 ```{r predAppearTabCoho, echo = FALSE, results = 'asis'}
 
@@ -908,7 +934,7 @@ ptc_ft
 
 ### Variation explained at different lambda values
 
-* coho - more variation explained with fewer coefficients
+* coho % smolt survival - more variation explained with fewer coefficients than chinook juv per adult
 * possible interp: in this watershed, Chinook outcomes are less sensitive to flow (or less limited by flow) than coho outcomes
 
 ## Hydrologic Benefit Function
@@ -919,17 +945,19 @@ ptc_ft
 ```{r calc_hbf_values_tabs, echo = F, warning =F}
 
 # calculate lasso model based on lambda value selected earlier
-lasso_coho = get_lasso_mod(metrics_tab,
-                                  y_val = y_val_coho,
-                                  lambda_val = lam_co,
-                                  remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = F)
-lasso_chinook = get_lasso_mod(metrics_tab,
-                                  y_val = y_val_chinook,
-                                  lambda_val = lam_ch,
-                                  remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = T)
 
+
+# find a way to just pull the HBF out of the lasso mod already calculated??
+# This re-calculating it is giving weird HBF values.
+
+# Retrieve coefficients from lasso models
+lasso_index_co = which.min(abs(lasso_mod_co$lambda-lam_co))
+coefs_co = lasso_mod_co$beta[,lasso_index_co]
+intercept_co = lasso_mod_co$a0[lasso_index_co]
+
+lasso_index_ch = which.min(abs(lasso_mod_ch$lambda-lam_ch))
+coefs_ch = lasso_mod_ch$beta[,lasso_index_ch]
+intercept_ch = lasso_mod_ch$a0[lasso_index_ch]
 
 # retrieve hydrology for all years of FJ flow
 brood_year_hydro_tab_long = tabulate_hydro_by_affected_brood_year(
@@ -941,8 +969,10 @@ metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
   reduce_to_eco_data_years_only = F) 
 
 # calculate hbf for all years in which there are hydrodata
-hbf_coho = get_hbf_tab(metrics_tab = metrics_tab_long, lasso_mod = lasso_coho)
-hbf_chinook = get_hbf_tab(metrics_tab = metrics_tab_long, lasso_mod = lasso_chinook)
+hbf_coho = get_hbf_tab(metrics_tab = metrics_tab_long, 
+                       coefs = coefs_co, int = intercept_co)
+hbf_chinook = get_hbf_tab(metrics_tab = metrics_tab_long, 
+                          coefs = coefs_ch, int = intercept_ch)
 
 # calculate rmse and relative rmse
 
@@ -961,10 +991,12 @@ rel_rmse_ch = rmse_chinook / mean_chinook
 
 ```
 
+Coho y val: `r y_val_coho`
 Coho lambda: `r lam_co`
 Coho RMSE: `r rmse_coho`
 Coho relative RMSE: `r rel_rmse_co`
 
+Coho y val: `r y_val_chinook`
 Chinook lambda: `r lam_ch`
 Chinook RMSE: `r rmse_chinook`
 Chinook relative RMSE: `r rel_rmse_ch`
@@ -1032,7 +1064,7 @@ if(length(comp_names_co)>0){
 # Arrange data - chinook
 hbf_chinook$hbf_total = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_chinook, MARGIN = 2, FUN = mean, na.rm=T)
-keep_cols = colnames(hbf_chinook[abs(is_it_0)>0])
+keep_cols = colnames(hbf_chinook)[abs(is_it_0)>0]
 comp_names_ch = keep_cols[keep_cols != "brood_year"]
 if(length(comp_names_ch)>0){
   bar_data_ch = hbf_chinook[,keep_cols]
@@ -1052,6 +1084,7 @@ if(save_imgs==T){
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
                             y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
+                            # y = `Contrib. to Hyd. Ben. value (Num. obs. coho redds)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
       scale_fill_brewer(palette = "Spectral") +
@@ -1120,44 +1153,52 @@ fig_i = fig_i +1
 
 
 
-### Sensitivity of the Hydrologic Benefit function to one additional data point
+<!-- ### Sensitivity of the Hydrologic Benefit function to one additional data point -->
 
 
-```{r lasso_SA, echo = F, warning =F}
+<!-- ```{r lasso_SA, echo = F, warning =F} -->
 
-metrics_tab_sa = metrics_tab
-repl_row = which(metrics_tab_sa$brood_year==2015)
-two_y_vals = data.frame(y_vals = c(y_val_coho, y_val_chinook),
-                        lambda_vals = c(lam_co,lam_ch))
+<!-- metrics_tab_sa = metrics_tab -->
+<!-- repl_row = which(metrics_tab_sa$brood_year==2015) -->
+<!-- two_y_vals = data.frame(y_vals = c(y_val_coho, y_val_chinook), -->
+<!--                         lambda_vals = c(lam_co,lam_ch)) -->
+<!-- lasso_mod_list = list(lasso_mod_co, lasso_mod_ch) -->
+<!-- for(i in 1:2){ -->
+<!--   y_val = two_y_vals$y_vals[i] -->
+<!--   lam_val = two_y_vals$lambda_vals[i] -->
+<!--   obs = metrics_tab_sa[,y_val] -->
+<!--   repl_range = c(0, min(obs,na.rm=T), mean(obs,na.rm=T), -->
+<!--                  max(obs,na.rm=T)) -->
+<!--   lasso_mod_for_loop = lasso_mod_list[[i]] -->
 
-for(i in 1:2){
-  y_val = two_y_vals$y_vals[i]
-  lam_val = two_y_vals$lambda_vals[i]
-  obs = metrics_tab_sa[,y_val]
-  repl_range = c(0, min(obs,na.rm=T), mean(obs,na.rm=T),
-                 max(obs,na.rm=T))
+<!--   for(j in 1:length(repl_range)){ -->
+<!--     repl_val = repl_range[j] -->
+<!--     metrics_tab_sa = metrics_tab -->
+<!--     metrics_tab_sa[repl_row, y_val] == repl_val -->
 
-  for(j in 1:length(repl_range)){
-    repl_val = repl_range[j]
-    metrics_tab_sa = metrics_tab
-    metrics_tab_sa[repl_row, y_val] == repl_val
-    
-    lasso_mod = get_lasso_mod(metrics_tab_sa,
-                                  y_val = y_val,
-                                  lambda_val = lam_val,
-                                  remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = F)
-  }
-}
+<!--     lasso_mod = get_lasso_mod(metrics_tab_sa, -->
+<!--                                   y_val = y_val, -->
+<!--                                   lambda_val = lam_val, -->
+<!--                                   # remove_extra_recon_thresholds = F, -->
+<!--                                   remove_RY_metrics = -->
+<!--                                 yvlt$remove_ry[yvlt$y_val==y_val], -->
+<!--                                 remove_SY_metrics = -->
+<!--                                 yvlt$remove_sy[yvlt$y_val==y_val]) -->
+<!--     pred_appear_tab = generate_pred_appear_tab(lasso_mod = lasso_mod,  -->
+<!--                                                best_lam_range = lasso_mod_for_loop$lambda) -->
+<!--     if(i == 1 & j == 1){ -->
+<!--       output_list = pred_appear_tab -->
+<!--     } else{ -->
+<!--       output_list = append(x=output_list, pred_appear_tab) -->
+<!--     } -->
+<!--   } -->
+<!-- } -->
 
-```
+<!-- ``` -->
 
-Testing different values for the missing coho spf observation for brood year 2015 suggests that the best-fit HB function weights are relatively sensitive to the addition of one new data point, as can be expected for a small dataset. Flow conditions in and just before water year 2016 (affecting brood year 2015) were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (-35.9; see Figure \@ref(fig:hbfOverTime)). 
+<!-- Testing different values for the missing coho spf observation for brood year 2015 suggests that the best-fit HB function weights are relatively sensitive to the addition of one new data point, as can be expected for a small dataset. Flow conditions in and just before water year 2016 (affecting brood year 2015) were very dry, and the hydrologic predictors for water year 2016 generated the lowest predicted coho spf value of the entire Fort Jones gauge flow record (-35.9; see Figure \@ref(fig:hbfOverTime)).  -->
 
-Replacing this predicted negative value in 2016 (brood year 2015) with an "observed" coho spf value of 0 changes the coefficient (or conceptual weight) of the predictor BY_recon_10 from -1.15 to -0.88 (a difference of 24%). Replacing it with higher numbers produces less and less negative coefficient values. Specifically, a 1-coho spf increase in the missing value makes the coefficient less negative by 0.007 coho spf per day of 10-cfs reconnection delay, such that if it is replaced with the maximum observed coho spf value (101.8), the coefficient is calculated as -0.09 coho spf/day. The other three coefficients are not as sensitive to the new value, ranging from -0.17 -- -0.19, -0.20 -- -0.18, and 0.12 -- 0.13 for BY_recon_100, RY_Wet_Tim, and RY_Wet_BFL_Dur, respectively, when the missing value is replaced by a range from 0 to 101.8.
-
-
-
+<!-- Replacing this predicted negative value in 2016 (brood year 2015) with an "observed" coho spf value of 0 changes the coefficient (or conceptual weight) of the predictor BY_recon_10 from -1.15 to -0.88 (a difference of 24%). Replacing it with higher numbers produces less and less negative coefficient values. Specifically, a 1-coho spf increase in the missing value makes the coefficient less negative by 0.007 coho spf per day of 10-cfs reconnection delay, such that if it is replaced with the maximum observed coho spf value (101.8), the coefficient is calculated as -0.09 coho spf/day. The other three coefficients are not as sensitive to the new value, ranging from -0.17 -- -0.19, -0.20 -- -0.18, and 0.12 -- 0.13 for BY_recon_100, RY_Wet_Tim, and RY_Wet_BFL_Dur, respectively, when the missing value is replaced by a range from 0 to 101.8. -->
 
 
 
