@@ -955,6 +955,12 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
       output_tab[i, paste0("RY_discon_", thresh)] = RY_discon_day_since_aug31
       output_tab[i, paste0("RY_recon_",  thresh)] = RY_recon_day_since_aug31
       output_tab[i, paste0("SY_discon_", thresh)] = SY_discon_day_since_aug31
+
+      # Convert infinite reconnection dates (i.e., the flow never rose above that
+      # threshold in that time period) to NA values
+      conn_cols = paste0(c("BY_recon_","RY_discon_",
+                            "RY_recon_","SY_discon_"),  thresh)
+      output_tab[i, conn_cols][!is.finite(as.numeric(output_tab[i, conn_cols]))] = NA
     }
 
     # 4. Assign Total Flow metric predictors (if data's availble)
@@ -1780,15 +1786,17 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA # remove inf values
   avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T)
   # plot
-  plot(lambdas_and_rmse$bestlam, lambdas_and_rmse$rmse, pch = 19, col = rgb(0.5,0.5,0.5,0.5),
+  plot(lambdas_and_rmse$bestlam,
+       lambdas_and_rmse$rmse/mean(y),
+       pch = 19, col = rgb(0.5,0.5,0.5,0.5),
        main = "... but test error is larger with more coefficients",
        xlab = "Lambda value (shrinkage penalty)",
        log="y",
-       ylab = paste("Test error (RMSE) of models made from \n different combinations of data points"))
+       ylab = paste("Rel. test error (rel. RMSE) of models made \n from different combinations of data points"))
   # summarize by binning
   grid()
   abline(v=selected_lam, lty = 2, col = lam_color)
-  points(bin_centers, avg_by_bin$x, pch=23, cex = 1.2, bg = "firebrick", type = "o")
+  points(bin_centers, avg_by_bin$x/mean(y), pch=23, cex = 1.2, bg = "firebrick", type = "o")
   legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
          pch = c(19,23),
          legend = c("Individual model RMSE", "Binned average RMSE"))

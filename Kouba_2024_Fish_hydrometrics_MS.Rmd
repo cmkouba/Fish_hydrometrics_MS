@@ -120,7 +120,7 @@ In practice, these questions are often asked and answered locally [@Tarlock1993]
 
 One method for estimating ecological water needs is the functional flows framework [@Poff1997; @Poff2010a]. Functional flow metrics are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics for California hydrology and made the metric-calculating algorithms publicly available [@Yarnell2020; @Patterson2020].
 
-To learn if it is possible to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed), we examine correlations between several dozen hydrologic metrics and local salmon observations. **We then used lasso regression to select the hydrologic metric predictors used to predict salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
+To learn if it is possible to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed), we examine correlations between several dozen hydrologic metrics and local salmon observations. We then used lasso regression to select hydrologic metric predictors and predict salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
 
 ## History of flow-ecology relationships
 
@@ -137,9 +137,10 @@ The present study is a longitudinal analysis, using empirical data and a case st
 
 # Methods: Case study setting and species of concern
 
-Exploring the empirical relationship between river hydrology and an ecological response requires overlapping geography, and sufficient record length, in a study area's hydrologic and ecological monitoring data. Ecological data is typically more sparse and is usually the limiting factor. Geographically, the ecological monitoring must be within an area that is plausibly affected by the hydrology at the point of river observation. Temporally, in order to go beyond static snapshot analyses [e.g. @Wheeler2018], the species-level observations of life stages which are facilitated by specific flow rates (such as spawning and rearing for salmonids) must cover a wide range of dry to wet water year conditions, which usually means decades of time-intensive and costly aquatic data collection. 
+Exploring the empirical relationship between river hydrology and an ecological response requires overlapping geography, and sufficient record length, in a study area's hydrologic and ecological monitoring data. 
+<!-- Ecological data is typically more sparse and is usually the limiting factor. Geographically, the ecological monitoring must be within an area that is plausibly affected by the hydrology at the point of river observation. Temporally, in order to go beyond static snapshot analyses [e.g. @Wheeler2018], the species-level observations of life stages which are facilitated by specific flow rates (such as spawning and rearing for salmonids) must cover a wide range of dry to wet water year conditions, which usually means decades of time-intensive and costly aquatic data collection.  -->
 
-These requirements are met to some degree in Scott Valley. Hydrologic data is provided by daily river flow monitoring, which has been ongoing since the 1940s at the USGS stream gauge downstream of the town of Fort Jones (Station ID #11519500, or the Fort Jones Gauge or FJ Gauge; Figure \@ref(fig:ScottWatershedMap)). The flow at this gauge is correlated with flow in tributary streams [@Foglia2013a], and though a single monitoring location may not be able represent flow status in the full stream system at all times, it has been used in recent water planning documents as an indicator of overall hydrologic conditions [Siskiyou County -@SiskiyouCounty2021]. Because most water use in Scott Valley occurs upgradient of this gauge, its measurements are used to inform water management decisions in the populated areas of the valley.
+These requirements are met to some degree in Scott Valley, though as is typical, ecological data is the limiting factor. Hydrologic data is provided by daily river flow monitoring, which has been ongoing since the 1940s at the USGS stream gauge downstream of the town of Fort Jones (Station ID #11519500, or the Fort Jones Gauge or FJ Gauge; Figure \@ref(fig:ScottWatershedMap)). The flow at this gauge is correlated with flow in tributary streams [@Foglia2013a], and though a single monitoring location may not be able represent flow status in the full stream system at all times, it has been used in recent water planning documents as an indicator of overall hydrologic conditions [Siskiyou County -@SiskiyouCounty2021]. Because most water use in Scott Valley occurs upgradient of this gauge, its measurements are used to inform water management decisions in the populated areas of the valley.
 
 Ecologic data is available due to routine monitoring of spawning anadromous fish, which has been ongoing in the broader Klamath basin since at least 1978 [@Knechtle2012]. More in-depth monitoring of multiple salmonid life stages in the Scott River watershed has occurred since 2003 [e.g., @Maurer2003; @CDFW2021a]. In this study we will take advantage of this nearly two-decade record of adult spawner and juvenile salmon abundance observations to draw preliminary conclusions regarding this hydrology-ecology relationship.
 
@@ -235,7 +236,6 @@ knitr::include_graphics(file.path(graphics_dir, "coho life cycle table_2022.02.0
 ### Life cycle and status of Chinook salmon (*Onchorhynchus tsawytscha*)
 
 Chinook salmon in the Scott Valley are a candidate for listing under the federal ESA, and are not listed under the California ESA. They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU). 
-
 Typically, adult Chinook salmon return to spawn in Scott Valley streams in the fall months September-December when flows are sufficient for salmon passage [@CDFW2020; @SiskiyouRCD2015a; @SiskiyouRCD2017a]. Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life [@NMFS2005]. Chinook spend the majority of their life in the ocean, and return to their natal streams shortly before spawning [@Healey1991]. However, substantial variability exists within this broader structure: Chinook salmon exhibit variation in multiple life stages, including time of seaward migration, age of maturity, and timing of return to natal stream [@Healey1991; @Bourret2016]. Consequently, a diagram of the Chinook life cycle would include more variability than the more structured coho life cycle reflected in Figure \@ref(fig:cohoLifeCycleFigure).
 
 As recently as 2013, the SONCC Chinook population was stable and becoming more complex [@Wainwright2013]. However, in monitoring from 2015-2020, the number of returning adults (the escapement) was 65% below historical average, and the change in the Scott River Chinook population has been more rapid than the decline in the overall Klamath Basin Chinook run [@CDFW2021b]. Ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@Welch2021]. Some studies have found that the leading cause of declining Chinook populations are ocean conditions, including including temperature, upwelling currents and food resources [@Hunt1999], while others have identified hatchery practices as the primary cause [@Quinones2014]. 
@@ -256,7 +256,7 @@ We used lasso regression [@James2013; @Ranstam2018] to assess the feasibility of
 
 ## Step 1. Calculate predictors: Flow metrics to describe Scott River flow regime
 
-Hydrologic predictors consist of flow metrics calculated from the daily flow record at the Fort Jones river gauge from 1942-2021. The full suite of metrics is calculated on a water-year basis (i.e., each type of metric produces one value for each water year). All annual water metrics considered in this study are included in *Supplemental Table 1*. Abbreviations, relevant time periods and metric calculation details are listed in Table \@ref(tab:funcFlowTermsTab).
+Hydrologic predictors consist of flow metrics calculated from the daily flow record at the Fort Jones river gauge from 1942-2021. The full suite of metrics is calculated on a water-year basis (i.e., each type of metric produces one value for each water year; *Supplemental Table 1*). Abbreviations, relevant time periods and metric calculation details are listed in Table \@ref(tab:funcFlowTermsTab).
 
 Firstly, a series of metrics from the catalog of California-specific functional flows (as illustrated in Figure \@ref(fig:fig2Yarnell2020)) [@Yarnell2020; @Patterson2020] were selected to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. Additional information is available in @Patterson2020 and supporting documentation. All selected functional flow metrics have some known ecological function or interpretation: Total annual flow is used to evaluate water year type. Phenomena measured with fall metrics, such as fall pulse magnitude and fall pulse timing, provide olfactory migration signals and spawning access to anadromous fish; however, a discrete fall pulse does not occur in every water year. Wet season metrics, such as wet season onset timing and baseflow magnitude, can be used to gauge conditions during egg incubation or the overwintering period for juvenile coho salmon. In particular, frequency and duration of wet season high-flow events (i.e. daily average flow above exceeding a 2-, 5- and 10-year flood) indicate the potential presence of scouring flows. Spring metrics, such as spring flow recession rate of change, occur during the transition from wet to dry season, and indicate conditions during early juvenile salmon rearing as well as the flow available for outmigration from Scott Valley to the ocean. Finally, metrics like the duration and median flow of the dry season indicate the timing and severity of low-flow conditions in which spatial habitat is constrained and connectivity between reaches may be limited. 
 
@@ -266,9 +266,13 @@ Finally, to identify the presence of scouring flows [i.e., storm events that can
 
 ### Selecting flow thresholds for dis- and re-connection timing
 
-A discrete number of thresholds were selected from the continuum of flows, ranging between a lowest value of 10 cfs and highest value of **100 cfs**. At the lowest value all tributaries are known to be disconnected and significant dry reaches exist along the main stem [@Tolley2019]. **At the highest value, most tributaries connect with the mainstem and the mainstem Scott River is flowing contiguously, including the "tailings" section, a boulder sediment substrata section of the mainstem that is most susceptible to falling dry** [@Tolley2019; @SiskiyouCounty2021].
+When calculating the timing of river connectivity, a discrete number of thresholds were selected from the continuum of flows, ranging between a lowest value of 8 cfs and highest value of 1000 cfs. At the lowest value all tributaries are known to be disconnected and significant dry reaches exist along the main stem, while the highest value is associated with winter storm events in a fully-connected river system [@Tolley2019].
 
-The reconnection timing of proximate flow thresholds is somewhat correlated. It was therefore necessary to reduce the number of flow thresholds under consideration in the **linear model selection process** to a) identify flow thresholds with the greatest impact on salmon reproduction (to the extent possible with such a small dataset), and b) avoid the inclusion of redundant hydrologic information [@Olden2003]. **To identify the threshold(s) with the highest predictive power and potentially the lowest redundancy, we examined correlations between reconnection dates and biological monitoring data (see methods part 4 below).**
+<!-- most tributaries connect with the mainstem and the mainstem Scott River is flowing contiguously, including the "tailings" section, a boulder sediment substrata section of the mainstem that is most susceptible to falling dry** [@Tolley2019; @SiskiyouCounty2021]. -->
+
+The reconnection timing of proximate flow thresholds is somewhat correlated. The lasso regression is appropriate for this type of data because the method can eliminate some redundancy in predictor information [@James2013]. 
+
+<!-- It was therefore necessary to reduce the number of flow thresholds under consideration in the **linear model selection process** to a) identify flow thresholds with the greatest impact on salmon reproduction (to the extent possible with such a small dataset), and b) avoid the inclusion of redundant hydrologic information [@Olden2003]. **To identify the threshold(s) with the highest predictive power and potentially the lowest redundancy, we examined correlations between reconnection dates and biological monitoring data (see methods part 4 below).** -->
 
 ```{r funcFlowTermsTab, echo = FALSE, results = 'asis'}
 
@@ -294,7 +298,7 @@ ff_tab_ft = flextable::width(ff_tab_ft,j=4,  width = 3.2)
 ff_tab_ft
 
 ``` 
-
+ 
 
 ```{r funcFlowTermsTabLifePeriods, echo = FALSE, results = 'asis'}
 
@@ -305,7 +309,7 @@ ff_tab_lp = ff_tab[ff_tab$Abbreviation %in%
                    c("Abbreviation","Full.Name","Description")]
 
 #Create caption and column labels
-caption_text = "Explanation of time period definitions used in this analysis."
+caption_text = "Explanation of time period definitions used in this analysis (displayed graphically in Figure 3)."
 column_labels = c("Abbrev.","Full Name","Description")
 colnames(ff_tab_lp) = column_labels
 
@@ -337,7 +341,7 @@ fig_i = fig_i +1
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 5, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 4.5, units = "in", res = 300)
   
 recon_and_discon_explainer_hydrograph(
   water_year = 2016, tot_flow_annotate = F, 
@@ -384,7 +388,7 @@ Coho Freshwater Life Periods overlap, e.g., the fall pulse flows in water year $
 
 To build empirical relationships between hydrology and biology, ecological response variables were indexed by Brood Year of the affected cohort and hydrologic metrics tabulated accordingly (*Supplemental Table 2*). For example, the value for fall reconnection timing (100 cfs flow threshold) in fall of 2011 was assigned to the column "BY_recon_100" for the Brood Year 2011 cohort. The same value was assigned to the column "RY_recon_100" for the Brood Year 2010, which experienced fall 2011 as rearing juveniles.
 
-Each brood year is associated with multiple ecological response variable, i.e., "fish outcome" observation types, including number of Chinook and coho spawners observed and the estimated number of smolt observed at the end of their CFLP. Data were available and compiled for brood years 2004 through 2019.
+Each brood year is associated with multiple ecological responses (i.e. "fish outcome" observation types), including number of Chinook and coho spawners observed and the estimated number of smolt observed at the end of their CFLP. Data were available and compiled for brood years 2004 through 2019. **We note that because the Brood Year period only covers the fall and early winter,  ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. **
 
 ### Data alignment - Chinook
 
@@ -430,7 +434,7 @@ y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance",
                                              "Num. Chinook juveniles",
                                              "Chinook juv. per adult",
                                              "Num. coho spawners (escapement)",
-                                             "Coho smolt per female spawner",
+                                             "Coho smolt per fem. spawner",
                                              "Est. num. coho smolt",
                                              "% coho smolt survival",
                                              "Num. obs. coho redds"),
@@ -513,7 +517,7 @@ $$HB_i = \beta_0 +\sum_{j=1}^{p}{\beta_j x_{ij}}$$
 Where:
 $x_{ij}$ is the value of predictor $j$ in the cohort with Brood Year $i$.
 
-We note that ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. 
+**We note that ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. **
 
 
 <!-- ## Step 8. Hydrologic Benefit function sensitivity -->
@@ -529,7 +533,7 @@ Diagnostic metrics of Scott River flow have demonstrated clear trends over the p
 
 Ecosystem functional flow metrics, calculated with signal-processing techniques [@Patterson2020] (illustrated in Figure \@ref(fig:fig2Yarnell2020)), also show clear trends over time (Figure \@ref(fig:funcFlowTimeseries), panels B-H). The fall pulse onset date has trended slightly later (though a distinct fall pulse flow does not occur every year), and the magnitude of the fall pulse flows has decreased. Remarkably, a fall pulse onset during the first half of October occurred four times between 1940 and 1980, but not since then (Figure \@ref(fig:funcFlowTimeseries), panel C). Reflecting the large variability in annual flows, the magnitude of the fall pulse flow varies widely, across 2.5 orders of magnitude, from less than 50 cfs to 1500 cfs. Extremely high fall pulse flows (>800 cfs), occurring three times in the earlier period, were missing in the second half of the 80-year record.  Years with a fall pulse flow magnitudes of less than 400 cfs have become more frequent, resulting in a visible downward trend in fall pulse magnitude over the period of record (Figure \@ref(fig:funcFlowTimeseries), panel B).
 
-The onset of the wet season has trended slightly later, though wet season median baseflows (i.e., flows not occurring during storm pulses) have remained stable on average (with a very slight downward trend). Wet season baseflow rates vary from less than 50 cfs (1977) to over 2000 cfs (1997) with typical winter flow ranging from 400 cfs to about 1000 cfs (Figure \@ref(fig:funcFlowTimeseries), panel E).
+The onset of the wet season has trended slightly later, though wet season median baseflows (i.e., flows not occurring during storm pulses) have remained stable on average (with a very slight downward trend). Wet season baseflow rates vary from less than 50 cfs (1977) to over 2000 cfs (1997) with typical winter flow ranging from 400 to 1000 cfs (Figure \@ref(fig:funcFlowTimeseries), panel E).
 
 After April, the chance of large precipitation events becomes minimal leading to a gradual, near-exponential decline of streamflow rates during May through July as the snowpack in the upper watershed melts off. While a very consistent feature in the annual hydrograph (e.g., Figure \@ref(fig:reconnectExplainerHydrograph)), the rate of flow reduction (i.e., the exponential decline) during the spring has increased over the period of record. The spring recession curve has grown steeper and accelerated the annual recession process: hhe rate of decline was just above 0.05%/day in 1940, and it was nearly 0.07%/day in 2020 (Figure \@ref(fig:funcFlowTimeseries), panel EF).
 
@@ -718,7 +722,8 @@ corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),]
 corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),]
 
 y_val_chinook = corr_ch$y_vals[which.max(corr_ch$mean_R_top_pred)]
-y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
+# y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
+y_val_coho = "coho_smolt_per_fem"
 
 ```
 
@@ -795,7 +800,7 @@ Choosing the two models with the highest $R^2$, we selected the reconnection and
 
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
 
-
+if(y_val_coho=="coho_smolt_per_fem") {lam_co = 10}
 if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 5.3}
 if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 
@@ -831,7 +836,7 @@ fig_i = fig_i +1
 
 
 # select chinook lambda value
-if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 40} # for Chinook jpa
+if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 20} # for Chinook jpa
 if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 15000} # for Chinook jpa
 
 
@@ -942,7 +947,7 @@ ptc_ft
 ### Predictors and coefficients in the selected models
 
 
-```{r calc_hbf_values_tabs, echo = F, warning =F}
+```{r coef_tables, echo = F, warning =F}
 
 # calculate lasso model based on lambda value selected earlier
 
@@ -955,9 +960,33 @@ lasso_index_co = which.min(abs(lasso_mod_co$lambda-lam_co))
 coefs_co = lasso_mod_co$beta[,lasso_index_co]
 intercept_co = lasso_mod_co$a0[lasso_index_co]
 
+coefs_interp_names = names(coefs_co)
+coefs_interp = as.character(coefs_co)
+names(coefs_interp) = coefs_interp_names
+# add interpretation to each coefficient
+if(y_val_coho == "coho_smolt_per_fem"){
+  coefs_interp$BY_recon_100 = "Earlier reconnection"
+  coefs_interp$BY_recon_200 = "Earlier reconnection"
+  coefs_interp$RY_discon_200 = "Later disconnection"
+  coefs_interp$RY_recon_8 = "Earlier reconnection"
+  coefs_interp$RY_DS_Mag_90 = "Lower flow magnitude"
+}
+
+coefs_co_ft = coefs_co[coefs_co!="0"]
+
+
+# Currently here. making a coefficients table 
+
 lasso_index_ch = which.min(abs(lasso_mod_ch$lambda-lam_ch))
 coefs_ch = lasso_mod_ch$beta[,lasso_index_ch]
 intercept_ch = lasso_mod_ch$a0[lasso_index_ch]
+
+
+```
+
+
+```{r calc_hbf_values_tabs, echo = F, warning =F}
+
 
 # retrieve hydrology for all years of FJ flow
 brood_year_hydro_tab_long = tabulate_hydro_by_affected_brood_year(
@@ -1083,7 +1112,8 @@ if(save_imgs==T){
     y_text = colnames(bd_melt_co)[3]
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
-                            y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
+                            y = `Contrib. to Hyd. Ben. value (Coho smolt per fem. spawner)`,
+                            # y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
                             # y = `Contrib. to Hyd. Ben. value (Num. obs. coho redds)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 

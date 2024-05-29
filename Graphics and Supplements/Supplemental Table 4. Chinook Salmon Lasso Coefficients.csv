@@ -28,12 +28,6 @@ BY_recon_15,NA
 BY_recon_20,NA
 BY_recon_70,NA
 BY_recon_100,NA
-BY_recon_200,NA
-BY_recon_300,NA
-BY_recon_400,NA
-BY_recon_500,NA
-BY_recon_750,NA
-BY_recon_1000,NA
 RY_discon_8,NA
 RY_discon_10,NA
 RY_discon_20,NA
@@ -46,12 +40,6 @@ RY_recon_20,NA
 RY_recon_70,NA
 RY_recon_100,NA
 RY_recon_150,NA
-RY_recon_200,NA
-RY_recon_300,NA
-RY_recon_400,NA
-RY_recon_500,NA
-RY_recon_750,NA
-RY_recon_1000,NA
 BY_tot_flow_sepdec,NA
 RY_tot_flow,NA
 log_RY_tot_flow,NA
