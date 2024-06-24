@@ -15,24 +15,6 @@ bibliography: library.bib
 
 knitr::opts_chunk$set(echo = TRUE)
 
-# library(rpostgis)
-# library(postGIStools)
-# library(stringr)
-# library(rstudioapi)
-# library(PerformanceAnalytics) # for data exploration/correlation plots
-# library(tidyverse) #for read_field_data function
-# # library(readxl) # for read_field_data function
-# library(qpcR) # for AICc function
-# #spatial data libraries
-# library(rgdal)
-# library(rgeos)
-# library(lwgeom)
-# library(maptools)
-# library(RANN)
-# library(RColorBrewer)
-# library(raster)
-# library(plyr)  # for barplots for climate fig
-# library(xtable)
 
 library(lubridate)
 library(httr)
@@ -61,7 +43,7 @@ graphics_dir = file.path(ms_dir, "Graphics and Supplements")
 # Load spatial and tabular data
 
 # If the data files don't exist locally,
-#pull data from internet and local files
+# pull data from internet and local files
 if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
   source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) 
 }
@@ -80,7 +62,11 @@ last_wy = 2023
 
 # Abstract {-}
 
-In many rural areas in arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge. Taking advantage of a nearly two-decade ecological monitoring dataset, we **built linear models to predict coho and Chinook salmon reproductive success using combinations of one and two hydrologic metric predictors. We found that reproduction in coho salmon was more related to hydrology than in Chinook salmon. For coho, we used an ensemble of the three best linear models (based on predictors related to the timing of the dry-to-wet season transition and wet season duration) to formulate a Hydrologic Benefit function, summarizing the ecological services provided by the hydrology in different seasons into a single index value per water year.** This method for empirically deriving the highest-priority hydrologic functions for a threatened species could be used in other watersheds (if sufficient ecological data records are available, and if flow-hydrology relationships are identifiable for a given species) to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
+In many rural areas in arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge. Taking advantage of a nearly two-decade ecological monitoring dataset, we used lasso regression to build predictive models of coho and Chinook salmon reproductive success using hydrologic metrics as predictors. 
+
+We found that for coho and Chinook, respectively, **percent smolt survival and juveniles per spawning adult** were the ecological observation types most related to hydrologic metrics. For both species, we calculated optimal predictive models for thousands of subsamples of the datasets, and tested them on the remaining observations. We selected a lambda value for each species based on a balance between the average test error and the percent of variability explained by predictors. These lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. We found that variation in coho outcomes was more predictable, using fewer hydrologic metrics, than for Chinook salmon.
+
+This method for empirically deriving the highest-priority hydrologic functions for a threatened species could be used in other watersheds (if sufficient ecological data records are available, and if flow-hydrology relationships are identifiable for a given species) to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
 
 \newpage
 
