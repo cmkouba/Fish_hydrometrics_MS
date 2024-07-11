@@ -285,28 +285,6 @@ ff_tab_ft
 
 ``` 
  
-
-```{r funcFlowTermsTabLifePeriods, echo = FALSE, results = 'asis'}
-
-ff_tab = read.csv(file.path(data_dir,"Hydro metrics explanation table.csv"))
-
-ff_tab_lp = ff_tab[ff_tab$Abbreviation %in% 
-                     c("BY", "RY","SY","CFLP"),
-                   c("Abbreviation","Full.Name","Description")]
-
-#Create caption and column labels
-caption_text = "Explanation of time period definitions used in this analysis (displayed graphically in Figure 3)."
-column_labels = c("Abbrev.","Full Name","Description")
-colnames(ff_tab_lp) = column_labels
-
-ff_tab_lp_ft = flextable(data=ff_tab_lp)
-ff_tab_lp_ft = set_caption(ff_tab_lp_ft, caption = caption_text)
-ff_tab_lp_ft = flextable::width(ff_tab_lp_ft,j=2,  width = 1.5)
-ff_tab_lp_ft = flextable::width(ff_tab_lp_ft,j=3, width = 3.2)
-ff_tab_lp_ft
-
-``` 
-
 ```{r fig2Yarnell2020, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
 
 knitr::include_graphics(file.path(graphics_dir, "Yarnell2020_Fig2.png"))
@@ -353,7 +331,7 @@ Factors influencing the population size of anadromous fish include ocean conditi
 Based on these observations, two other combined metrics have historically been calculated and reported by regional agencies [@CDFW2023a]. These metrics use data from multiple years to capture multiple life stages for a given cohort:
 
 4. The number of outmigrating coho smolt produced per spawning female (coho spf) and the outmigrating Chinook juveniles per adult (Chinook jpa).
-5. The percent of each smolt cohort which survived its freshwater dwelling period and migrated to the ocean as smolt (for coho only).
+5. The percent of each outmigrating smolt cohort which survived its ocean dwelling period and returned to spawn (for coho only).
 
 ## Step 3. Align predictor and response metrics with timing of species cohorts
 
@@ -370,11 +348,34 @@ For convenience in referring to hydrologic metrics in different water years, thi
 * Rearing Year (RY), January-December of the full year the cohort spends in the watershed
 * Smolt Year (SY), January-July of the year of the cohort's smolt outmigration
 
-Coho Freshwater Life Periods overlap, e.g., the fall pulse flows in water year $i$ take place during one cohort's Brood Year, and the same fall flows occur during the end of the Rearing Year for the cohort born in water year $i-1$. In some rare cases, flow metrics may fall outside their designated subperiods (e.g., the extreme dry water year of 2014, in which the "fall reconnection" of flows in Brood Year 2013 did not occur until February of the cohort's Rearing Year). Nonetheless, for consistency, even a January or February reconnection date will be referred to by the previous fall year designation.
+Coho Freshwater Life Periods overlap, e.g., the fall pulse flows in year $i$ take place during one cohort's Brood Year, and the same fall flows occur during the end of the Rearing Year for the cohort born in year $i-1$. In some rare cases, flow metrics may fall outside their designated subperiods (e.g., the extreme dry water year of 2014, in which the "fall reconnection" of flows in Brood Year 2013 did not occur until February of the cohort's Rearing Year). Nonetheless, for consistency, even a January or February reconnection date will be referred to by the previous fall year designation.
 
 To build empirical relationships between hydrology and biology, ecological response variables were indexed by Brood Year of the affected cohort and hydrologic metrics tabulated accordingly (*Supplemental Table 2*). For example, the value for fall reconnection timing (100 cfs flow threshold) in fall of 2011 was assigned to the column "BY_recon_100" for the Brood Year 2011 cohort. The same value was assigned to the column "RY_recon_100" for the Brood Year 2010, which experienced fall 2011 as rearing juveniles.
 
-Each brood year is associated with multiple ecological responses (i.e. "fish outcome" observation types), including number of Chinook and coho spawners observed and the estimated number of smolt observed at the end of their CFLP. Data were available and compiled for brood years 2004 through 2019. **We note that because the Brood Year period only covers the fall and early winter,  ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. **
+Each brood year is associated with multiple ecological responses (i.e. "fish outcome" observation types), including number of Chinook and coho spawners observed and the estimated number of smolt observed at the end of their CFLP. Data were available and compiled for brood years 2004 through 2019. We note that because the Brood Year period only covers the fall and early winter,  ecological outcome in water year $wy$ is obtained for $wy = BY + 1$ for both salmon species.
+
+```{r funcFlowTermsTabLifePeriods, echo = FALSE, results = 'asis'}
+
+ff_tab = read.csv(file.path(data_dir,"Hydro metrics explanation table.csv"))
+
+ff_tab_lp = ff_tab[ff_tab$Abbreviation %in% 
+                     c("BY", "RY","SY","CFLP"),
+                   c("Abbreviation","Full.Name","Description")]
+
+#Create caption and column labels
+caption_text = "Explanation of time period definitions used in this analysis (displayed graphically in Figure 3)."
+column_labels = c("Abbrev.","Full Name","Description")
+colnames(ff_tab_lp) = column_labels
+
+ff_tab_lp_ft = flextable(data=ff_tab_lp)
+ff_tab_lp_ft = set_caption(ff_tab_lp_ft, caption = caption_text)
+ff_tab_lp_ft = flextable::width(ff_tab_lp_ft,j=2,  width = 1.5)
+ff_tab_lp_ft = flextable::width(ff_tab_lp_ft,j=3, width = 3.2)
+ff_tab_lp_ft
+
+``` 
+
+
 
 ### Data alignment - Chinook
 
@@ -443,14 +444,11 @@ After aligning the hydrologic predictors and ecological responses, we calculated
 
 ## Step 5. Select ecological response metrics
 
-For each of the two species of concern, we wanted to find the ecological metric most related to the measured hydrology. We used the full suite of correlation coefficients to select one ecological metric for further analysis: the ecological metric that generated the **highest mean $R$ value** (i.e., the ecological metric that appears to be the most predictable).
-
-* **mean of top-5 predictors **
-* **decided to choose from among the normalized predictors only, to better control cohort effects**
+For each of the two species of concern, we wanted to find the ecological metric most related to the measured hydrology. We used the full suite of correlation coefficients to select one ecological metric for further analysis: the ecological metric that generated the highest five $R$ values (i.e., the ecological metric that appears to be the most predictable). Finally, although all ecological data series are included in the correlation results, for the final analysis we chose among only the normalized predictors, to better control for cohort effects.
 
 ## Step 6. Generate predictive model with lasso regression 
 
-With hydrologic metrics assigned to each salmon generation, indexed by brood-year and corresponding smolt year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two ecological metrics selected in the previous step (one for coho and one for Chinook). 
+With hydrologic metrics assigned to each salmon generation, indexed by brood-year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@James2013; @Ranstam2018] between `r num_predictors` hydrologic predictors and the two ecological metrics selected in the previous step (one for coho and one for Chinook). 
 
 ### General approach
 
@@ -462,11 +460,14 @@ $$\sum_{i=1}^{n}{(y_i-\beta_0-\sum_{j=1}^{p}{\beta_jx_{ij}})^2}+\lambda\sum_{j=1
 
 Where:
 
-* $n$ is the number of observations;
+* $n$ is the number of ecological observations;
+* $i$ enumerates the brood years;
 * $p$ is the number of predictors;
-* $x$ are the observed predictor (independent variable) values;
-* $y$ are the observed response (dependent variable) values;
-* $\beta_0,~\beta_j$ are the intercept and coefficient values for each predictor; and
+* $j$ enumerates the hydrologic predictors;
+* $x_{ij}$ is the observed value of hydrologic predictor $j$ for brood year $i$ (independent variable);
+* $y_i$ is the observed value of ecological response in brood year $i$ (dependent variable);
+* $\beta_0$ is the intercept value for the resulting linear model;
+* $\beta_j$ is the coefficient value for hydrologic predictor $j$ in the resulting linear model; and
 * $\lambda$ is a tuning parameter, referred to as a shrinkage penalty.
 
 <!-- This formulation penalizes Each distinct lamba value produces a linear model with different coefficients.  -->
@@ -488,13 +489,13 @@ In lasso regression, the goal is to select a lambda value (referred to as the "s
 
 The standard method to pick the optimal value of lambda is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models using a range of lambda values. These models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error value (RMSE). The lambda value that produces the regression model with the minimum test error is selected, and using this value, a final regression model is generated based on the full data set [@James2013]. 
 
-However, we decided this was not appropriate for the size of the available ecological datasets, which ranged from 15 to 20 years of observations: we could not be confident that the optimal lambda value was an indicator of the optimal balance point between incorporating useful information and overfitting, since it could just be an artefact of the way we divided the dataset into test and training sets. To address this, we tried to identify the range of all optimal lambda values possible within the available ecological dataset. We generated 10,000 non-repeating random sets of testing and training data, and calculated the optimal lambda value for each set. 
+However, we decided this was not appropriate for the size of the available ecological datasets, which ranged from 13 to 21 years of observations: we could not be confident that the optimal lambda value was an indicator of the optimal balance point between incorporating useful information and overfitting, since it could just be an artefact of the way we divided the dataset into test and training sets. To address this, we tried to identify the range of all optimal lambda values possible within the available ecological dataset. We reserved (the rounded up integer corresponding to) 25% of the observations as the test set, generated up to 10,000 non-repeating random sets of testing and training data, and calculated the optimal lambda value for each set. 
 
-Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. The number of predictors (i.e., the number of non-0 coefficients) incorporated in these models ranged from zero (i.e., the model consisted of the intercept value only) to a maximum of 20 and 27 for coho and Chinook respectively.  
+Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. 
 
 ### Selection of final lambda values 
 
-To select a final lambda value, we considered the percentage of deviation explained and the test error of the 1,366 (coho) and 10,000 (Chinook) randomly sampled test and training sets. For both species we selected a lambda value that explained the maximum percent of deviation that also produced a reasonable average test error.
+To select a final lambda value, we considered the percentage of deviation explained and the test error of the 1,366 (coho) and 10,000 (Chinook) randomly sampled test and training sets. For both species we selected a lambda value that explained the maximum percent of deviation that also produced a reasonable average test error. 
 
 ## Step 7. Formulate Hydrologic Benefit function
 
@@ -505,7 +506,7 @@ $$HB_i = \beta_0 +\sum_{j=1}^{p}{\beta_j x_{ij}}$$
 Where:
 $x_{ij}$ is the value of predictor $j$ in the cohort with Brood Year $i$.
 
-**We note that ecological outcome in water year $wy$ is obtained for $BY = wy - 1$ for both salmon species. **
+As noted above, the ecological outcome in water year $wy$ is obtained for $wy = BY + 1$ for both salmon species.
 
 
 <!-- ## Step 8. Hydrologic Benefit function sensitivity -->
@@ -572,11 +573,7 @@ fig_i = fig_i +1
 
 ## Ecological response metric selection
 
-In the correlation analysis we assessed relatedness of ecological outcome metrics with all types of hydrologic metric (reconnection/disconnection timing and functional flows). Degree of correlation was evaluated broadly: a threshold of $|R|>0.5$ (Figure \@ref(fig:corrMatrixFig); *Supplemental Figure 1*) was selected to identify the best candidates among those available, even if it does not denote particularly strong predictive power on its own.
-
-* **correlations between ecological metrics**
-* **coho smolt per fem vs coho % smolt survival metrics - why negatively correlated? which is worse? Possibly smolt survival, since smolt estimation is less constrained than the camera trap method at the counting station. **
-* **smolt abundance estimates bias high or low?**
+In the correlation analysis we assessed relatedness of ecological outcome metrics with all types of hydrologic metrics (i.e. reconnection/disconnection timing, functional flows, and scouring flow metrics) (*Supplemental Figure 1*; with selected metrics shown in Figure \@ref(fig:corrMatrixFig)).
 
 ```{r inter_corr_matrix_supp_fig, echo = F, warning =F, comment = F}
 
@@ -821,11 +818,20 @@ for(i in 1:length(y_vals)){
   # Based on the need for a normalized metric, going to select the juvenile per adult metric.
   y_val_chinook = "chinook_juv_per_adult"
   # This should be percent coho smolt survival.
-  y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
+  # y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
+  y_val_coho = "coho_smolt_per_fem"
   
 }
 
 ```
+
+Some ecological metric types appear to be minimally related to observed hydrology. Neither the number of coho redds nor the number of Chinook spawners produced an absolute $R$ value greater than 0.5 (Figure \@ref(fig:corrMatrixFig)).
+
+Notably, for a given hydrologic predictor, the eight ecological metrics tend to produce both positive and negative $R$ values (e.g., Figure \@ref(fig:corrMatrixFig), $R$ values for BY_recon_70, or the brood year reconnection timing at 70 cfs). This suggests that the effects of specific hydrologic phenomena on fish may be different depending on the life stage during which they are measured. As an example, the log-transformed total flow in each cohort's brooding period (log_BY_tot_flow_sepdec) is positively correlated with coho spf but negatively correlated with coho % smolt survival, Chinook juvenile abundance and Chinook jpa, while appearing relatively uncorrelated with the number of Chinook spawners, the coho juvenile abundance, and the number of observed coho redds. With a sample size this small, all interpretations should be abundantly cautious, but one possible interpretation is that larger fall flows allow coho salmon to find better tributary spawning habitats and thus produce more surviving offspring per spawning female. Conversely higher fall flows ...
+
+The two normalized coho metrics, coho spf and % coho smolt survival, appear to be negatively correlated. This could be due to the distinct basis of normalization: in one case, the denominator is the number of brooding adult females, while in the other it is the estimated number of hatched juveniles. An earlier fall reconnection in the brood year seems to boost coho spf while reducing % smolt survival; 
+
+
 
 **revise rest of text in this section. discuss predictability for all ecological data types and why they might be different.**
 
@@ -841,7 +847,7 @@ Of the ecological response variables that were evaluated for coho, the coho spf 
 
 For Chinook, conversely, none of the three available ecological response variables stood out as being substantially more correlated with hydrologic metrics than the others (*Supplemental Figure 1*). Furthermore, they all appeared less correlated with the hydrology than the coho variable, i.e., the coho-hydrology correlations, for the same set of predictor variables, generated more $|R|>0.5$ than did correlations between Chinook and hydrology. To be consistent with the coho spf, the Chinook juvenile per adult metric (Chinook jpa) was retained for linear modeling.**
 
-```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 41 predictors and 4 coho monitoring metrics. Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics; for dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier dot is correlated with higher fish values. \\label{fig:corrMatrixFig}"}
+```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 8 ecological monitoring metrics. Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier dot is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
 
 corr_matrix_pearson = calc_corr_matrix(metrics_tab, corr_method = "pearson")
 
@@ -899,7 +905,7 @@ Choosing the two models with the highest $R^2$, we selected the reconnection and
 
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
 
-if(y_val_coho=="coho_smolt_per_fem") {lam_co = 10}
+if(y_val_coho=="coho_smolt_per_fem") {lam_co = 8}
 if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 4}
 if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 
@@ -935,7 +941,7 @@ fig_i = fig_i +1
 
 
 # select chinook lambda value
-if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 35} # for Chinook jpa
+if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 20} # for Chinook jpa
 if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 40000} # for Chinook jpa
 
 
@@ -994,6 +1000,8 @@ fig_i = fig_i +1
 
 
 ### Ranked predictor importance
+
+The number of predictors (i.e., the number of non-0 coefficients) incorporated in these models ranged from zero (i.e., the model consisted of the intercept value only) to a maximum of 20 and 27 for coho and Chinook respectively.  
 
 * As expected in lasso regression, the predictors most correlated with the selected ecological responses (Figure \@ref(fig:corrMatrixFig)) are identified as the most important predictors in terms of the order in which they are incorporated into the predictive model (Figure \@ref(fig:corrMatrixFig); Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)).
 * example of the above
@@ -1214,8 +1222,8 @@ if(save_imgs==T){
     y_text = colnames(bd_melt_co)[3]
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
-                            # y = `Contrib. to Hyd. Ben. value (Coho smolt per fem. spawner)`,
-                            y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
+                            y = `Contrib. to Hyd. Ben. value (Coho smolt per fem. spawner)`,
+                            # y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
                             # y = `Contrib. to Hyd. Ben. value (Num. obs. coho redds)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
@@ -1354,6 +1362,11 @@ The selection of 10 and 100 cfs thresholds for fall flow reconnection dates is i
 Additional fish population monitoring in future water years will be instrumental in better constraining the nuances of these hydro-ecological relationships and the conditions in which hydrology can be used to predict outcomes for anadromous fish.
 
 ## Predictability of Chinook versus coho salmon
+
+* **correlations between ecological metrics**
+
+* **coho smolt per fem vs coho % smolt survival metrics - why negatively correlated? which is worse? Possibly smolt survival, since smolt estimation is less constrained than the camera trap method at the counting station. **
+* **smolt abundance estimates bias high or low?**
 
 In the dataset evaluated here, hydrologic metrics have a much greater capacity to predict reproduction in coho salmon than in Chinook. This difference may be due to any number of distinctions in the life history and reproductive strategies of the two species  (see Section 2.2.4). Some possibilities include:
 

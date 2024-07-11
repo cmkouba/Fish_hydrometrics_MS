@@ -1778,13 +1778,15 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
          legend = c("% Deviance", "Degrees of freedom", "Selected lambda"))
 
   # B) Plot lambda vs test error - setup
-  nbreaks = 12
+  nbreaks = 25
   bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
                     to = max(lambdas_and_rmse$bestlam, na.rm=T),
                     length.out=nbreaks-1)
   categs = cut(x = lambdas_and_rmse$bestlam, breaks = length(bin_centers))
   lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA # remove inf values
-  avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T)
+  # avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T) # arithmetic mean
+  avg_by_bin = aggregate(x=lambdas_and_rmse$rmse, by = list(categs),
+                         function(x){exp(mean(log(x)))}) # geometric mean
   # plot
   plot(lambdas_and_rmse$bestlam,
        lambdas_and_rmse$rmse/mean(y),
@@ -1799,7 +1801,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   points(bin_centers, avg_by_bin$x/mean(y), pch=23, cex = 1.2, bg = "firebrick", type = "o")
   legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
          pch = c(19,23),
-         legend = c("Individual model RMSE", "Binned average RMSE"))
+         legend = c("Individual model RMSE", "Binned geom. mean RMSE"))
   }
 
 plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
