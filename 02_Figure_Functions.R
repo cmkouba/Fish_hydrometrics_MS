@@ -1739,8 +1739,8 @@ find_all_best_lambda_vals = function(com_tab, x, y,
   output_tab$bestlam = NA
   output_tab$rmse = NA
   for(i in 1:nrow(com_tab)){
-    train = com_tab[i,]
-    test = -com_tab[i,]
+    test = com_tab[i,]
+    train = -com_tab[i,]
     y.test = y[test]
     lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
     set.seed(1)
@@ -1778,7 +1778,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
          legend = c("% Deviance", "Degrees of freedom", "Selected lambda"))
 
   # B) Plot lambda vs test error - setup
-  nbreaks = 20
+  nbreaks = 12
   bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
                     to = max(lambdas_and_rmse$bestlam, na.rm=T),
                     length.out=nbreaks-1)
@@ -1928,10 +1928,11 @@ lasso_regression_plots = function(metrics_tab,
   if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
   if(!file.exists(lambda_tab_path)){
     # find all combinations of test and train data points for lambda values
-    com = t(combn(x = 1:length(y), m = floor(length(y)/2)))
+    # com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
+    com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
     # split data set into all possible test and train sets.
     # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
-    if(length(y)>15){
+    if(nrow(com)>10000){
       set.seed(1)
       com = com[sample(x = 1:nrow(com), size = 10000),]
     }
