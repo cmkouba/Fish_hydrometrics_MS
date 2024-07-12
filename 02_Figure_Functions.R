@@ -819,11 +819,14 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
 
   output_colnames_extended = c("brood_year", "smolt_year",
-                               "chinook_spawner_abundance","chinook_juvenile_abundance",
+                               "coho_smolt_per_fem",
                                "chinook_juv_per_adult",
-                               "coho_spawner_abundance", "coho_smolt_per_fem",
+                               "coho_spawner_abundance",
+                               "coho_redds_in_brood",
                                "coho_smolt_abun_est",
-                               "percent_coho_smolt_survival","coho_redds_in_brood",
+                               "chinook_spawner_abundance",
+                               "chinook_juvenile_abundance",
+                               # "percent_coho_smolt_survival",
                                # more advanced outcomes?
                                paste0("BY_recon_",thresholds),
                                paste0("RY_discon_",thresholds),
@@ -839,11 +842,14 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                                "SY_Wet_BFL_Mag_50" ,"SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_num_days_gt_90_pctile", "SY_SP_Tim" ,"SY_SP_ROC")
 
   output_colnames = c("brood_year", "smolt_year",
-                      "chinook_spawner_abundance","chinook_juvenile_abundance",
+                      "coho_smolt_per_fem",
                       "chinook_juv_per_adult",
-                      "coho_spawner_abundance", "coho_smolt_per_fem",
+                      "coho_spawner_abundance",
+                      "coho_redds_in_brood",
                       "coho_smolt_abun_est",
-                      "percent_coho_smolt_survival","coho_redds_in_brood",
+                      "chinook_spawner_abundance",
+                      "chinook_juvenile_abundance",
+                      # "percent_coho_smolt_survival",
                       # more advanced outcomes?
                       paste0("BY_recon_",thresholds),
                       paste0("RY_discon_",thresholds),
@@ -898,7 +904,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   output_tab$coho_spawner_abundance = coho_abun$Number_of_Coho[match(output_tab$brood_year, coho_abun$Return_Year)]
   output_tab$coho_smolt_abun_est = outmigs$Smolt.point.Estimate[match(output_tab$smolt_year, outmigs$Smolt.Year)]
   output_tab$coho_smolt_per_fem = smolt_per_fem$Smolts_Produced_Per_Female[match(output_tab$smolt_year, smolt_per_fem$Smolt_Year)]
-  output_tab$percent_coho_smolt_survival = outmigs$Percent.smolt.survival[match(output_tab$smolt_year, outmigs$Smolt.Year)]
+  # output_tab$percent_coho_smolt_survival = outmigs$Percent.smolt.survival[match(output_tab$smolt_year, outmigs$Smolt.Year)]
   output_tab$coho_redds_in_brood = redds$total_redds[match(output_tab$brood_year, redds$water_year-1)]
 
   #3. Assign disconnection and reconnection date predictors
@@ -1181,22 +1187,24 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
 
   ## Prepare for plotting
   #Prettify column names
-  colname_matching_df = data.frame(data_name = c("chinook_spawner_abundance",
-                                              "chinook_juvenile_abundance",
-                                              "chinook_juv_per_adult",
-                                              "coho_spawner_abundance",
-                                              "coho_smolt_per_fem",
-                                              "coho_smolt_abun_est",
-                                              "percent_coho_smolt_survival",
-                                              "coho_redds_in_brood"),
-                                   fig_name = c("Num. Ch. Spawners",
-                                                "Num. Ch. Juveniles",
+  colname_matching_df = data.frame(data_name = c("coho_smolt_per_fem",
+                                                 "chinook_juv_per_adult",
+                                                 "coho_spawner_abundance",
+                                                 "coho_redds_in_brood",
+                                                 "coho_smolt_abun_est",
+                                                 "chinook_spawner_abundance",
+                                              "chinook_juvenile_abundance"
+                                              # "percent_coho_smolt_survival",
+                                              ),
+                                   fig_name = c("Coho spf",
                                                 "Chinook jpa",
                                                 "Num. Co. Spawners",
-                                                "Coho spf",
+                                                "Num. Co. Redds",
                                                 "Co. Juv. Abun. Est.",
-                                                "% Co. Smolt Survival",
-                                                "Num. Co. Redds"))
+                                                "Num. Ch. Spawners",
+                                                "Num. Ch. Juveniles"
+                                                # "% Co. Smolt Survival"
+                                                ))
   colnames(corr_matrix) = colname_matching_df$fig_name[match(colnames(corr_matrix),
                                                     colname_matching_df$data_name)]
 
@@ -1209,8 +1217,11 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
            # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
            cl.pos = "b")
   vert_line_y1 = length(pred_subset)+0.5
-  arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
-         length=0, lwd=2)
+  # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
+  # separate two normalized metrics from other metrics
+  arrows(x0=2.5, x1=2.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
+  #separate chinook from coho metrics
+  arrows(x0=5.5, x1=5.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
 
 }
 
@@ -1278,11 +1289,15 @@ all_lms_tab_and_plot = function(data_tab,
                                 xlab_text = NA, ylab_text = NA){
 
   # Initialize output tab as a combination of
-  non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
-                       "chinook_juvenile_abundance", "chinook_juv_per_adult",
-                       "coho_spawner_abundance", "coho_smolt_per_fem",
-                       "coho_smolt_abun_est","percent_coho_smolt_survival",
-                       "coho_redds_in_brood")
+  non_pred_columns = c("brood_year","smolt_year", "coho_smolt_per_fem",
+                       "chinook_juv_per_adult",
+                       "coho_spawner_abundance",
+                       "coho_redds_in_brood",
+                       "coho_smolt_abun_est",
+                       "chinook_spawner_abundance",
+                       "chinook_juvenile_abundance"
+                       # "percent_coho_smolt_survival",
+                       )
   data_tab_pred = data_tab[,!(colnames(data_tab) %in% non_pred_columns)]
   cdtb = colnames(data_tab_pred)
   if(num_xs==1){model_combos = cdtb}
@@ -1853,10 +1868,15 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
   #step 1. Prep x matrix and y array
   # (Dev: run manuscript .Rmd through line 395)
   # 1a. remove rows with no response var
-  non_pred_vals = c("brood_year","smolt_year","chinook_spawner_abundance", "chinook_juvenile_abundance",
-                    "chinook_juv_per_adult", "coho_smolt_per_fem",
-                    "coho_spawner_abundance", "coho_smolt_per_fem", "coho_smolt_abun_est",
-                    "percent_coho_smolt_survival", "coho_redds_in_brood")
+  non_pred_vals = c("brood_year","smolt_year","coho_smolt_per_fem",
+                    "chinook_juv_per_adult",
+                    "coho_spawner_abundance",
+                    "coho_redds_in_brood",
+                    "coho_smolt_abun_est",
+                    "chinook_spawner_abundance",
+                    "chinook_juvenile_abundance"
+                    # "percent_coho_smolt_survival"
+                    )
   # if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
   # if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
   non_y_vals = non_pred_vals[non_pred_vals != y_val]
@@ -1895,7 +1915,7 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
   if(y_val=="coho_spawner_abundance"){x = model.matrix(object = coho_spawner_abundance~., data = mt)[,-1]}
   if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
   if(y_val=="coho_smolt_abun_est"){x = model.matrix(object = coho_smolt_abun_est~., data = mt)[,-1]}
-  if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
+  # if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
   if(y_val=="coho_redds_in_brood"){x = model.matrix(object = coho_redds_in_brood~., data = mt)[,-1]}
 
 
@@ -2058,11 +2078,15 @@ make_table_of_all_lms = function(data_tab, y_name = "coho_smolt_per_fem",
                                  num_xs = 1, graph_p_adjR=F){
 
   # Initialize output tab as a combination of
-  non_pred_columns = c("brood_year","smolt_year", "chinook_spawner_abundance",
-                       "chinook_juvenile_abundance", "chinook_juv_per_adult",
-                       "coho_spawner_abundance", "coho_smolt_per_fem",
-                       "coho_smolt_abun_est","percent_coho_smolt_survival",
-                       "coho_redds_in_brood")
+  non_pred_columns = c("brood_year","smolt_year", "coho_smolt_per_fem",
+                       "chinook_juv_per_adult",
+                       "coho_spawner_abundance",
+                       "coho_redds_in_brood",
+                       "coho_smolt_abun_est",
+                       "chinook_spawner_abundance",
+                       "chinook_juvenile_abundance"
+                       #"percent_coho_smolt_survival",
+                       )
   data_tab_pred = data_tab[,!(colnames(data_tab) %in% non_pred_columns)]
   cdtb = colnames(data_tab_pred)
   if(num_xs==1){model_combos = cdtb}

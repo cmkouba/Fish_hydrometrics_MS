@@ -64,7 +64,7 @@ last_wy = 2023
 
 In many rural areas in arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge. Taking advantage of a nearly two-decade ecological monitoring dataset, we used lasso regression to build predictive models of coho and Chinook salmon reproductive success using hydrologic metrics as predictors. 
 
-We found that for coho and Chinook, respectively, **percent smolt survival and juveniles per spawning adult** were the ecological observation types most related to hydrologic metrics. For both species, we calculated optimal predictive models for thousands of subsamples of the datasets, and tested them on the remaining observations. We selected a lambda value for each species based on a balance between the average test error and the percent of variability explained by predictors. These lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. We found that variation in coho outcomes was more predictable, using fewer hydrologic metrics, than for Chinook salmon. We further found that the top-performing hydrologic predictors were **x, y and z** for coho and **x, y and z** for Chinook outcomes.
+To control for cohort effects, we chose normalized ecological response metrics for coho and Chinook (number of outmigrating smolt per spawning adult or spawning adult female). For both species, we calculated optimal predictive models for thousands of subsamples of the datasets, and tested them on the remaining observations. We selected a lambda value for each species based on a balance between the average test error and the percent of variability explained by predictors. These lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. We found that variation in coho outcomes was more predictable, using fewer hydrologic metrics, than for Chinook salmon. We further found that the top-performing hydrologic predictors were **x, y and z** for coho and **x, y and z** for Chinook outcomes.
 
 This method for empirically deriving the highest-priority hydrologic functions for a threatened species could be used in other watersheds (if sufficient ecological data records are available, and if flow-hydrology relationships are identifiable for a given species) to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
 
@@ -201,7 +201,7 @@ Returning adult coho spawn in natal streams between November and January [@CDFW2
 
 <!-- Their habitat needs are somewhat different during summer and winter: in summer, coho are found most commonly in cool pools, more than 1 meter deep, with abundant cover (e.g., woody debris or undercut banks) [@Moyle2002; @Giannico2007; @Nickelson1992]. In winter, coho are most abundant in areas with flow refugia, such as alcoves and beaver ponds [@Nickelson1992] or riverine ponds [@Peterson1982], and complex cover such as low velocities, shade, and complex woody debris [@McMahon1989; @Bustard1975]. In winter, without such refugia, juvenile coho risk being swept downstream or out to sea by storm flows before they are physiologically ready to live in ocean conditions [@McMahon1983].  -->
 
-<!-- Coho salmon can be harmed by acute or chronic thermal stress, by exposure to suspended solids, and (at a population level) by hatchery effects. Critical thermal maxima of coho (the temperature at which acute exposure is fatal) has been measured between 28.21 and 29.23 ÂºC [@Konecki1995]. Below critical thermal maxima, chronic exposure to elevated temperatures (above a threshold of approximately 16Âº-18ÂºC) can increase prevalence of disease and reduce survival rates [@Miller2014]; however, if sufficient food resources are available to sustain the faster growth that takes place at higher temperatures, chronic thermal stresses may be mitigated [@Lusardi2020]. Similarly, juvenile coho exposed to high levels (2-3 g/L) of suspended solids have exhibited higher stress levels, lower feeding rates, and lower resistances to disease [@Redding1987]. Additionally, hatchery fish tend to have lower fitness than wild-reared fish, and releasing them into wild populations can negatively impact wild coho salmon populations [@Quinones2014a]; one proposed cause is that the lack of sexual selection in hatchery fish populations leads to a higher number of less fit individuals competing for resources [@Theriault2011]. -->
+<!-- Coho salmon can be harmed by acute or chronic thermal stress, by exposure to suspended solids, and (at a population level) by hatchery effects. Critical thermal maxima of coho (the temperature at which acute exposure is fatal) has been measured between 28.21 and 29.23 degrees C [@Konecki1995]. Below critical thermal maxima, chronic exposure to elevated temperatures (above a threshold of approximately 16-18 degrees C) can increase prevalence of disease and reduce survival rates [@Miller2014]; however, if sufficient food resources are available to sustain the faster growth that takes place at higher temperatures, chronic thermal stresses may be mitigated [@Lusardi2020]. Similarly, juvenile coho exposed to high levels (2-3 g/L) of suspended solids have exhibited higher stress levels, lower feeding rates, and lower resistances to disease [@Redding1987]. Additionally, hatchery fish tend to have lower fitness than wild-reared fish, and releasing them into wild populations can negatively impact wild coho salmon populations [@Quinones2014a]; one proposed cause is that the lack of sexual selection in hatchery fish populations leads to a higher number of less fit individuals competing for resources [@Theriault2011]. -->
 
 In previous studies, the strongest predictor of juvenile coho abundance in a stream system was spatial habitat [@Bradford2016; @Nickelson1992; @Bustard1975], although adequate food and cover were also important [@McMahon1983]. The primary mechanism for spatial constraints on abundance appears to be that juvenile coho become more territorial as they grow [@McMahon1983].
 
@@ -331,7 +331,6 @@ Factors influencing the population size of anadromous fish include ocean conditi
 Based on these observations, two other combined metrics have historically been calculated and reported by regional agencies [@CDFW2023a]. These metrics use data from multiple years to capture multiple life stages for a given cohort:
 
 4. The number of outmigrating coho smolt produced per spawning female (coho spf) and the outmigrating Chinook juveniles per adult (Chinook jpa).
-5. The percent of each outmigrating smolt cohort which survived its ocean dwelling period and returned to spawn (for coho only).
 
 ## Step 3. Align predictor and response metrics with timing of species cohorts
 
@@ -402,31 +401,33 @@ write.csv(x = metrics_tab, quote = F, row.names = F,
 
 # calculate number of predictors for text below
 
-y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance",
-                                       "chinook_juvenile_abundance",
-                                       "chinook_juv_per_adult",
-                                       "coho_spawner_abundance",
-                                       "coho_smolt_per_fem", 
-                                       "coho_smolt_abun_est",
-                                       "percent_coho_smolt_survival",
-                                       "coho_redds_in_brood"),
-                             y_val_title = c("Chinook escapement", 
-                                             "Chinook juv. abundance",
-                                             "Chinook jpa","coho escapement",
-                                             "coho spf",
+y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
+                                                 "chinook_juv_per_adult",
+                                                 "coho_spawner_abundance",
+                                                 "coho_redds_in_brood",
+                                                 "coho_smolt_abun_est",
+                                                 "chinook_spawner_abundance",
+                                              "chinook_juvenile_abundance"
+                                       # "percent_coho_smolt_survival",
+                                       ),
+                             y_val_title = c("coho spf","Chinook jpa",
+                                             "coho escapement",
+                                             "coho redd abundace",
                                              "est. coho smolt abundance",
-                                             "percent coho smolt survival",
-                                             "coho redd abundace"),
-                             y_val_label = c("Num. Chinook spawners (escapement)",
-                                             "Num. Chinook juveniles",
+                                             # "percent coho smolt survival",
+                                             "Chinook escapement", 
+                                             "Chinook juv. abundance"
+                                             ),
+                             y_val_label = c("Coho smolt per fem. spawner",
                                              "Chinook juv. per adult",
                                              "Num. coho spawners (escapement)",
-                                             "Coho smolt per fem. spawner",
+                                             "Num. obs. coho redds",
                                              "Est. num. coho smolt",
-                                             "% coho smolt survival",
-                                             "Num. obs. coho redds"),
-                             remove_sy = c(T,T,T,T,F,F,F,T),
-                             remove_ry = c(T,F,F,T,F,F,F,T))
+                                             # "% coho smolt survival",
+                                             "Num. Chinook spawners (escapement)",
+                                             "Num. Chinook juveniles"),
+                             remove_sy = c(F,T,T,T,F,T,T),
+                             remove_ry = c(F,F,T,T,F,T,F))
 yvlt = y_val_label_tab
 non_preds = c("brood_year", "smolt_year", yvlt$y_val)
 
@@ -444,7 +445,7 @@ After aligning the hydrologic predictors and ecological responses, we calculated
 
 ## Step 5. Select ecological response metrics
 
-For each of the two species of concern, we wanted to find the ecological metric most related to the measured hydrology. We used the full suite of correlation coefficients to select one ecological metric for further analysis: the ecological metric that generated the highest five $R$ values (i.e., the ecological metric that appears to be the most predictable). Finally, although all ecological data series are included in the correlation results, for the final analysis we chose among only the normalized predictors, to better control for cohort effects.
+To generate predictive models, we make an assumption of independence for each year of ecological observation data. Cohort effects may reduce the validity of this assumption (i.e. the number of spawners in year 2009 may be partly dependent on the number of spawners in 2006). In order to control somewhat for cohort effects, we selected the normalized metric available for each species: coho smolts per female spawner (coho spf) and Chinook juveniles per adult spawner (Chinook jpa). We used the correlation coefficents between the hydrologic and ecological metrics to assess the predictability of the two data types. For completeness, we also compared the $R$ values of the two selected metrics to the other (non-normalized) ecological data types.
 
 ## Step 6. Generate predictive model with lasso regression 
 
@@ -482,8 +483,6 @@ The selection of the appropriate $\lambda$ value is a critical step in the regre
 Some ecological records have gaps (e.g., when funding was not available in one year to conduct a redd survey). Additionally, some predictor metrics are not available in all years (i.e., FA_Mag, or magnitude of a fall pulse flow, cannot be calculated if no discrete fall pulse flow is observed). For the lasso regression exercise, we restricted the set of considered predictors to those which had at least 10 years of overlap with the selected ecological response.
 
 ### Test error and range of lambda values
-
-**add ceiling(25%) test data points method - so for a 15 pt record, would be 4.**
 
 In lasso regression, the goal is to select a lambda value (referred to as the "shrinkage penalty" or "tuning parameter") that uses available predictor data to explain the maximum amount of deviation in the response while avoiding overfitting. With high-dimensional data, it is typically possible to perfectly fit the observations (explaining 100% of deviation) by incorporating data from a number of predictors that approaches or exceeds the number of observations [@James2013]. The predictive models that result from this type of overfitting typically perform poorly when applied to new data, since they tend to incorporate random noise to achieve a perfect fit [@James2013].
 
@@ -571,7 +570,7 @@ fig_i = fig_i +1
 ```
 
 
-## Ecological response metric selection
+## Hydrology-ecology correlations
 
 In the correlation analysis we assessed relatedness of ecological outcome metrics with all types of hydrologic metrics (i.e. reconnection/disconnection timing, functional flows, and scouring flow metrics) (*Supplemental Figure 1*; with selected metrics shown in Figure \@ref(fig:corrMatrixFig)).
 
@@ -627,227 +626,227 @@ dev.off()
 
 
 
-```{r select_eco_metric_1, echo = F, warning =F, comment = F}
+<!-- ```{r select_eco_metric_1, echo = F, warning =F, comment = F} -->
 
-# 1. Restrict flow thresholds to avoid redundant info
+<!-- # 1. Restrict flow thresholds to avoid redundant info -->
 
-# select one flow threshold for each recon and discon category
-get_best_flow_threshold_tab = function(corr_tab_all_metrics,
-                                       species = c("coho", "chinook"),
-                                       categories = c("BY_recon", 
-                                                      "RY_discon",
-                                                      "RY_recon",
-                                                      "SY_discon")){
-  output_tab = data.frame(species = sort(rep(species,length(categories))),
-                          category = rep(categories, length(species)),
-                          threshold_col_name = NA,
-                          mean_threshold_R_val = NA)
-  
-  for(i in 1:nrow(output_tab)){
-    species = output_tab$species[i]
-    category = output_tab$category[i]
-    y_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab), 
-                                         pattern = species)]
-    x_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab), 
-                                         pattern = category)]
-    flow_threshold_corr_values = corr_tab_all_metrics[x_names,y_names]
-    flow_threshold_corr_mean_abs = apply(X = flow_threshold_corr_values,
-                                         MARGIN = 1,
-                                         function(x){mean(abs(x),na.rm=T)})
-    max_mean_index = which.max(flow_threshold_corr_mean_abs)
-    max_mean_val = max(flow_threshold_corr_mean_abs, na.rm=T)
-    selected_threshold = names(flow_threshold_corr_mean_abs[max_mean_index])
-    output_tab$threshold_col_name[i] = selected_threshold
-    output_tab$mean_threshold_R_val[i] = max_mean_val
-    # flow_threshold_corr_max_index = apply(X = flow_threshold_corr_values,
-    #                                 MARGIN = 2, 
-    #                                 function(x){which.max(abs(x))})
-    
-    # flow_threshold_corr_max_vals = x_names[flow_threshold_corr_max_index]
-  }
-  
-  return(output_tab)
-  
-  
-}
+<!-- # select one flow threshold for each recon and discon category -->
+<!-- get_best_flow_threshold_tab = function(corr_tab_all_metrics, -->
+<!--                                        species = c("coho", "chinook"), -->
+<!--                                        categories = c("BY_recon",  -->
+<!--                                                       "RY_discon", -->
+<!--                                                       "RY_recon", -->
+<!--                                                       "SY_discon")){ -->
+<!--   output_tab = data.frame(species = sort(rep(species,length(categories))), -->
+<!--                           category = rep(categories, length(species)), -->
+<!--                           threshold_col_name = NA, -->
+<!--                           mean_threshold_R_val = NA) -->
 
-best_flow_thresholds = get_best_flow_threshold_tab(corr_tab_all_metrics = corr_tab_all_metrics)
+<!--   for(i in 1:nrow(output_tab)){ -->
+<!--     species = output_tab$species[i] -->
+<!--     category = output_tab$category[i] -->
+<!--     y_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab),  -->
+<!--                                          pattern = species)] -->
+<!--     x_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab),  -->
+<!--                                          pattern = category)] -->
+<!--     flow_threshold_corr_values = corr_tab_all_metrics[x_names,y_names] -->
+<!--     flow_threshold_corr_mean_abs = apply(X = flow_threshold_corr_values, -->
+<!--                                          MARGIN = 1, -->
+<!--                                          function(x){mean(abs(x),na.rm=T)}) -->
+<!--     max_mean_index = which.max(flow_threshold_corr_mean_abs) -->
+<!--     max_mean_val = max(flow_threshold_corr_mean_abs, na.rm=T) -->
+<!--     selected_threshold = names(flow_threshold_corr_mean_abs[max_mean_index]) -->
+<!--     output_tab$threshold_col_name[i] = selected_threshold -->
+<!--     output_tab$mean_threshold_R_val[i] = max_mean_val -->
+<!--     # flow_threshold_corr_max_index = apply(X = flow_threshold_corr_values, -->
+<!--     #                                 MARGIN = 2,  -->
+<!--     #                                 function(x){which.max(abs(x))}) -->
 
-recon_discon_cols = colnames(metrics_tab)[grepl(x=colnames(metrics_tab), "recon") | grepl(x=colnames(metrics_tab), "discon") ]
+<!--     # flow_threshold_corr_max_vals = x_names[flow_threshold_corr_max_index] -->
+<!--   } -->
 
-remove_these = setdiff(x=recon_discon_cols,
-                       y=best_flow_thresholds$threshold_col_name)
-keep_these = !(colnames(metrics_tab) %in% remove_these)
+<!--   return(output_tab) -->
 
 
+<!-- } -->
 
-metrics_tab2 = metrics_tab[,keep_these]
-corr_tab_2 = cor(x=metrics_tab2, use="pairwise.complete.obs",)
-# corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1 # this is done in a later step
+<!-- best_flow_thresholds = get_best_flow_threshold_tab(corr_tab_all_metrics = corr_tab_all_metrics) -->
 
-# Remove correlation values with a sample size of < threshold value (10?)
-min_pairs = 10
+<!-- recon_discon_cols = colnames(metrics_tab)[grepl(x=colnames(metrics_tab), "recon") | grepl(x=colnames(metrics_tab), "discon") ] -->
 
-calc_samp_size = function(mt){
-  out_tab = as.data.frame(matrix(data=NA, nrow = ncol(mt), ncol =ncol(mt)))
-  colnames(out_tab) = colnames(mt)
-  row.names(out_tab) = colnames(mt)
-  
-  ij_combos = t(combn(x=1:ncol(mt), m=2))
-  for(k in 1:nrow(ij_combos)){
-    i=ij_combos[k,1]; j=ij_combos[k,2]
-    out_tab[i,j] = sum(!is.na(mt[,i] * mt[,j]))
-    out_tab[j,i] = sum(!is.na(mt[,i] * mt[,j]))
-  }
-  return(out_tab)
-}
-
-samp_size_tab = calc_samp_size(mt = metrics_tab2)
-keep_corr_tab = samp_size_tab/samp_size_tab
-keep_corr_tab[samp_size_tab < min_pairs] = NA
-
-# Multiply the correlations tab by keep_corr to zero out 
-# the corr coeffs with insufficient sample size
-corr_tab_2 = corr_tab_2 * keep_corr_tab
-
-# corrplot(corr_tab_2,
-#          tl.col = metrics_tab_column_colors, tl.cex = 1.1,
-#          col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
-#          na.label = "--", main = NA)
-```
-
-```{r select_eco_metric_2_diagnostics, echo = F, warning =F, comment = F}
+<!-- remove_these = setdiff(x=recon_discon_cols, -->
+<!--                        y=best_flow_thresholds$threshold_col_name) -->
+<!-- keep_these = !(colnames(metrics_tab) %in% remove_these) -->
 
 
-show_eco_picker_diagnostics = F
 
-if(show_eco_picker_diagnostics==T){
-  # 2. pick eco response metric with highest mean R value with hydro metrics
+<!-- metrics_tab2 = metrics_tab[,keep_these] -->
+<!-- corr_tab_2 = cor(x=metrics_tab2, use="pairwise.complete.obs",) -->
+<!-- # corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1 # this is done in a later step -->
 
-y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
-                                grepl(pattern = "chinook", x = colnames(corr_tab_2))]
-corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
-max_pred = 20
-out_tab = as.data.frame(matrix(data=NA, nrow = length(y_vals), ncol=max_pred))
-colnames(out_tab)=paste0("preds_",1:max_pred)
-row.names(out_tab)=y_vals
+<!-- # Remove correlation values with a sample size of < threshold value (10?) -->
+<!-- min_pairs = 10 -->
 
-for(num_top_pred in 1:max_pred){
-  # num_top_pred =3
-  for(i in 1:length(y_vals)){
-    y_val = y_vals[i]
-    abs_corr_vals = abs(corr_tab_2[,y_val])
-    names(abs_corr_vals)=names(corr_tab_2)
-    abs_corr_vals = abs_corr_vals[!(names(corr_tab_2) %in% y_vals)] # remove corr. with other y values
-    top_preds = sort(abs_corr_vals, decreasing = T)[1:num_top_pred]
-    # print(paste("num_top_pred", num_top_pred, "; y_val", y_val))
-    # print(sort(abs_corr_vals, decreasing = T)[1:num_top_pred])
-    corr_summary$mean_R_top_pred[i] = mean(top_preds)
-    
-    out_tab[i,num_top_pred]=mean(top_preds)
-  }
-  
+<!-- calc_samp_size = function(mt){ -->
+<!--   out_tab = as.data.frame(matrix(data=NA, nrow = ncol(mt), ncol =ncol(mt))) -->
+<!--   colnames(out_tab) = colnames(mt) -->
+<!--   row.names(out_tab) = colnames(mt) -->
+
+<!--   ij_combos = t(combn(x=1:ncol(mt), m=2)) -->
+<!--   for(k in 1:nrow(ij_combos)){ -->
+<!--     i=ij_combos[k,1]; j=ij_combos[k,2] -->
+<!--     out_tab[i,j] = sum(!is.na(mt[,i] * mt[,j])) -->
+<!--     out_tab[j,i] = sum(!is.na(mt[,i] * mt[,j])) -->
+<!--   } -->
+<!--   return(out_tab) -->
+<!-- } -->
+
+<!-- samp_size_tab = calc_samp_size(mt = metrics_tab2) -->
+<!-- keep_corr_tab = samp_size_tab/samp_size_tab -->
+<!-- keep_corr_tab[samp_size_tab < min_pairs] = NA -->
+
+<!-- # Multiply the correlations tab by keep_corr to zero out  -->
+<!-- # the corr coeffs with insufficient sample size -->
+<!-- corr_tab_2 = corr_tab_2 * keep_corr_tab -->
+
+<!-- # corrplot(corr_tab_2, -->
+<!-- #          tl.col = metrics_tab_column_colors, tl.cex = 1.1, -->
+<!-- #          col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"), -->
+<!-- #          na.label = "--", main = NA) -->
+<!-- ``` -->
+
+<!-- ```{r select_eco_metric_2_diagnostics, echo = F, warning =F, comment = F} -->
 
 
-corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),]
-corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),]
+<!-- show_eco_picker_diagnostics = F -->
 
-y_val_chinook = corr_ch$y_vals[which.max(corr_ch$mean_R_top_pred)]
-y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
+<!-- if(show_eco_picker_diagnostics==T){ -->
+<!--   # 2. pick eco response metric with highest mean R value with hydro metrics -->
 
-# print(paste("Num pred:",num_top_pred,"; Chinook yval:",y_val_chinook, "; Coho yval:", y_val_coho))
-# print(paste("Num pred:",num_top_pred))
-# print(corr_co)
-# print(corr_ch)
-}
+<!-- y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) | -->
+<!--                                 grepl(pattern = "chinook", x = colnames(corr_tab_2))] -->
+<!-- corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA) -->
+<!-- max_pred = 20 -->
+<!-- out_tab = as.data.frame(matrix(data=NA, nrow = length(y_vals), ncol=max_pred)) -->
+<!-- colnames(out_tab)=paste0("preds_",1:max_pred) -->
+<!-- row.names(out_tab)=y_vals -->
 
-# y_val_coho = "coho_smolt_per_fem"
+<!-- for(num_top_pred in 1:max_pred){ -->
+<!--   # num_top_pred =3 -->
+<!--   for(i in 1:length(y_vals)){ -->
+<!--     y_val = y_vals[i] -->
+<!--     abs_corr_vals = abs(corr_tab_2[,y_val]) -->
+<!--     names(abs_corr_vals)=names(corr_tab_2) -->
+<!--     abs_corr_vals = abs_corr_vals[!(names(corr_tab_2) %in% y_vals)] # remove corr. with other y values -->
+<!--     top_preds = sort(abs_corr_vals, decreasing = T)[1:num_top_pred] -->
+<!--     # print(paste("num_top_pred", num_top_pred, "; y_val", y_val)) -->
+<!--     # print(sort(abs_corr_vals, decreasing = T)[1:num_top_pred]) -->
+<!--     corr_summary$mean_R_top_pred[i] = mean(top_preds) -->
 
-# plot for Chinook
-plot(x= 1:max_pred, y= out_tab[y_vals[1],], type = "o", col = 1, ylim=c(0.3,1), pch=20)
+<!--     out_tab[i,num_top_pred]=mean(top_preds) -->
+<!--   } -->
 
-for(i in 2:3){#length(y_vals)){
-  lines(x=1:max_pred, y=out_tab[y_vals[i],], col=i)
-  points(x=1:max_pred, y=out_tab[y_vals[i],], col=i, pch=20)
-  }
-legend(x="topright", legend = y_vals, col = 1:length(y_vals), lwd=2)
-grid()
 
-# plot for coho
-plot(x= 1:max_pred, y= out_tab[y_vals[4],], type = "o", col = 4, ylim=c(0.3,1), pch=20)
 
-for(i in 5:length(y_vals)){
-  lines(x=1:max_pred, y=out_tab[y_vals[i],], col=i)
-  points(x=1:max_pred, y=out_tab[y_vals[i],], col=i, pch=20)
-  }
-legend(x="topright", legend = y_vals, col = 1:length(y_vals), lwd=2)
-grid()
-}
+<!-- corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),] -->
+<!-- corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),] -->
 
-```
+<!-- y_val_chinook = corr_ch$y_vals[which.max(corr_ch$mean_R_top_pred)] -->
+<!-- y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)] -->
+
+<!-- # print(paste("Num pred:",num_top_pred,"; Chinook yval:",y_val_chinook, "; Coho yval:", y_val_coho)) -->
+<!-- # print(paste("Num pred:",num_top_pred)) -->
+<!-- # print(corr_co) -->
+<!-- # print(corr_ch) -->
+<!-- } -->
+
+<!-- # y_val_coho = "coho_smolt_per_fem" -->
+
+<!-- # plot for Chinook -->
+<!-- plot(x= 1:max_pred, y= out_tab[y_vals[1],], type = "o", col = 1, ylim=c(0.3,1), pch=20) -->
+
+<!-- for(i in 2:3){#length(y_vals)){ -->
+<!--   lines(x=1:max_pred, y=out_tab[y_vals[i],], col=i) -->
+<!--   points(x=1:max_pred, y=out_tab[y_vals[i],], col=i, pch=20) -->
+<!--   } -->
+<!-- legend(x="topright", legend = y_vals, col = 1:length(y_vals), lwd=2) -->
+<!-- grid() -->
+
+<!-- # plot for coho -->
+<!-- plot(x= 1:max_pred, y= out_tab[y_vals[4],], type = "o", col = 4, ylim=c(0.3,1), pch=20) -->
+
+<!-- for(i in 5:length(y_vals)){ -->
+<!--   lines(x=1:max_pred, y=out_tab[y_vals[i],], col=i) -->
+<!--   points(x=1:max_pred, y=out_tab[y_vals[i],], col=i, pch=20) -->
+<!--   } -->
+<!-- legend(x="topright", legend = y_vals, col = 1:length(y_vals), lwd=2) -->
+<!-- grid() -->
+<!-- } -->
+
+<!-- ``` -->
 
 
 ```{r select_eco_metric_3, echo = F, warning =F, comment = F}
 
 # 3. Select number of metrics considered (5) 
 
-y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
-                                grepl(pattern = "chinook", x = colnames(corr_tab_2))]
-corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
+# y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) |
+#                                 grepl(pattern = "chinook", x = colnames(corr_tab_2))]
+# # order the y values for figure
+# y_vals = c("chinook_spawner_abundance", "chinook_juvenile_abundance", "chinook_juv_per_adult",
+#            "coho_spawner_abundance", "coho_redds_in_brood", "coho_smolt_abun_est",
+#            "coho_smolt_per_fem")
+# corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA)
+# 
+# num_top_pred =5
+# for(i in 1:length(y_vals)){
+#   y_val = y_vals[i]
+#   abs_corr_vals = abs(corr_tab_2[,y_val])
+#   names(abs_corr_vals)=names(corr_tab_2)
+#   abs_corr_vals = abs_corr_vals[!(names(corr_tab_2) %in% y_vals)] # remove corr. with other y values
+#   top_preds = sort(abs_corr_vals, decreasing = T)[1:num_top_pred]
+#   # print(paste("num_top_pred", num_top_pred, "; y_val", y_val))
+#   # print(sort(abs_corr_vals, decreasing = T)[1:num_top_pred])
+#   corr_summary$mean_R_top_pred[i] = mean(top_preds)
+#   
+#   # out_tab[i,num_top_pred]=mean(top_preds)
+#   
+#   
+#   
+#   
+#   corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),]
+#   corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),]
+#   
+#   
+# }
 
-num_top_pred =5
-for(i in 1:length(y_vals)){
-  y_val = y_vals[i]
-  abs_corr_vals = abs(corr_tab_2[,y_val])
-  names(abs_corr_vals)=names(corr_tab_2)
-  abs_corr_vals = abs_corr_vals[!(names(corr_tab_2) %in% y_vals)] # remove corr. with other y values
-  top_preds = sort(abs_corr_vals, decreasing = T)[1:num_top_pred]
-  # print(paste("num_top_pred", num_top_pred, "; y_val", y_val))
-  # print(sort(abs_corr_vals, decreasing = T)[1:num_top_pred])
-  corr_summary$mean_R_top_pred[i] = mean(top_preds)
-  
-  # out_tab[i,num_top_pred]=mean(top_preds)
-  
-  
-  
-  
-  corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),]
-  corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),]
-  
   # y_val_chinook = corr_ch$y_vals[which.max(corr_ch$mean_R_top_pred)]
   # Based on the need for a normalized metric, going to select the juvenile per adult metric.
   y_val_chinook = "chinook_juv_per_adult"
   # This should be percent coho smolt survival.
   # y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)]
   y_val_coho = "coho_smolt_per_fem"
-  
-}
+
 
 ```
 
-Some ecological metric types appear to be minimally related to observed hydrology. Neither the number of coho redds nor the number of Chinook spawners produced an absolute $R$ value greater than 0.5 (Figure \@ref(fig:corrMatrixFig)).
 
-Notably, for a given hydrologic predictor, the eight ecological metrics tend to produce both positive and negative $R$ values (e.g., Figure \@ref(fig:corrMatrixFig), $R$ values for BY_recon_70, or the brood year reconnection timing at 70 cfs). This suggests that the effects of specific hydrologic phenomena on fish may be different depending on the life stage during which they are measured. As an example, the log-transformed total flow in each cohort's brooding period (log_BY_tot_flow_sepdec) is positively correlated with coho spf but negatively correlated with coho % smolt survival, Chinook juvenile abundance and Chinook jpa, while appearing relatively uncorrelated with the number of Chinook spawners, the coho juvenile abundance, and the number of observed coho redds. With a sample size this small, all interpretations should be abundantly cautious, but one possible interpretation is that larger fall flows allow coho salmon to find better tributary spawning habitats and thus produce more surviving offspring per spawning female. Conversely higher fall flows ...
+The correlation coefficients do not show uniform effects of hydrology on both species: for example, the brood year reconnection timing produces strong negative correlations with coho spf and weak positive correlations with Chinook jpa (Figure \@ref(fig:corrMatrixFig)). Furthermore, hydrology tends to have different effects on different life stages: for both species the sign of $R$ with brood year reconnection timing is the opposite for spawning adults and outmigrating juveniles (though brood year reconnection correlations are much weaker for Chinook than for coho). 
 
-The two normalized coho metrics, coho spf and % coho smolt survival, appear to be negatively correlated. This could be due to the distinct basis of normalization: in one case, the denominator is the number of brooding adult females, while in the other it is the estimated number of hatched juveniles. An earlier fall reconnection in the brood year seems to boost coho spf while reducing % smolt survival; 
+Findings that match professional judgment: 
+
+* Later disconnection (in rearing year and smolt year) associated with more coho smolt. 
+* A longer rearing year baseflow duration (longer wet season) is good for both species' juvenile abundance. Relatedly, so is a later Rearing Year dry season onset.
+* A higher number of RY scouring days does seem to be related to lower Chinook outmigrants, and have no relationishp with coho outmigrants. * Why are normalized metrics diff between species? Chinook dependence on mainstem habitat vs tributary habitat for coho. Coho may be more sensitive to fall reconnection timing since they need to traverse more river miles that tend to go dry in the dry season. 
+
+Findings that may not match professional judgment (and thus may be spurious? or need more investigation?)
+
+* Why would earlier reconnection produce more outmigrating smolt? Better habitat? Why would earlier reconnection produce fewer coho spawners?? Maybe investigate this scatter plot. 
+* Why is higher brood year total flow bad for number of coho spawners? (in any case, this explains why it is good for the spf: it is assoc. with a smaller number of spawning females.)
 
 
 
-**revise rest of text in this section. discuss predictability for all ecological data types and why they might be different.**
-
-For coho salmon number of spawners, the only hydrologic predictor exceeding the correlation threshold is the brood year reconnection date, BY_recon. day, at 100 cfs. No significant correlations are found between coho salmon number of redds and any of the hydrologic variables. Two hydrologic variables show significant predictive power for the coho salmon number of smolt: rearing year fall pulse duration, RY FA_Dur, and rearing year dry season onset timing, RY DS_Tim.
-
-In contrast, nine of the hydrologic variables considered show significant predictive power for the normalized number of coho smolts, the smolt per female spawner (coho spf). This ecologic metric is negatively correlated with BY_recon at all thresholds (higher coho spf for earlier reconnection in the brood year). To a lesser degree, it is positively correlated with rearing year disconnection date (RY_discon at all thresholds; higher coho spf for later RY_discon), and negatively correlated with RY_recon at all thresholds but one. 
-
-Among functional flow metrics, coho spf was positively correlated above the threshold ($R > 0.5$) with the log of total Brood Year flow and the duration of the Rearing Year wet season. Coho spf was negativey correlated (with $R<-0.5$) with the Rearing Year wet season onset timing. Fall pulse metrics also yielded several $|R|>0.5$ correlations. These were excluded from the linear modeling exercise due to insufficient sample size. 
-
-The structure of these correlations (Figure \@ref(fig:corrMatrixFig)) support the current scientific understanding that earlier fall reconnection in the fall and later disconnection in the spring/summer are related to higher relative fish production, or, more fundamentally, that wet years produce good conditions for coho spawning and rearing.
-
-Of the ecological response variables that were evaluated for coho, the coho spf variable clearly showed a higher degree of correlation with hydrologic metrics than other ecological outcome variables. One reason for this metric outperforming the other three (coho salmon spawner abundance, juvenile abundance and number of observed redds) may be that the normalization to the number of spawners makes the three cohorts more comparable, as the spawner cohort size is quite variable among the three 3-year cohort generations, but also between generations of the same cohort. This normalized metric has also been identified by state agency analysts as indicative of freshwater ecosystem conditions at coho salmon populations below carrying capacity [CDFW -@CDFW2021a]. Consequently, we focus the remainder of the hydro-ecological modeling analysis for coho on the coho smolt per female (coho spf) metric as response variable.
-
-For Chinook, conversely, none of the three available ecological response variables stood out as being substantially more correlated with hydrologic metrics than the others (*Supplemental Figure 1*). Furthermore, they all appeared less correlated with the hydrology than the coho variable, i.e., the coho-hydrology correlations, for the same set of predictor variables, generated more $|R|>0.5$ than did correlations between Chinook and hydrology. To be consistent with the coho spf, the Chinook juvenile per adult metric (Chinook jpa) was retained for linear modeling.**
-
-```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 8 ecological monitoring metrics. Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier dot is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
+```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 7 ecological monitoring metrics: the two normalized metrics (left two columns), three additional metrics for coho (center), and two additional metrics for Chinook (right). Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier dot is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
 
 corr_matrix_pearson = calc_corr_matrix(metrics_tab, corr_method = "pearson")
 
@@ -878,35 +877,12 @@ fig_i = fig_i +1
 ```
 
 
-### Selection of thresholds for flow reconnection and disconnection dates
-
-* selected one flow threshold (the one with the highest $R$) from each category (BY discon, RY recon, etc) for each species (averaged over multiple types of outcome data)
-* while it's possible that multiple flow thresholds can carry independent information, for this watershed, for each species, we narrowed it to one flow threshold per category. This decision could be revisited for different watersheds.
-
-Discussion
-
-* We did this because the correlation analysis did not identify multiple 
-* In this watershed, salmon passage to access the lower mainstem is possible at a Fort Jones flowrate (~20-40 cfs), while access to upper tributaries is generally associated with a Fort Jones flowrate of 100 cfs [@Sommarstrom2020]. 
-
-**revise text below this section**
-
-We examined relationships between reconnection dates and biological monitoring data to identify the flow threshold(s) with the highest predictive power and potentially the lowest redundancy
-(shown for BY_recon and coho spf in Figure \@ref(fig:explanationForBYReconCFSSelection)). The trends in slope value and $R^2$ suggest that the date of crossing lower flow thresholds such as 10 and 15 cfs has greater biological significance than the date of crossing thresholds like 40 cfs, with 20 cfs being somewhat intermediate. In the context of this watershed, it suggests that a Fort Jones gauge flowrate of 10 cfs is a critical threshold for coho passage into the mainstem Scott River.
-
-For Chinook, no significant relationships were obtained between the three ecological observation types and the Brood Year reconnection dates (i.e., no $R^2$ values exceeded 0.1).
-
-It should be noted that for this metric, at very low flows such as 8 and 10 cfs, a data censoring problem emerges, as the flow never drops below the threshold in some years (equivalent to a non-detect datum). "Reconnection" as flows rise above that threshold cannot occur in such years. For these water years, the date of September 1st was selected as the "threshold crossing day". This is considered to represent the earliest date that a spawning coho salmon would require spawning flows measurable at the Fort Jones gauge. Thus, in average and wet years (and, in the mid-20th century, most years) the distribution of values for this threshold-exceeding date for low flowrates would be heavily skewed to September 1st. This data processing method retains the information that the flow in a high-baseflow year may have served the spawning needs of the salmon, but conveys no other information about flow timing. 
-
-At reconnection dates for 100 cfs, the $R^2$ of the relationship is higher than at 40 cfs. In previous monitoring, a Fort Jones gauge flowrate of 100 cfs has corresponded with the reconnection of a key river reach impacted by mine tailings, allowing coho passage to favorable tributary stream habitat upstream of this reach [*pers. comm.*, @Sommarstrom2020]. The relatively high $R^2$ value between the 100 cfs Brood Year reconnection date and coho spf (0.434) suggests that earlier access to this additional habitat improves watershed-wide reproductive outcomes. 
-
-Choosing the two models with the highest $R^2$, we selected the reconnection and disconnection date flow thresholds of 10 cfs and 100 cfs for further analysis (Figure \@ref(fig:explanationForBYReconCFSSelection)). This decision could be revisited if additional years of data become available.
-
 ## Lasso regression
 
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResults}"}
 
 if(y_val_coho=="coho_smolt_per_fem") {lam_co = 8}
-if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 4}
+# if(y_val_coho=="percent_coho_smolt_survival") {lam_co = 4}
 if(y_val_coho=="coho_redds_in_brood"){lam_co = 54}
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
@@ -1223,7 +1199,6 @@ if(save_imgs==T){
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
                             y = `Contrib. to Hyd. Ben. value (Coho smolt per fem. spawner)`,
-                            # y = `Contrib. to Hyd. Ben. value (% coho smolt survival)`,
                             # y = `Contrib. to Hyd. Ben. value (Num. obs. coho redds)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
@@ -1345,6 +1320,14 @@ fig_i = fig_i +1
 
 # Discussion
 
+### Selection of thresholds for flow reconnection and disconnection dates
+
+Discussion
+
+* We did this because the correlation analysis did not identify multiple 
+* In this watershed, salmon passage to access the lower mainstem is possible at a Fort Jones flowrate (~20-40 cfs), while access to upper tributaries is generally associated with a Fort Jones flowrate of 100 cfs [@Sommarstrom2020]. 
+
+
 ## Previous work on hydrologic indices and ecological responses
 
 <!-- A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to  persist in specific flow regimes are commonly negatively affected by flow alteration [@Bunn2002; @Poff2010]. Consequently, a diversity of methods have been used to predict regional ecological responses to changes in key flow metrics. Many regional case studies predict ecological responses in terms of species richness or macroinvertebrate composition at dozens or hundreds of bioassessment sites [e.g., @Mazor2018; @McManamay2013; @Hain2018; @White2018; @Larsen2021; @Peek2022], and the temporal framework is often a snapshot of the biological changes between natural and altered flow conditions [@Wheeler2018; @Peek2022]. Methods of generating the predictive models include boosted regression trees [@Mazor2018; @Hain2018], stochastic matrix models [@Sakaris2010a], and probabilistic Bayesian Network models [@Bestgen2020], among others. -->
@@ -1365,7 +1348,6 @@ Additional fish population monitoring in future water years will be instrumental
 
 * **correlations between ecological metrics**
 
-* **coho smolt per fem vs coho % smolt survival metrics - why negatively correlated? which is worse? Possibly smolt survival, since smolt estimation is less constrained than the camera trap method at the counting station. **
 * **smolt abundance estimates bias high or low?**
 
 In the dataset evaluated here, hydrologic metrics have a much greater capacity to predict reproduction in coho salmon than in Chinook. This difference may be due to any number of distinctions in the life history and reproductive strategies of the two species  (see Section 2.2.4). Some possibilities include:
@@ -1820,3 +1802,29 @@ With continuing trends of a narrowing wet season in the Scott River watershed (e
 <!-- $m_{4} = 0.12~spf~equiv. / (day~of~wet~season~baseflow~duration)$ -->
 
 
+
+
+
+
+
+<!-- Some ecological metric types appear to be minimally related to observed hydrology. Neither the number of coho redds nor the number of Chinook spawners produced an absolute $R$ value greater than 0.5 (Figure \@ref(fig:corrMatrixFig)). -->
+
+<!-- Notably, for a given hydrologic predictor, the eight ecological metrics tend to produce both positive and negative $R$ values (e.g., Figure \@ref(fig:corrMatrixFig), $R$ values for BY_recon_70, or the brood year reconnection timing at 70 cfs). This suggests that the effects of specific hydrologic phenomena on fish may be different depending on the life stage during which they are measured. As an example, the log-transformed total flow in each cohort's brooding period (log_BY_tot_flow_sepdec) is positively correlated with coho spf but negatively correlated with coho % smolt survival, Chinook juvenile abundance and Chinook jpa, while appearing relatively uncorrelated with the number of Chinook spawners, the coho juvenile abundance, and the number of observed coho redds. With a sample size this small, all interpretations should be abundantly cautious, but one possible interpretation is that larger fall flows allow coho salmon to find better tributary spawning habitats and thus produce more surviving offspring per spawning female. Conversely higher fall flows ... -->
+
+<!-- The two normalized coho metrics, coho spf and % coho smolt survival, appear to be negatively correlated. This could be due to the distinct basis of normalization: in one case, the denominator is the number of brooding adult females, while in the other it is the estimated number of hatched juveniles. An earlier fall reconnection in the brood year seems to boost coho spf while reducing % smolt survival;  -->
+
+
+
+<!-- **revise rest of text in this section. discuss predictability for all ecological data types and why they might be different.** -->
+
+<!-- For coho salmon number of spawners, the only hydrologic predictor exceeding the correlation threshold is the brood year reconnection date, BY_recon. day, at 100 cfs. No significant correlations are found between coho salmon number of redds and any of the hydrologic variables. Two hydrologic variables show significant predictive power for the coho salmon number of smolt: rearing year fall pulse duration, RY FA_Dur, and rearing year dry season onset timing, RY DS_Tim. -->
+
+<!-- In contrast, nine of the hydrologic variables considered show significant predictive power for the normalized number of coho smolts, the smolt per female spawner (coho spf). This ecologic metric is negatively correlated with BY_recon at all thresholds (higher coho spf for earlier reconnection in the brood year). To a lesser degree, it is positively correlated with rearing year disconnection date (RY_discon at all thresholds; higher coho spf for later RY_discon), and negatively correlated with RY_recon at all thresholds but one.  -->
+
+<!-- Among functional flow metrics, coho spf was positively correlated above the threshold ($R > 0.5$) with the log of total Brood Year flow and the duration of the Rearing Year wet season. Coho spf was negativey correlated (with $R<-0.5$) with the Rearing Year wet season onset timing. Fall pulse metrics also yielded several $|R|>0.5$ correlations. These were excluded from the linear modeling exercise due to insufficient sample size.  -->
+
+<!-- The structure of these correlations (Figure \@ref(fig:corrMatrixFig)) support the current scientific understanding that earlier fall reconnection in the fall and later disconnection in the spring/summer are related to higher relative fish production, or, more fundamentally, that wet years produce good conditions for coho spawning and rearing. -->
+
+<!-- Of the ecological response variables that were evaluated for coho, the coho spf variable clearly showed a higher degree of correlation with hydrologic metrics than other ecological outcome variables. One reason for this metric outperforming the other three (coho salmon spawner abundance, juvenile abundance and number of observed redds) may be that the normalization to the number of spawners makes the three cohorts more comparable, as the spawner cohort size is quite variable among the three 3-year cohort generations, but also between generations of the same cohort. This normalized metric has also been identified by state agency analysts as indicative of freshwater ecosystem conditions at coho salmon populations below carrying capacity [CDFW -@CDFW2021a]. Consequently, we focus the remainder of the hydro-ecological modeling analysis for coho on the coho smolt per female (coho spf) metric as response variable. -->
+
+<!-- For Chinook, conversely, none of the three available ecological response variables stood out as being substantially more correlated with hydrologic metrics than the others (*Supplemental Figure 1*). Furthermore, they all appeared less correlated with the hydrology than the coho variable, i.e., the coho-hydrology correlations, for the same set of predictor variables, generated more $|R|>0.5$ than did correlations between Chinook and hydrology. To be consistent with the coho spf, the Chinook juvenile per adult metric (Chinook jpa) was retained for linear modeling.** -->
