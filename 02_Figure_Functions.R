@@ -1710,15 +1710,16 @@ hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
   }
 
   abline(h=0, col = "darkgray")
+  if(y_val=="coho_smolt_per_fem"){legend_place = "bottomleft"} else {legend_place="topleft"}
   if(sum(neg_values,na.rm=T)>0){
-  legend("topleft", pch = c(19,neg_val_pch,24, NA),
+  legend(legend_place, pch = c(19,neg_val_pch,24, NA),
          pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
          col = c("black", neg_value_col,"black", obs_col),
          pt.bg=c(NA,NA,obs_col, NA), lwd = c(NA,NA,NA,2), lty = c(NA,NA,NA,1),
          legend = c("Predicted", "Predicted (neg. value)",
                     "Observed", "Pred. - Obs. difference"))
   } else {
-    legend("topleft", pch = c(19,24, NA),
+    legend(legend_place, pch = c(19,24, NA),
            pt.lwd = c(NA,2, NA), pt.cex = c(1,1.2, NA), bg="white",
            col = c("black", "black", obs_col),
            pt.bg=c(NA,obs_col, NA), lwd = c(NA,NA,2), lty = c(NA,NA,1),
@@ -1745,27 +1746,72 @@ generate_pred_appear_tab = function(lasso_mod, best_lam_range){
   pred_appear_tab = coef_lambda_non0_vals[order(coef_lambda_non0_vals$lambda_non0_val_appears,
                                                 decreasing=T),]
   pred_appear_tab = pred_appear_tab[!pred_appear_tab$predictor=="(Intercept)",]
+
+  # # CURRENTLY HERE.
+  # degfree_diff = diff(lasso_mod$df)
+  # # CASE FOR DIFF = 1
+  # coef_appear_index = which(degfree_diff==1)
+  # lasso_mod$dev.ratio[coef_appear_index]
+  # deg_free_for_tab = lasso_mod$df[c(coef_appear_index[-1], length(lasso_mod$df))]
+  # dev_for_tab = lasso_mod$dev.ratio[c(coef_appear_index[-1], length(lasso_mod$df))]
+  # dev_tab = data.frame(deg_free = deg_free_for_tab, max_dev_expl = dev_for_tab)
+  # dev_tab$incremental_dev = NA
+  # dev_tab$incremental_dev[1] = dev_tab$max_dev_expl[1]
+  # dev_tab$incremental_dev[-1] = dev_tab$max_dev_expl[-1] - dev_tab$max_dev_expl[-nrow(dev_tab)]
+  # dev_tab$max_dev_expl=round(dev_tab$max_dev_expl, 2)
+  # dev_tab$incremental_dev=round(dev_tab$incremental_dev, 2)
+
+  # if(sum(diff(deg_free_for_tab)>1) >0){
+  #   # CASE FOR DIFF = 2 or more (split difference in deviation between 2 predictors)
+  #   need_these = setdiff(seq(from=min(dev_tab$deg_free), to = max(dev_tab$deg_free)),
+  #                        dev_tab$deg_free)
+  #   dev_tab_2 = data.frame(deg_free = need_these, max_dev_expl = NA)
+  #   dev_diff = diff()
+  # }
+
+  # lasso_mod$df[which(degfree_diff==2)]
+
+
   return(pred_appear_tab)
 }
 
 find_all_best_lambda_vals = function(com_tab, x, y,
-                                     lam_vals = 10^seq(-2, 5,length=100)){
+                                     lam_vals = 10^seq(-2, 5,length=100),
+                                     output = "lambda_and_rmse_tab",
+                                     outer_best_lam_range = NA){
+  #Initialize output tab
   output_tab = as.data.frame(com_tab)
-  output_tab$bestlam = NA
-  output_tab$rmse = NA
+  if(output == "lambda_and_rmse_tab"){output_tab$bestlam = NA; output_tab$rmse = NA}
+  # columns for top predictors
+  if(output == "predictor_rank"){
+    output_tab$pred1=NA; output_tab$pred2=NA;output_tab$pred3=NA; output_tab$pred4=NA; output_tab$pred5=NA
+  }
+
+  #Iterate through test-train sets
   for(i in 1:nrow(com_tab)){
     test = com_tab[i,]
     train = -com_tab[i,]
     y.test = y[test]
-    lasso_1 = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
-    set.seed(1)
-    cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
-    output_tab$bestlam[i] = cv.out$lambda.min
-    # calculate an RMSE for this test set
-    lasso_i=glmnet(x=x[test,], y=y.test, alpha = 1, lambda = output_tab$bestlam[i])
-    lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x)
-    output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
 
+    if(output == "lambda_and_rmse_tab"){
+      lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
+      set.seed(1)
+      cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
+      output_tab$bestlam[i] = cv.out$lambda.min
+      # calculate an RMSE for this test set
+      lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x[test,])
+      output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
+    }
+
+    if(output == "predictor_rank"){
+      lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = outer_best_lam_range)
+      #CURRENTLY HERE. STORE TOP 5 PREDICTORS FOR EACH MODEL RUN
+      pred_appear_tab = generate_pred_appear_tab(lasso_mod = lasso_i, best_lam_range = outer_best_lam_range)
+
+      for(j in 1:5){
+        output_tab[i,paste0("pred",j)] = pred_appear_tab$predictor[j]
+      }
+    }
   }
 
   return(output_tab)
@@ -1922,7 +1968,7 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
   return(list(x=x,y=y))
 }
 
-lasso_regression_plots = function(metrics_tab,
+lasso_regression_plots_and_tabs = function(metrics_tab,
                                   y_val = "coho_smolt_per_fem",
                                   remove_extra_recon_thresholds = F,
                                   remove_SY_metrics = T,
@@ -1944,14 +1990,13 @@ lasso_regression_plots = function(metrics_tab,
   if(remove_RY_metrics==T){fname = paste(fname,"no RY")  }
   lambda_tab_path = file.path(data_dir,paste(fname,".csv" ))
 
-  # mt = metrics_tab
-
   # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
   if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
   if(!file.exists(lambda_tab_path)){
     # find all combinations of test and train data points for lambda values
+    com = t(combn(x = 1:length(y), m = 1))     # Split dataset into halves
     # com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
-    com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
+    # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
     # split data set into all possible test and train sets.
     # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
     if(nrow(com)>10000){
@@ -1966,12 +2011,36 @@ lasso_regression_plots = function(metrics_tab,
   min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
   max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
   by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
+
   # } else { #stored values for best lambdas
   #   # if(y_val=="coho_smolt_per_fem"){min_lam = 0.1; max_lam = 40; by_val = 0.1}
   #   # if(y_val=="chinook_juv_per_adult"){min_lam = 0.5; max_lam = 195; by_val = 2}
   # }
 
   best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
+
+  # store predictor rank table
+  fname2 = paste( y_val,"- predictor rank")
+  pred_rank_path = file.path(data_dir,paste(fname2,".csv" ))
+  # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
+  if(file.exists(pred_rank_path)){pred_rank_tab = read.csv(pred_rank_path)}
+  if(!file.exists(pred_rank_path)){
+    # find all combinations of test and train data points for lambda values
+    com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
+    # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
+    # split data set into all possible test and train sets.
+    # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
+    if(nrow(com)>10000){
+      set.seed(1)
+      com = com[sample(x = 1:nrow(com), size = 10000),]
+    }
+
+    pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
+                                              output = "predictor_rank",
+                                          outer_best_lam_range = best_lam_range)
+    write.csv(pred_rank_tab, file = pred_rank_path)
+  }
+
 
   # Calculate lasso models over range of lambda values
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
@@ -1992,6 +2061,7 @@ lasso_regression_plots = function(metrics_tab,
                          selected_lam = selected_lam)
 
   if(return_pred_appear_tab==T){return(list(pred_appear_tab = pred_appear_tab,
+                                            pred_rank_tab = pred_rank_tab,
                                             lasso_mod_range = lasso_mod))}
 }
 
