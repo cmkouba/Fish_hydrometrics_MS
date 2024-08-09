@@ -1975,7 +1975,8 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
                                   remove_RY_metrics = F,
                                   return_pred_appear_tab = T,
                                   yvlt,
-                                  selected_lam){
+                                  selected_lam,
+                                  show_plot = T){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
   x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
@@ -2046,20 +2047,22 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
   # find lambda values at which each coefficient becomes non-0
   pred_appear_tab = generate_pred_appear_tab(lasso_mod, best_lam_range = best_lam_range)
-  # Plots
-  par(mfrow=c(3,1))
-  y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
-  # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
-  # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
-  plot_lasso_coefs(lasso_mod = lasso_mod,
-                   pred_appear_tab = pred_appear_tab,
-                   best_lam_range = best_lam_range,
-                   y_val_label = y_val_label,
-                   mt_nrow = nrow(x),
-                   selected_lam = selected_lam)
-  plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
-                         selected_lam = selected_lam)
 
+  if(show_plot==T){
+    # Plots
+    par(mfrow=c(3,1))
+    y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
+    # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
+    # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
+    plot_lasso_coefs(lasso_mod = lasso_mod,
+                     pred_appear_tab = pred_appear_tab,
+                     best_lam_range = best_lam_range,
+                     y_val_label = y_val_label,
+                     mt_nrow = nrow(x),
+                     selected_lam = selected_lam)
+    plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
+                           selected_lam = selected_lam)
+  }
   if(return_pred_appear_tab==T){return(list(pred_appear_tab = pred_appear_tab,
                                             pred_rank_tab = pred_rank_tab,
                                             lasso_mod_range = lasso_mod))}
