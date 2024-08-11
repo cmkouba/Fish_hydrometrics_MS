@@ -1781,7 +1781,7 @@ find_all_best_lambda_vals = function(com_tab, x, y,
                                      outer_best_lam_range = NA){
   #Initialize output tab
   output_tab = as.data.frame(com_tab)
-  if(output == "lambda_and_rmse_tab"){output_tab$bestlam = NA; output_tab$rmse = NA}
+  if(output == "lambda_and_rmse_tab"){output_tab$bestlam = NA; output_tab$rmse = NA; output_tab$bestlam_numpred = NA}
   # columns for top predictors
   if(output == "predictor_rank"){
     output_tab$pred1=NA; output_tab$pred2=NA;output_tab$pred3=NA; output_tab$pred4=NA; output_tab$pred5=NA
@@ -1801,11 +1801,14 @@ find_all_best_lambda_vals = function(com_tab, x, y,
       # calculate an RMSE for this test set
       lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x[test,])
       output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
+      # ID number of non0 coefs for this optimal lambda val:
+      # calculate regression model for the single optimal lambda value
+      lasso_i_opt = glmnet(x[train,], y[train], alpha = 1, lambda = cv.out$lambda.min)
+      output_tab$bestlam_numpred[i] = lasso_i_opt$df # assign degrees of freedom
     }
 
     if(output == "predictor_rank"){
       lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = outer_best_lam_range)
-      #CURRENTLY HERE. STORE TOP 5 PREDICTORS FOR EACH MODEL RUN
       pred_appear_tab = generate_pred_appear_tab(lasso_mod = lasso_i, best_lam_range = outer_best_lam_range)
 
       for(j in 1:5){
@@ -1819,26 +1822,7 @@ find_all_best_lambda_vals = function(com_tab, x, y,
 
 plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
                                   selected_lam){  # Plot lasso diagnostics.
-  # par(mfrow=(c(2,1)))
-  #A: deviance and non-0 coefficients
-  lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  par(mar=c(5,5,3,5))
-  plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
-       ylab = "% of null deviation explained by model",
-       xlab = "Lambda value (shrinkage penalty)",
-       main = "Adding more coefficients explains more variation...")
-  grid()
-  par(new=T)
-  plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
-       xlab="",ylab="", axes=F, type = "l")
-  axis(side=4,at=pretty(range(lasso_mod$df)))
-  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
-  abline(v=selected_lam, lty = 2, col = lam_color)
-  legend(x = "topright", col=c("black","dodgerblue",lam_color),
-         lwd = c(1,2,1), lty = c(1,1,2),
-         legend = c("% Deviance", "Degrees of freedom", "Selected lambda"))
-
-  # B) Plot lambda vs test error - setup
+  # A) Plot lambda vs test error - setup
   nbreaks = 25
   bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
                     to = max(lambdas_and_rmse$bestlam, na.rm=T),
@@ -1863,6 +1847,31 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
          pch = c(19,23),
          legend = c("Individual model RMSE", "Binned geom. mean RMSE"))
+
+  #B: deviance and non-0 coefficients
+  lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+  par(mar=c(5,5,3,5))
+  plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
+       ylab = "% of null deviation explained by model",
+       xlab = "Lambda value (shrinkage penalty)",
+       main = "Adding more coefficients explains more variation...")
+  grid()
+  par(new=T)
+  plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
+       xlab="",ylab="", axes=F, type = "l")
+  num_pred_col = rgb(.3,.3,.7,.15)
+  points(lambdas_and_rmse$bestlam,
+       lambdas_and_rmse$bestlam_numpred, pch= 20, col = num_pred_col)
+  axis(side=4,at=pretty(range(lasso_mod$df)))
+  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
+  abline(v=selected_lam, lty = 2, col = lam_color)
+  legend(x = "topright", col=c(num_pred_col,"black","dodgerblue",lam_color),
+         lwd = c(NA,1,2,1), lty = c(NA,1,1,2), pch=c(20,NA,NA,NA),
+         legend = c("Deg. of freedom (test set, min. lambda)",
+                    "% Deviance (full dataset)", "Deg. of freedom (full dataset)",
+                    "Selected lambda (full dataset)"))
+
+
   }
 
 plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
@@ -1995,8 +2004,8 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
   if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
   if(!file.exists(lambda_tab_path)){
     # find all combinations of test and train data points for lambda values
-    com = t(combn(x = 1:length(y), m = 1))     # Split dataset into halves
-    # com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
+    # com = t(combn(x = 1:length(y), m = 1))     # hold one out
+    com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
     # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
     # split data set into all possible test and train sets.
     # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
@@ -2039,7 +2048,7 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
     pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
                                               output = "predictor_rank",
                                           outer_best_lam_range = best_lam_range)
-    write.csv(pred_rank_tab, file = pred_rank_path)
+    write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
   }
 
 
@@ -2054,14 +2063,17 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
     y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
     # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
     # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
+    #Panel 1 and 2
+    plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
+                           selected_lam = selected_lam)
+    # Panel 3
     plot_lasso_coefs(lasso_mod = lasso_mod,
                      pred_appear_tab = pred_appear_tab,
                      best_lam_range = best_lam_range,
                      y_val_label = y_val_label,
                      mt_nrow = nrow(x),
                      selected_lam = selected_lam)
-    plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
-                           selected_lam = selected_lam)
+
   }
   if(return_pred_appear_tab==T){return(list(pred_appear_tab = pred_appear_tab,
                                             pred_rank_tab = pred_rank_tab,

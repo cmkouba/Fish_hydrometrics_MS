@@ -52,7 +52,7 @@ source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
 
 # Save figures as images, yes or no?
 save_figs_here = graphics_dir
-save_imgs=F
+save_imgs=T
 replace_setting_fig = F
 fig_i = 1
 
@@ -62,11 +62,11 @@ last_wy = 2023
 
 # Abstract {-}
 
-In many rural areas in arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge.
+In many rural areas of arid and semi-arid regions, balancing agricultural and environmental water demands is a key challenge facing resource managers. Although flow-ecology relationships are well-studied, the water needs of cultivated crops are generally better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study. We applied the functional flows framework to characterize the hydrology of each water year measured at a key long-term stream gauge.
 
-Taking advantage of a nearly two-decade ecological monitoring dataset, we used lasso regression to build predictive models of coho and Chinook salmon reproductive success using hydrologic metrics as predictors. To control for cohort effects, we chose normalized ecological response metrics for coho and Chinook (number of outmigrating smolt per spawning adult or spawning adult female). For both species, we calculated optimal predictive models for thousands of 50% subsamples of the datasets, and tested them on the remaining observations. We selected a lambda value based on an average relative test error threshold of 1.0. These lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. The metrics contributing the most to predicted coho spf values are occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
+Taking advantage of a nearly two-decade ecological monitoring dataset, we then used lasso regression to build predictive models of coho and Chinook salmon reproductive success based on hydrologic metrics. To control for cohort effects, we chose normalized ecological response metrics for coho and Chinook (number of outmigrating smolt per spawning adult or spawning adult female). For both species, we calculated optimal predictive models for thousands of 50% subsamples of the datasets, and tested them on the remaining observations. We selected a lambda value based on an average relative test error threshold of 1.0. These lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. The metrics contributing the most to predicted coho spf values occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
 
-This method for empirically deriving the highest-priority hydrologic functions for a threatened species could be used in other watersheds (if sufficient ecological data records are available, and if flow-hydrology relationships are identifiable for a given species) to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
+Robustness of the results indicate that this method for empirically deriving the highest-priority hydrologic functions for a threatened species may be useful in other watersheds, where sufficient ecological data records are available, to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
 
 \newpage
 
@@ -102,7 +102,7 @@ This method for empirically deriving the highest-priority hydrologic functions f
 
 Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@Moyle2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would embrace a role as earth system engineer, and would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwinton2005; @Arthington2014; @Acreman2014]. But critical knowledge gaps are abundant and make this dual objective seem intractable. In many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @Poff2010a; @Shenton2012; @Solans2016a], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@Poff2010b]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
 
-In practice, these questions are often asked and answered locally [@Tarlock1993]. The entities managing natural resources, and thus determining the regional persistence of non-human species, are typically the communities living and working with local resources. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, the primary way to manage water use is by managing land use, and balancing the competing water needs of fish and farmers is a key challenge for local water managers [Siskiyou County -@SiskiyouCounty2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouRCD1994; @Parry2013; DWR -@DWR2021], but, in spite of decades of investigation by local, state and federal actors [e.g., @SRWC_RCD2003; NMFS -@NMFS2014; CDFW -@CDFW2015b; CDFW -@CDFW2021b], the ecological water needs in this balancing act are not as well constrained. 
+In practice, these questions are often asked and answered locally [@Tarlock1993]. The entities managing natural resources, and thus determining the regional persistence of non-human species, are typically the communities living and working with local resources. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, the primary way to manage water use is by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [Siskiyou County -@SiskiyouCounty2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouRCD1994; @Parry2013; DWR -@DWR2021], but, in spite of decades of investigation by local, state and federal actors [e.g., @SRWC_RCD2003; NMFS -@NMFS2014; CDFW -@CDFW2015b; CDFW -@CDFW2021b], the ecological water needs in this balancing act are not as well constrained. 
 
 One method for estimating ecological water needs is the functional flows framework [@Poff1997; @Poff2010a]. Functional flow metrics are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics for California hydrology and made the metric-calculating algorithms publicly available [@Yarnell2020; @Patterson2020].
 
@@ -110,13 +110,13 @@ To learn if it is possible to empirically quantify a hydrologic regime that meet
 
 ## History of flow-ecology relationships
 
-A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@Bunn2002a; @Poff2010a]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @Monk2006; @Guareschi2014; @Kevic2018; @Mazor2018; @Larsen2021; @Peek2022], and secondly, and fish diversity and community assemblage [e.g., @McManamay2013; @Peterson2016; @Cartwright2017; @Sinnathamby2018; @Hain2018; @Guedes2020; @Yao2021). Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-Koster2011; @Booth2014; @DeWeber2020; @Hale2023], as well as the extent of habitat types [@Chowdhury2007; @Brand2011] and the presence of organisms including vegetation and plankton [@Riis2008; @Catford2014; @Qian2016; @Tesfaye2017; @Saby2022]. Hydrologic predictors range widely, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @Ayllon2014; @Lamouroux2015; @McManamay2015; @Bower2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerrera2017; @Gao2020; @White2018; @Daneshvar2017; @Herbst2019].
+A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@Bunn2002a; @Poff2010a]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @Monk2006; @Guareschi2014; @Kevic2018; @Mazor2018; @Larsen2021; @Peek2022], and secondly, fish diversity and community assemblage [e.g., @McManamay2013; @Peterson2016; @Cartwright2017; @Sinnathamby2018; @Hain2018; @Guedes2020; @Yao2021). Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-Koster2011; @Booth2014; @DeWeber2020; @Hale2023], as well as the extent of habitat types [@Chowdhury2007; @Brand2011] and the presence of organisms including vegetation and plankton [@Riis2008; @Catford2014; @Qian2016; @Tesfaye2017; @Saby2022]. Hydrologic predictors range widely, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @Ayllon2014; @Lamouroux2015; @McManamay2015; @Bower2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerrera2017; @Gao2020; @White2018; @Daneshvar2017; @Herbst2019].
 
 Investigations of flow-ecology relationships can also be grouped by approach [as in @Brummer2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @Konrad2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Medallo-Diaz2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring in this region is assumed to be related to flow differences between streams [e.g., @Monk2008; @Riis2008; @Catford2014; @Bower2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@Brummer2016]. Frequently in space-for-time analyses the flow change is quantified in terms of hydrologic alteration from a natural or historical regime, as in the Ecological Limits of Hydrologic Alteration (ELOHA) framework [@Richter2006; @Poff2010b]. ELOHA and other methods to identify natural flow regimes are adaptable and have been applied widely to many distinct regional systems [e.g., @Knight2014; @Brummer2016; @Bower2022]. 
 
 Bridging the gap between science and policy has been a persistent challenge in this field. In many cases a key research motivation is to support decision-making in a variety of contexts, including dam operation, river restoration, and regulations of water extraction and land use [@Richter2006; @Han2015; @Sinnathamby2018; @Bradley2017; @Brummer2016]. But historical approaches based on relationship-finding are several steps removed from the policy-making process [@Webb2018]. For example, ELOHA or similar approaches can generate flow-ecology relationships or flow standards for particular rivers, but cannot translate specific management decisions into hydrologic or ecological outcomes [@Cartwright2017]. Additionally, studies of multiple stressors on river systems suggest that flow changes alone are not enough to predict ecological response at regional, multi-basin scales [e.g., @Worrall2014; @Knight2014; @McManamay2013; @McManamay2015] or in some single basins [e.g., @AceroTriana2021]. Finally, many flow-ecology relationships are based on insufficient data. Methods have been proposed to mitigate this, but the exercise is generally inhibited by small sample size of relevant ecological metrics [@Gwinn2016].
 
-An ideal framework for supporting decision-making would involve two key steps, firstly connecting management actions to flow changes, and secondly connecting flow changes to ecological responses [@Peterson2016; @DeWeber2020; @AceroTriana2021]. Both steps can involve complex models and substantial uncertainty, often representing an interdisciplinary challenge. Threshold values for "sufficient" flows would be ideal for a management context [@Rosenfeld2017], but can be difficult to identify and in some cases may not exist [@Lueders2023].  Additionally, identifying natural flow regimes may be less immediately relevant to water resource management than an approach which can quantify ecological responses to "designer" or functional flows (which can often be controlled or influenced by dam releases) [@Arthington2014; @Webb2018], though some may suggest that all possible historical flow components should be preserved [e.g., @Bower2022], as the designer flows approach may risk overlooking ecological flow needs that are not currently monitored. Finally, stakeholders in at least one study requested flow-ecology relationships based on empirical monitoring, rather than more easily-simulated proxies like flow changes or thermal exposure [@DeWeber2020].
+An ideal framework for supporting decision-making would involve two key steps, firstly connecting land and water management actions to flow changes, and secondly connecting flow changes to ecological responses [@Peterson2016; @DeWeber2020; @AceroTriana2021]. Both steps can involve complex models and substantial uncertainty, often representing an interdisciplinary challenge. Threshold values for "sufficient" flows would be ideal for a management context [@Rosenfeld2017], but can be difficult to identify and in some cases may not exist [@Lueders2023].  Additionally, identifying natural flow regimes may be less immediately relevant to water resource management than an approach which can quantify ecological responses to "designer" or functional flows (which can often be controlled or influenced by dam releases) [@Arthington2014; @Webb2018], though some may suggest that all possible historical flow components should be preserved [e.g., @Bower2022], as the designer flows approach may risk overlooking ecological flow needs that are not currently monitored. Finally, stakeholders in at least one study requested flow-ecology relationships based on empirical monitoring, rather than more easily-simulated proxies like flow changes or thermal exposure [@DeWeber2020].
 
 The present study is a longitudinal analysis, using empirical data and a case study, to address the second of the two key links identified above. We use empirical data to predict a biological response to measurable (and simulatable) changes in flow metrics. We refer to this prediction as a "hydrologic benefit function" (i.e., intending to quantify the ecological services provided by flow) for a single species. This provides the critical link to evaluate fish outcomes resulting from future alternative watershed management practices which affect the hydrology of a stream ecosystem. A forthcoming companion study will investigate the other link, predicting flow changes from watershed management actions using an appropriate hydrologic model, then use hydrologic benefit functions to summarize the ecologic outcomes of a portfolio of water and land use scenarios.
 
@@ -156,7 +156,7 @@ fig_i = fig_i +1
 
 The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott Valley, and is a major tributary to the Klamath River, which drains an area spanning sections of Northern California and Southern Oregon (Figure \@ref(fig:ScottWatershedMap)). Scott Valley has a Mediterranean climate with distinctive seasons of cool, wet winters and warm, dry summers. This seasonality in water input creates highly seasonal flow in the Scott River and tributary streams (Figure \@ref(fig:fjFlowFigure)). The beginning of a water year therefore coincides with the late low flow season and immediately precedes the onset of first winter precipitation.
 
-In most dry-to-average water years, sections of the Scott River become seasonally dewatered [NCRWQCB -@NCRWQCB2005; Figure 5 in @Tolley2019]. This occurs when the elevation of the water table drops below the bottom of the river channel, as streams and groundwater are highly interconnected in the Scott River watershed. Tributary streams, particularly along their alluvial fan apeces, and the Scott River are sources of recharge to the aquifer [@Mack1958; @Harter2008a]. Groundwater discharge sustains streamflow in some areas, especially during the dry season of August through October or November [@Tolley2019].  
+In most dry-to-average water years, sections of the Scott River become seasonally dewatered [NCRWQCB -@NCRWQCB2005; Figure 5 in @Tolley2019]. This occurs when the elevation of the water table drops below the bottom of the river channel, as streams and groundwater are highly interconnected in the Scott River watershed. Tributary streams, particularly along their alluvial fan apeces, and the upper Scott River are sources of recharge to the aquifer [@Mack1958; @Harter2008a]. Groundwater discharge sustains streamflow in low-lying areas, especially during the dry season of August through October or November [@Tolley2019].  
 
 ```{r fjFlowFigure, echo=FALSE, fig.cap="The Mediterranean climate produces highly seasonal flows in the Scott River. Each translucent line traces one annual hydrograph measured at the Fort Jones gauge, and the darker lines illustrate the 30-day smoothed median daily flow in Dry, Below Average, Above Average, and Wet water year types, for water years 1942-2023. The water year type is defined by quartiles of the distribution of total annual flow.", warning=F}
 
@@ -484,17 +484,22 @@ Some ecological records have gaps (e.g., when funding was not available in one y
 
 ### Test error and range of lambda values
 
-In lasso regression, the goal is to select a lambda value (referred to as the "shrinkage penalty" or "tuning parameter") that uses available predictor data to explain the maximum amount of deviation in the response while avoiding overfitting. With high-dimensional data, it is typically possible to perfectly fit the observations (explaining 100% of deviation) by incorporating data from a number of predictors that approaches or exceeds the number of observations [@James2013]. The predictive models that result from this type of overfitting typically perform poorly when applied to new data, since they tend to incorporate random noise to achieve a perfect fit [@James2013].
+In lasso regression, the goal is to select a lambda value (referred to as the "shrinkage penalty" or "tuning parameter") that uses available predictor data such that they explain the largest possible amount of variability observed in the response while also avoiding overfitting. With high-dimensional data, it is typically possible to perfectly fit the observations (explaining 100% of variability) by incorporating data from as many or more predictors as there are observations [@James2013]. The predictive models that result from this type of overfitting typically perform poorly when applied to new data, since they tend to incorporate random noise to achieve a perfect fit [@James2013].
 
-The standard method to pick the optimal value of lambda is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models using a range of lambda values. These models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error value (RMSE). The lambda value that produces the regression model with the minimum test error is selected, and using this value, a final regression model is generated based on the full data set [@James2013]. 
+**Standard method to select lambda value**
 
-However, we decided this was not appropriate for the size of the available ecological datasets, which ranged from 13 to 21 years of observations: we could not be confident that the optimal lambda value was an indicator of the optimal balance point between incorporating useful information and overfitting, since it could just be an artefact of the way we divided the dataset into test and training sets. To address this, we tried to identify the range of all optimal lambda values possible within the available ecological dataset. We reserved (the rounded up integer corresponding to) 25% of the observations as the test set, generated up to 10,000 non-repeating random sets of testing and training data, and calculated the optimal lambda value for each set. 
+The standard method to pick the optimal value of lambda is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models based on a range of lambda values. In one popular textbook example, the range of lambdas used to produce models consists of 100 values from 0.01 to 10,000 (i.e., 10 to the power of 100 equidistant numbers ranging from -2 to 5) [@James2013]. These 100 models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error value (RMSE). The lambda value that produces the regression model with the minimum test error is selected as optimal, and using this value, a final regression model is generated based on the full data set [@James2013]. 
 
-Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. 
+**Modified method: resampling to identify range of possible optimal lambda values using hundreds of test-train dataset splits**
+
+However, we decided this was not appropriate for the small size of the available ecological datasets, which ranged from 13 to 21 years of observations: we could not be confident that the single optimal lambda value was an indicator of the ideal balance point between incorporating useful information and overfitting, since it could just be an artifact of the way we divided the dataset into test and training sets. To address the limited number of observations, instead of identifying a single optimal lambda value, we used resampling to identify a range of optimal lambda values. Specifically, we  divided the dataset in half into non-repeating random sets of test and training data hundreds or thousands of times, and performed the standard method for optimal lambda identification on each test set. For coho spf, we identified optimal lambda values for all 1,716 possible 50% splits of the 13 data points; for Chinook, which had a larger sample size, we capped the number of test sets at 10,000. 
+**Focus lasso results on potential optimal range**
+
+Then, using the full dataset, we calculated regression models produced by the full range of optimal lambda values identified in the test-train step. To generate a smooth set of curves for coefficient values and percent of deviation, the regression models were calculated at a series of 100 equidistant values between the two ends of the optimal lambda range. This smaller set of regressions (rather than calculating regression models at all 1,716 or all 10,000 optimal values) is possible because regression coefficients and percent deviation change smoothly with change in lambda values.
 
 ### Selection of final lambda values 
 
-To select a final lambda value, we considered the percentage of deviation explained and the test error of the 1,366 (coho) and 10,000 (Chinook) randomly sampled test and training sets. Our objective was to select a lambda value that explained the maximum percent of deviation that also produced a reasonable average test error. In both cases we ultimately selected the lambda value associated with an average relative test error of 1.0, or a test error of 100% of the average observation value (see further details in Results).
+Since the standard method was deemed unsuitable for this dataset, we required a modified method to select the final lambda value, and thus generate a single final predictive regression model, for each species. In our modified method we considered the percentage of deviation explained (in the results for the full dataset) and the test error (of the 1,716 [coho] and 10,000 [Chinook] randomly sampled test and training sets). Our objective was to select a lambda value that explained the largest percent of deviation but also produced a reasonable average test error. In both cases we ultimately selected the lambda value associated with an average relative test error of 1.0, or a test error of 100% of the average observation value (see further details in Results).
 
 ## Step 7. Formulate Hydrologic Benefit function
 
@@ -523,9 +528,9 @@ Ecosystem functional flow metrics, calculated with signal-processing techniques 
 
 The onset of the wet season has trended slightly later, though wet season median baseflows (i.e., flows not occurring during storm pulses) have remained stable on average (with a very slight downward trend). Wet season baseflow rates vary from less than 50 cfs (1977) to over 2000 cfs (1997) with typical winter flow ranging from 400 to 1000 cfs (Figure \@ref(fig:funcFlowTimeseries), panel E).
 
-After April, the chance of large precipitation events becomes minimal leading to a gradual, near-exponential decline of streamflow rates during May through July as the snowpack in the upper watershed melts off. While a very consistent feature in the annual hydrograph (e.g., Figure \@ref(fig:reconnectExplainerHydrograph)), the rate of flow reduction (i.e., the exponential decline) during the spring has increased over the period of record. The spring recession curve has grown steeper and accelerated the annual recession process: hhe rate of decline was just above 0.05%/day in 1940, and it was nearly 0.07%/day in 2020 (Figure \@ref(fig:funcFlowTimeseries), panel EF).
+After April, the chance of large precipitation events becomes minimal leading to a gradual, near-exponential decline of streamflow rates during May through July as the snowpack in the upper watershed melts off. While a very consistent feature in the annual hydrograph (e.g., Figure \@ref(fig:reconnectExplainerHydrograph)), the rate of flow reduction (i.e., the exponential decline) during the spring has increased over the period of record. The spring recession curve has grown steeper and accelerated the annual recession process: the rate of decline was just above 0.05%/day in 1940, and it was nearly 0.07%/day in 2020 (Figure \@ref(fig:funcFlowTimeseries), panel EF).
 
-The median dry season flow has dropped by approximately 50%, with many years since 1977 seeing flows below 30 cfs, a condition not seen prior to 1977 and largely related discontinuation of inefficient flood irrigation with surface water and the introduction of efficient sprinkler irrigation with groundwater during the 1970s [@Tolley2019]. The onset of the dry season is earlier, and the duration of the dry season has increased, in some of the most recent years to over 200 days (Figure \@ref(fig:funcFlowTimeseries), panels G and H). 
+The median dry season flow has dropped by approximately 50%, with many years since 1977 seeing flows below 30 cfs, a condition not seen prior to 1977 and largely related discontinuation of inefficient flood irrigation with surface water during the 1970s and the introduction of efficient sprinkler irrigation with groundwater allowing for an extended irrigation season [@Tolley2019]. The onset of the dry season is earlier, and the duration of the dry season has increased, in some of the most recent years to over 200 days (Figure \@ref(fig:funcFlowTimeseries), panels G and H). 
 
 The reconnection and disconnection dates also show significant trends over time. As a result, the wet season has notably narrowed over time with (approximate) fall onset trending later and the spring flow recession trending to begin earlier. In 2020, the expected reconnection at the 100 cfs threshold occurs more than a month later than in 1940, the expected summer disconnection more than two weeks earlier (Figure \@ref(fig:reAndDisconTimeseries)).
 
@@ -625,167 +630,6 @@ dev.off()
 ```
 
 
-
-<!-- ```{r select_eco_metric_1, echo = F, warning =F, comment = F} -->
-
-<!-- # 1. Restrict flow thresholds to avoid redundant info -->
-
-<!-- # select one flow threshold for each recon and discon category -->
-<!-- get_best_flow_threshold_tab = function(corr_tab_all_metrics, -->
-<!--                                        species = c("coho", "chinook"), -->
-<!--                                        categories = c("BY_recon",  -->
-<!--                                                       "RY_discon", -->
-<!--                                                       "RY_recon", -->
-<!--                                                       "SY_discon")){ -->
-<!--   output_tab = data.frame(species = sort(rep(species,length(categories))), -->
-<!--                           category = rep(categories, length(species)), -->
-<!--                           threshold_col_name = NA, -->
-<!--                           mean_threshold_R_val = NA) -->
-
-<!--   for(i in 1:nrow(output_tab)){ -->
-<!--     species = output_tab$species[i] -->
-<!--     category = output_tab$category[i] -->
-<!--     y_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab),  -->
-<!--                                          pattern = species)] -->
-<!--     x_names = colnames(metrics_tab)[grep(x=colnames(metrics_tab),  -->
-<!--                                          pattern = category)] -->
-<!--     flow_threshold_corr_values = corr_tab_all_metrics[x_names,y_names] -->
-<!--     flow_threshold_corr_mean_abs = apply(X = flow_threshold_corr_values, -->
-<!--                                          MARGIN = 1, -->
-<!--                                          function(x){mean(abs(x),na.rm=T)}) -->
-<!--     max_mean_index = which.max(flow_threshold_corr_mean_abs) -->
-<!--     max_mean_val = max(flow_threshold_corr_mean_abs, na.rm=T) -->
-<!--     selected_threshold = names(flow_threshold_corr_mean_abs[max_mean_index]) -->
-<!--     output_tab$threshold_col_name[i] = selected_threshold -->
-<!--     output_tab$mean_threshold_R_val[i] = max_mean_val -->
-<!--     # flow_threshold_corr_max_index = apply(X = flow_threshold_corr_values, -->
-<!--     #                                 MARGIN = 2,  -->
-<!--     #                                 function(x){which.max(abs(x))}) -->
-
-<!--     # flow_threshold_corr_max_vals = x_names[flow_threshold_corr_max_index] -->
-<!--   } -->
-
-<!--   return(output_tab) -->
-
-
-<!-- } -->
-
-<!-- best_flow_thresholds = get_best_flow_threshold_tab(corr_tab_all_metrics = corr_tab_all_metrics) -->
-
-<!-- recon_discon_cols = colnames(metrics_tab)[grepl(x=colnames(metrics_tab), "recon") | grepl(x=colnames(metrics_tab), "discon") ] -->
-
-<!-- remove_these = setdiff(x=recon_discon_cols, -->
-<!--                        y=best_flow_thresholds$threshold_col_name) -->
-<!-- keep_these = !(colnames(metrics_tab) %in% remove_these) -->
-
-
-
-<!-- metrics_tab2 = metrics_tab[,keep_these] -->
-<!-- corr_tab_2 = cor(x=metrics_tab2, use="pairwise.complete.obs",) -->
-<!-- # corr_tab_2[corr_tab_2==1] = NA # remove self-correlation values of 1 # this is done in a later step -->
-
-<!-- # Remove correlation values with a sample size of < threshold value (10?) -->
-<!-- min_pairs = 10 -->
-
-<!-- calc_samp_size = function(mt){ -->
-<!--   out_tab = as.data.frame(matrix(data=NA, nrow = ncol(mt), ncol =ncol(mt))) -->
-<!--   colnames(out_tab) = colnames(mt) -->
-<!--   row.names(out_tab) = colnames(mt) -->
-
-<!--   ij_combos = t(combn(x=1:ncol(mt), m=2)) -->
-<!--   for(k in 1:nrow(ij_combos)){ -->
-<!--     i=ij_combos[k,1]; j=ij_combos[k,2] -->
-<!--     out_tab[i,j] = sum(!is.na(mt[,i] * mt[,j])) -->
-<!--     out_tab[j,i] = sum(!is.na(mt[,i] * mt[,j])) -->
-<!--   } -->
-<!--   return(out_tab) -->
-<!-- } -->
-
-<!-- samp_size_tab = calc_samp_size(mt = metrics_tab2) -->
-<!-- keep_corr_tab = samp_size_tab/samp_size_tab -->
-<!-- keep_corr_tab[samp_size_tab < min_pairs] = NA -->
-
-<!-- # Multiply the correlations tab by keep_corr to zero out  -->
-<!-- # the corr coeffs with insufficient sample size -->
-<!-- corr_tab_2 = corr_tab_2 * keep_corr_tab -->
-
-<!-- # corrplot(corr_tab_2, -->
-<!-- #          tl.col = metrics_tab_column_colors, tl.cex = 1.1, -->
-<!-- #          col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"), -->
-<!-- #          na.label = "--", main = NA) -->
-<!-- ``` -->
-
-<!-- ```{r select_eco_metric_2_diagnostics, echo = F, warning =F, comment = F} -->
-
-
-<!-- show_eco_picker_diagnostics = F -->
-
-<!-- if(show_eco_picker_diagnostics==T){ -->
-<!--   # 2. pick eco response metric with highest mean R value with hydro metrics -->
-
-<!-- y_vals = colnames(corr_tab_2)[grepl(pattern = "coho", x = colnames(corr_tab_2)) | -->
-<!--                                 grepl(pattern = "chinook", x = colnames(corr_tab_2))] -->
-<!-- corr_summary = data.frame(y_vals = y_vals, mean_R_top_pred = NA) -->
-<!-- max_pred = 20 -->
-<!-- out_tab = as.data.frame(matrix(data=NA, nrow = length(y_vals), ncol=max_pred)) -->
-<!-- colnames(out_tab)=paste0("preds_",1:max_pred) -->
-<!-- row.names(out_tab)=y_vals -->
-
-<!-- for(num_top_pred in 1:max_pred){ -->
-<!--   # num_top_pred =3 -->
-<!--   for(i in 1:length(y_vals)){ -->
-<!--     y_val = y_vals[i] -->
-<!--     abs_corr_vals = abs(corr_tab_2[,y_val]) -->
-<!--     names(abs_corr_vals)=names(corr_tab_2) -->
-<!--     abs_corr_vals = abs_corr_vals[!(names(corr_tab_2) %in% y_vals)] # remove corr. with other y values -->
-<!--     top_preds = sort(abs_corr_vals, decreasing = T)[1:num_top_pred] -->
-<!--     # print(paste("num_top_pred", num_top_pred, "; y_val", y_val)) -->
-<!--     # print(sort(abs_corr_vals, decreasing = T)[1:num_top_pred]) -->
-<!--     corr_summary$mean_R_top_pred[i] = mean(top_preds) -->
-
-<!--     out_tab[i,num_top_pred]=mean(top_preds) -->
-<!--   } -->
-
-
-
-<!-- corr_co = corr_summary[grep(x=corr_summary$y_vals, pattern = "coho"),] -->
-<!-- corr_ch = corr_summary[grep(x=corr_summary$y_vals, pattern = "chinook"),] -->
-
-<!-- y_val_chinook = corr_ch$y_vals[which.max(corr_ch$mean_R_top_pred)] -->
-<!-- y_val_coho = corr_co$y_vals[which.max(corr_co$mean_R_top_pred)] -->
-
-<!-- # print(paste("Num pred:",num_top_pred,"; Chinook yval:",y_val_chinook, "; Coho yval:", y_val_coho)) -->
-<!-- # print(paste("Num pred:",num_top_pred)) -->
-<!-- # print(corr_co) -->
-<!-- # print(corr_ch) -->
-<!-- } -->
-
-<!-- # y_val_coho = "coho_smolt_per_fem" -->
-
-<!-- # plot for Chinook -->
-<!-- plot(x= 1:max_pred, y= out_tab[y_vals[1],], type = "o", col = 1, ylim=c(0.3,1), pch=20) -->
-
-<!-- for(i in 2:3){#length(y_vals)){ -->
-<!--   lines(x=1:max_pred, y=out_tab[y_vals[i],], col=i) -->
-<!--   points(x=1:max_pred, y=out_tab[y_vals[i],], col=i, pch=20) -->
-<!--   } -->
-<!-- legend(x="topright", legend = y_vals, col = 1:length(y_vals), lwd=2) -->
-<!-- grid() -->
-
-<!-- # plot for coho -->
-<!-- plot(x= 1:max_pred, y= out_tab[y_vals[4],], type = "o", col = 4, ylim=c(0.3,1), pch=20) -->
-
-<!-- for(i in 5:length(y_vals)){ -->
-<!--   lines(x=1:max_pred, y=out_tab[y_vals[i],], col=i) -->
-<!--   points(x=1:max_pred, y=out_tab[y_vals[i],], col=i, pch=20) -->
-<!--   } -->
-<!-- legend(x="topright", legend = y_vals, col = 1:length(y_vals), lwd=2) -->
-<!-- grid() -->
-<!-- } -->
-
-<!-- ``` -->
-
-
 ```{r select_eco_metric_3, echo = F, warning =F, comment = F}
 
 # 3. Select number of metrics considered (5) 
@@ -834,11 +678,6 @@ The correlations between hydrologic and ecologic metrics were not particularly s
 
 The correlation coefficients do not show uniform effects of hydrology on both species: for example, the brood year reconnection timing produces strong negative correlations with coho spf and weak positive correlations with Chinook jpa (Figure \@ref(fig:corrMatrixFig)). Furthermore, hydrology tends to have different effects on different life stages: for both species the sign of $R$ with brood year reconnection timing is the opposite for spawning adults and outmigrating juveniles (though brood year reconnection correlations are much weaker for Chinook than for coho). 
 
-**possibly move to Discussion?**
-
-The correlation coefficients support several findings that match existing understanding of coho and Chinook ecohydrology. For example, experiencing a longer wet season as newly hatched fry (`RY_Wet_BFL_Dur`, or rearing year wet season baseflow duration) is associated with higher juvenile abundance for both species (Figure \@ref(fig:corrMatrixFig)). Relatedly, so is a later Rearing Year dry season onset, and a later spring disconnection (in both the rearing and smolt years) is associated with more outmigrating coho smolt. Additionally, a higher number of RY scouring days does seem to be related to lower Chinook outmigrants, whereas it has no relationship with coho outmigrants. 
-
-The correlations also suggest some findings that do not match current understanding. One strong signal is that earlier fall reconnection timing (earlier fall spawning flows) is associated with a higher production of coho spf. In general, earlier fall flows in the brood year are thought to be beneficial to coho salmon, but it appears that this is only true for the number of outmigrating juveniles. The correlations suggest that a higher number of spawners is in fact associated with later fall flows (Figure \@ref(fig:corrMatrixFig)). Relatedly, the total flow volume in the four months of the brood year period is also negatively correlated with the number of coho spawners. These two correlations suggest that the apparent benefits of early flows for normalized coho reproduction is partially driven by a negative effect on the denominator (spawners) in addition to a positive effect on the numerator (outmigrating juveniles). 
 
 
 ```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 7 ecological monitoring metrics: the two normalized metrics (left two columns), three additional metrics for coho (center), and two additional metrics for Chinook (right). Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier date is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
@@ -874,8 +713,14 @@ fig_i = fig_i +1
 
 ## Lasso regression
 
-Lasso regression findings included the percent of deviation in ecological data explained by hydrology, ranked predictor stability, and the subset test errors informing the selection of the final lambda value (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook); Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)). As mentioned in Methods, we selected normalized values of repreductive success for both species as the ecological response variable: coho smolts per female spawner (coho spf) and Chinook juveniles per adult spawner (Chinook jpa). These metrics isolate the effects of the freshwater environment on a given salmon cohort and minimize the importance of ocean conditions or cohort strength. 
+Lasso regression findings included the percent of variability (deviation from the mean) in ecological data explained by hydrology, ranked predictor stability, and the subset test errors informing the selection of the final lambda value (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook); Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)). As mentioned in Methods, we selected normalized values of reproductive success for both species as the ecological response variable: coho smolts per female spawner (coho spf) and Chinook juveniles per adult spawner (Chinook jpa). These metrics isolate the effects of the freshwater environment on a given salmon cohort and minimize the importance of ocean conditions or cohort strength. 
 
+* **swap test error and coeff. panels**
+* **put gray dots on middle graph. optimal lambda value vs number of non0 coeff.**
+
+*Do any of the 1716 have the message that the mean is the best you can do? or do they all have at least 1 coef?*
+
+*2. if that panel looks weird, then go to Supplemental pdf of the same two graphs as the top two for f9 and10, but for each test-train set? Or range of lamda values and test error for each test-train set?. Check the high lambda values first.*
 
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (top panel). Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (lower panel), indicating some overfitting at lower lambda values.\\label{fig:lassoResultsCoho}"}
 
@@ -954,9 +799,9 @@ fig_i = fig_i +1
 
 ### Regression coefficients and fraction of deviation
 
-We used 100 lambda values within the optimal range (identified in step 6) to generate a series of regression models to predict ecological outcomes for coho and Chinook. As is typical in lasso regression, coefficient values in these models approach 0 as the lambda value increases (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), top panel).
+As mentioned above, we used 100 equidistant values within the identified potential optimal range (identified in step 6) to generate a series of regression models to predict ecological outcomes for coho and Chinook. As is typical in lasso regression, coefficient values in these models approach 0 as the lambda value increases (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), **top** panel). Notably, a common interpretation is that the order of disappearance (from left to right) or appearance (from right to left) reflects the order of predictor importance; i.e., the single non-zero coefficient remaining at the highest lambda value is the most important predictor in the dataset (`BY_recon_200` in the case of coho spf).
 
-Each model explains a fraction of the deviation of the observed values from the mean. This fraction ranges from 0% of (with all coefficients set to 0) to 100% of deviation. The number of non-0 coefficients explaining 100% of variation is 12 and 24 for coho and Chinook respectively. This matches the general rule of thumb that with high-dimensional data, it is often possible to explain 100% of deviation by incorporating data from a number of predictors that approaches or exceeds the number of observations [@James2013]. 
+The fraction of the deviation of the observed values from the mean is a function of the lambda value. This fraction ranges from 0% of (with all coefficients set to 0) to 100% of deviation. The number of non-0 coefficients explaining 100% of variation is 12 and 24 for coho and Chinook respectively. This matches the general rule of thumb that with high-dimensional data, it is often possible to explain 100% of deviation by incorporating data from as many or more predictors than the number of observations [@James2013]. 
 
 To explain 20% of Chinook deviation, the regression model needed 5 non-0 coefficients (or degrees of freedom), while for coho only 1 was necessary. Similarly, to explain 50% of variation required 8 and 5 degrees of freedom for Chinook and coho respectively (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook)). 
 
@@ -1017,7 +862,7 @@ keep_preds_ch = names(pred_points_sum[1:n_kept_preds])
 <!-- Coho predictors: `r keep_preds_co` -->
 <!-- Chinook predictors: `r keep_preds_ch` -->
 
-As mentioned above, to find the range of potential optimal lambda values and estimate the test error within this range, we divided the observations randomly into different sets of training and test data (1,716 sets for coho spf and 10,000 for Chinook jpa). Each of the regression models produced from a training subset was associated with an order of appearance of predictors (similar to the results for the full dataset in Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook) [top panel], and listed in Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)).
+In the test-train step, each of the regression models produced from a (random) training subset was associated with an order of appearance of predictors (similar to the results for the full dataset in Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook) [top panel], and listed in Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)).
 
 In the 1,716 models generated using random data subsets for coho, the metrics that appeared most often in the top 5 predictors were the brood year fall flow reconnection timing (750 and 150 cfs thresholds), the rearing year spring disconnection timing, the slope of the flow recession in the smolt (outmigrating) year, and the duration of the rearing year wet season (`BY_recon_750`, `RY_discon_200`, `SY_SP_ROC`, `RY_Wet_BFL_Dur`, and `BY_recon_150`). Because of the collinearity of many of the reconnection metrics, no individual threshold should carry much significance; rather this suggest that the reproductive success of coho is relatively sensitive to the timing of fall flow increases and spring flow recessions. Of these five, only one (`RY_discon_200`) appears in the top five predictors of the regression model produced using the full dataset (Figure \@ref(fig:lassoResultsCoho); Table \@ref(tab:predAppearTabCoho)); however, the full-dataset model does include the same preponderance of flow timing metrics in the first five non-zero predictors.
 
@@ -1034,9 +879,9 @@ pred_tab_co$rank= 1:nrow(pred_tab_co)
 pred_tab_co = pred_tab_co[,c("rank","predictor","lambda_non0_val_appears")]
 
 #Create caption and column labels
-caption_text = paste0("Predictors informing the lasso regression for ",
+caption_text = paste0("Predictors informing the lasso regression for the full dataset of ",
                       yvlt$y_val_title[yvlt$y_val==y_val_coho],
-                      " at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
+                      " observations, at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
 column_labels = c("Order of appearance","Predictor","Non-zero lambda value")
 colnames(pred_tab_co) = column_labels
 
@@ -1055,9 +900,9 @@ pred_tab_ch$rank = 1:nrow(pred_tab_ch)
 pred_tab_ch = pred_tab_ch[,c("rank","predictor","lambda_non0_val_appears")]
 
 #Create caption and column labels
-caption_text = paste0("Predictors informing the lasso regression for ",
+caption_text = paste0("Predictors informing the lasso regression for the full dataset of ",
                       yvlt$y_val_title[yvlt$y_val==y_val_chinook],
-                      " at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
+                      " observations, at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
 column_labels = c("Order of appearance","Predictor","Non-zero lambda value")
 colnames(pred_tab_ch) = column_labels
 
@@ -1069,7 +914,38 @@ ptc_ft
 
 ### Test error and selection of final lambda value
 
-An increasing lambda value produced a monotonically decreasing average test error across the whole range of optimal lambda values (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), lower panel). This means that for both species, the lowest average test error was found to be at the highest optimal lambda value. If we applied a strict interpretation of the lasso methodology, we would select these upper bounds as the final lambda values (approximately 37 for coho and 110 for Chinook), producing regression models that contained all-zero coefficients and explained 0% of deviation.
+```{r numpred_testsets, echo = FALSE}
+
+
+fname_co = paste( y_val_coho,"- lambdas_and_rmse")
+fname_ch = paste( y_val_chinook,"- lambdas_and_rmse no SY")
+
+if(file.exists( file.path(data_dir,paste(fname_co,".csv" )))){
+  l_and_r_co = read.csv(file.path(data_dir,paste(fname_co,".csv")))
+}
+if(file.exists( file.path(data_dir,paste(fname_ch,".csv" )))){
+  l_and_r_ch = read.csv(file.path(data_dir,paste(fname_ch,".csv")))
+}
+
+frac_co_1_pred = sum(l_and_r_co$bestlam_numpred == 1)/nrow(l_and_r_co)
+frac_co_0_pred = sum(l_and_r_co$bestlam_numpred == 0)/nrow(l_and_r_co)
+
+# par(mfrow = c(1,2))
+# breaks_stan = seq(from=0, to = 16, by = 2)
+# hist(l_and_r_co$bestlam_numpred, freq=F, ylim = c(0, 0.7),breaks=12)#, breaks = breaks_stan)
+# hist(l_and_r_ch$bestlam_numpred, freq=F, ylim = c(0,0.7),breaks=12)#, breaks = breaks_stan)
+
+frac_ch_1_pred = sum(l_and_r_ch$bestlam_numpred == 1)/nrow(l_and_r_ch)
+frac_ch_0_pred = sum(l_and_r_ch$bestlam_numpred == 0)/nrow(l_and_r_ch)
+  
+```
+
+For both species, a non-negligible fraction of the test sets produced optimal lambda values with 0 degrees of freedom (`r round(frac_co_0_pred,2)*100` and `r round(frac_ch_0_pred,2)*100` percent for coho and Chinook, respectively). This suggests that there are some observation subsets for which the mean is the best possible prediction and hydrologic metrics provide no additional useful information. However, the majority of the test sets produced optimal lambda values with 1 (`r round(frac_co_1_pred,2)*100` and `r round(frac_ch_1_pred,2)*100` percent for coho and Chinook, respectively) or more predictors.
+
+
+An increasing lambda value produced a monotonically decreasing average test error across the range of optimal lambda values (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), lower panel). This means that for both species, **the lowest average test error was found to be at the highest optimal lambda value. If we applied a strict interpretation of the lasso methodology, we would select these upper bounds as the final lambda values (approximately 37 for coho and 110 for Chinook), producing regression models that contained all-zero coefficients and explained 0% of deviation.**
+
+**check this after modifying figures 9 and 10**
 
 In our professional judgment, this would not match existing understanding that ecological outcomes depend in part on hydrologic conditions. We therefore assumed that this monotonic lambda-test error relationship may be an artefact of the small ecological sample size, and adopted a secondary process for selecting a final lambda value. In this secondary method we set a somewhat arbitrary relative test error threshold of 1.0. The lambda value that explained the maximum deviation without producing an average test error that exceeded 100% of the mean observation value was selected for both species (`r lam_co` for coho spf and `r lam_ch` for Chinook jpa). 
 
@@ -1329,6 +1205,13 @@ In spite of these known limitations, the HB function proposed here uses only hyd
 The correlation analysis findings were dissimilar for coho and Chinook, suggesting that the two species are subject to distinct flow-ecology relationships. The strength of these relationships, estimated as $R$ values, support several findings that match existing understanding of coho and Chinook ecohydrology. For example, experiencing a longer wet season as newly hatched fry (`RY_Wet_BFL_Dur`, or rearing year wet season baseflow duration) is associated with higher juvenile abundance for both species (Figure \@ref(fig:corrMatrixFig)). Relatedly, so is a later rearing year dry season onset, and a later spring disconnection (in both the rearing and smolt years) is associated with more outmigrating coho smolt. Additionally, a higher number of RY scouring days does seem to be related to lower Chinook outmigrants, whereas it has no relationship with coho outmigrants.
 
 The correlations also suggest some findings that do not match current understanding. One strong signal is that earlier fall reconnection timing (earlier fall spawning flows) is associated with a higher production of coho spf. In general, earlier fall flows in the brood year are thought to be beneficial to coho salmon, but it appears that this is only true for the number of outmigrating juveniles. The correlations suggest that a higher number of *spawners* is in fact associated with *later* fall flows (Figure \@ref(fig:corrMatrixFig)). Relatedly, the total flow volume in the four months of the brood year period is also negatively correlated with the number of coho spawners. These two correlations suggest that the apparent benefits of early flows for normalized coho reproduction is partially driven by a negative effect on the denominator (spawners) in addition to a positive effect on the numerator (outmigrating juveniles). 
+
+**possibly move to Discussion?**
+
+The correlation coefficients support several findings that match existing understanding of coho and Chinook ecohydrology. For example, experiencing a longer wet season as newly hatched fry (`RY_Wet_BFL_Dur`, or rearing year wet season baseflow duration) is associated with higher juvenile abundance for both species (Figure \@ref(fig:corrMatrixFig)). Relatedly, so is a later Rearing Year dry season onset, and a later spring disconnection (in both the rearing and smolt years) is associated with more outmigrating coho smolt. Additionally, a higher number of RY scouring days does seem to be related to lower Chinook outmigrants, whereas it has no relationship with coho outmigrants. 
+
+The correlations also suggest some findings that do not match current understanding. One strong signal is that earlier fall reconnection timing (earlier fall spawning flows) is associated with a higher production of coho spf. In general, earlier fall flows in the brood year are thought to be beneficial to coho salmon, but it appears that this is only true for the number of outmigrating juveniles. The correlations suggest that a higher number of spawners is in fact associated with later fall flows (Figure \@ref(fig:corrMatrixFig)). Relatedly, the total flow volume in the four months of the brood year period is also negatively correlated with the number of coho spawners. These two correlations suggest that the apparent benefits of early flows for normalized coho reproduction is partially driven by a negative effect on the denominator (spawners) in addition to a positive effect on the numerator (outmigrating juveniles). 
+
 
 ## Differences in model flexibility possibly driven by biology
 
