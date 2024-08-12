@@ -1821,7 +1821,7 @@ find_all_best_lambda_vals = function(com_tab, x, y,
 }
 
 plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
-                                  selected_lam){  # Plot lasso diagnostics.
+                                  selected_lam, alpha_val=0.05){  # Plot lasso diagnostics.
   # A) Plot lambda vs test error - setup
   nbreaks = 25
   bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
@@ -1835,8 +1835,8 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   # plot
   plot(lambdas_and_rmse$bestlam,
        lambdas_and_rmse$rmse/mean(y),
-       pch = 19, col = rgb(0.5,0.5,0.5,0.5),
-       main = "... but test error is larger with more coefficients",
+       pch = 19, col = rgb(0.5,0.5,0.5,alpha_val*3),
+       main = "Test error in models for 50% test-train subsets",
        xlab = "Lambda value (shrinkage penalty)",
        log="y",
        ylab = paste("Rel. test error (rel. RMSE) of models made \n from different combinations of data points"))
@@ -1846,7 +1846,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   points(bin_centers, avg_by_bin$x/mean(y), pch=23, cex = 1.2, bg = "firebrick", type = "o")
   legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
          pch = c(19,23),
-         legend = c("Individual model RMSE", "Binned geom. mean RMSE"))
+         legend = c("Model RMSE at opt. lambda", "Binned geom. mean RMSE"))
 
   #B: deviance and non-0 coefficients
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
@@ -1854,20 +1854,20 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
        ylab = "% of null deviation explained by model",
        xlab = "Lambda value (shrinkage penalty)",
-       main = "Adding more coefficients explains more variation...")
+       main = "Percent varition (full dataset) and degrees of \n freedom (full dataset and test-train sets)")
   grid()
   par(new=T)
   plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
        xlab="",ylab="", axes=F, type = "l")
-  num_pred_col = rgb(.3,.3,.7,.15)
+  num_pred_col = rgb(.3,.3,.7,alpha_val); num_pred_col_leg = rgb(.3,.3,.7,alpha_val*3)
   points(lambdas_and_rmse$bestlam,
-       lambdas_and_rmse$bestlam_numpred, pch= 20, col = num_pred_col)
+       lambdas_and_rmse$bestlam_numpred, pch=19, col = num_pred_col)
   axis(side=4,at=pretty(range(lasso_mod$df)))
   mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
   abline(v=selected_lam, lty = 2, col = lam_color)
-  legend(x = "topright", col=c(num_pred_col,"black","dodgerblue",lam_color),
-         lwd = c(NA,1,2,1), lty = c(NA,1,1,2), pch=c(20,NA,NA,NA),
-         legend = c("Deg. of freedom (test set, min. lambda)",
+  legend(x = "topright", col=c(num_pred_col_leg,"black","dodgerblue",lam_color),
+         lwd = c(NA,1,2,1), lty = c(NA,1,1,2), pch=c(19,NA,NA,NA),
+         legend = c("Deg. of freedom (test sets, opt. lambda)",
                     "% Deviance (full dataset)", "Deg. of freedom (full dataset)",
                     "Selected lambda (full dataset)"))
 
@@ -2061,11 +2061,11 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
     # Plots
     par(mfrow=c(3,1))
     y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
-    # if(y_val=="coho_smolt_per_fem"){y_val_label = "coho spf"}
-    # if(y_val=="chinook_juv_per_adult"){y_val_label = "Chinook jpa"}
+    if(y_val=="coho_smolt_per_fem"){alpha_val=0.05}
+    if(y_val=="chinook_juv_per_adult"){alpha_val=0.01}
     #Panel 1 and 2
     plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
-                           selected_lam = selected_lam)
+                           selected_lam = selected_lam, alpha_val=alpha_val)
     # Panel 3
     plot_lasso_coefs(lasso_mod = lasso_mod,
                      pred_appear_tab = pred_appear_tab,
