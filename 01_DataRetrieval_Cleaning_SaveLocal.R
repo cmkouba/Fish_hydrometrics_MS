@@ -29,11 +29,11 @@
 # 3) Run the final line of code in this script, in which the working environment is
 # saved as manuscript_data.Rdata.
 
-library(rgdal)
-library(raster)
-library(rpostgis)
-library(rgeos)
-library(postGIStools)
+# library(rgdal)
+# library(raster)
+# library(rpostgis)
+# library(rgeos)
+# library(postGIStools)
 library(here)
 library(httr)
 library(stringr)
@@ -47,7 +47,7 @@ library(data.table) #fread function
 library(dataRetrieval) # USGS flow data
 library(readr) # for parsing downloaded NOAA data
 # library(devtools); devtools::install_github("flowwest/CDECRetrieve") # This line only needs to be run once to install the CDECRetrieve package (which is not available on CRAN)
-library(CDECRetrieve) # for CDEC data
+# library(CDECRetrieve) # for CDEC data
 library(tidyr)
 library(readxl)
 library(geodata)
