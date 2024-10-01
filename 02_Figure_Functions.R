@@ -1279,7 +1279,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   par(new=T)
   plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
        xlab="",ylab="", axes=F, type = "l")
-  num_pred_col = rgb(.3,.3,.7,alpha_val); num_pred_col_leg = rgb(.3,.3,.7,alpha_val*3)
+  num_pred_col = rgb(.3,.3,.7,alpha_val); num_pred_col_leg = rgb(.3,.3,.7,alpha_val*10)
   points(lambdas_and_rmse$bestlam,
        lambdas_and_rmse$bestlam_numpred, pch=19, col = num_pred_col)
   axis(side=4,at=pretty(range(lasso_mod$df)))
@@ -1479,7 +1479,7 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
 
   if(show_plot==T){
     # Plots
-    par(mfrow=c(3,1))
+    par(mfrow=c(3,1), mar=c(5,5,5,2))
     y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
     if(y_val=="coho_smolt_per_fem"){alpha_val=0.05}
     if(y_val=="chinook_juv_per_adult"){alpha_val=0.01}
@@ -1574,6 +1574,71 @@ get_hbf_tab = function(metrics_tab, coefs, int){
                                                   MARGIN = 1, FUN=sum,na.rm=T)
 
   return(output_tab)
+}
+
+hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
+                             y_val_axis, write_hist_HB_vals=F){
+  # plot details
+  neg_values = hbf_tab$hbf_total < 0
+  if(sum(neg_values,na.rm=T)>0){
+    neg_value_col = "red"; neg_val_pch = 5
+  }
+  obs_col = "goldenrod"
+
+
+  if(write_hist_HB_vals == T){
+    file_name = paste0("hist_HBF_vals_",y_val,"_",Sys.Date(),".csv")
+    write.csv(hbf_tab[,c("water_year","hbf_total")],
+              file = file_name, quote = F, row.names = F)}
+
+  # Plot predicted values
+  par(mar=c(5,5,2,2))
+  plot(x=hbf_tab$brood_year, y=hbf_tab$hbf_total,
+       col = NA,
+       ylim = c(min(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T),
+                max(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)), #yaxt = "n",
+       xlab = "Brood Year",
+       ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
+  # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
+  abline(v = seq(from = 1940, to = 2140, by = 10),
+         h = pretty(range(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)),
+         lty = 3, col = "gray")
+  abline(h=0, col = "darkgray")
+  points(hbf_tab$brood_year, hbf_tab$hbf_total, pch = 19)
+  lines(hbf_tab$brood_year, hbf_tab$hbf_total)
+  # Add observed values
+  points(metrics_tab$brood_year, metrics_tab[,y_val],
+         pch = 24, bg= obs_col, cex = 1.1)
+  # Add arrows connecting predicted values with observed
+  arrows_x = metrics_tab$brood_year
+  arrows_y0 = metrics_tab[,y_val]
+  arrows_y1 = hbf_tab$hbf_total[hbf_tab$brood_year %in% arrows_x]
+  arrows(x0 = arrows_x, y0 = arrows_y0, x1 = arrows_x, y1 = arrows_y1,
+         length = 0, lty = 1, col = obs_col, lwd = 2)
+
+  if(sum(neg_values,na.rm=T)>0){
+    points(hbf_tab$brood_year[neg_values], hbf_tab$hbf_total[neg_values],
+           pch = neg_val_pch, col = neg_value_col, lwd=2)
+  }
+
+  abline(h=0, col = "darkgray")
+  if(y_val=="coho_smolt_per_fem"){legend_place = "bottomleft"} else {legend_place="topleft"}
+  if(sum(neg_values,na.rm=T)>0){
+    legend(legend_place, pch = c(19,neg_val_pch,24, NA),
+           pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
+           col = c("black", neg_value_col,"black", obs_col),
+           pt.bg=c(NA,NA,obs_col, NA), lwd = c(NA,NA,NA,2), lty = c(NA,NA,NA,1),
+           legend = c("Predicted", "Predicted (neg. value)",
+                      "Observed", "Pred. - Obs. difference"))
+  } else {
+    legend(legend_place, pch = c(19,24, NA),
+           pt.lwd = c(NA,2, NA), pt.cex = c(1,1.2, NA), bg="white",
+           col = c("black", "black", obs_col),
+           pt.bg=c(NA,obs_col, NA), lwd = c(NA,NA,2), lty = c(NA,NA,1),
+           legend = c("Predicted",
+                      "Observed", "Pred. - Obs. difference"))
+
+  }
 }
 
 # Supplemental lm tables --------------------------------------------------
@@ -2740,70 +2805,6 @@ save_lm_diagnostics_tables = function(metrics_tab, show_best_analysis = F, show_
 # }
 #
 #
-# hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
-#                              y_val_axis, write_hist_HB_vals=F){
-#   # plot details
-#   neg_values = hbf_tab$hbf_total < 0
-#   if(sum(neg_values,na.rm=T)>0){
-#     neg_value_col = "red"; neg_val_pch = 5
-#   }
-#   obs_col = "goldenrod"
-#
-#
-#   if(write_hist_HB_vals == T){
-#     file_name = paste0("hist_HBF_vals_",y_val,"_",Sys.Date(),".csv")
-#     write.csv(hbf_tab[,c("water_year","hbf_total")],
-#               file = file_name, quote = F, row.names = F)}
-#
-#   # Plot predicted values
-#   par(mar=c(5,5,2,2))
-#   plot(x=hbf_tab$brood_year, y=hbf_tab$hbf_total,
-#        col = NA,
-#        ylim = c(min(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T),
-#                 max(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)), #yaxt = "n",
-#        xlab = "Brood Year",
-#        ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
-#   # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
-#   abline(v = seq(from = 1940, to = 2140, by = 10),
-#          h = pretty(range(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)),
-#          lty = 3, col = "gray")
-#   abline(h=0, col = "darkgray")
-#   points(hbf_tab$brood_year, hbf_tab$hbf_total, pch = 19)
-#   lines(hbf_tab$brood_year, hbf_tab$hbf_total)
-#   # Add observed values
-#   points(metrics_tab$brood_year, metrics_tab[,y_val],
-#          pch = 24, bg= obs_col, cex = 1.1)
-#   # Add arrows connecting predicted values with observed
-#   arrows_x = metrics_tab$brood_year
-#   arrows_y0 = metrics_tab[,y_val]
-#   arrows_y1 = hbf_tab$hbf_total[hbf_tab$brood_year %in% arrows_x]
-#   arrows(x0 = arrows_x, y0 = arrows_y0, x1 = arrows_x, y1 = arrows_y1,
-#          length = 0, lty = 1, col = obs_col, lwd = 2)
-#
-#   if(sum(neg_values,na.rm=T)>0){
-#     points(hbf_tab$brood_year[neg_values], hbf_tab$hbf_total[neg_values],
-#            pch = neg_val_pch, col = neg_value_col, lwd=2)
-#   }
-#
-#   abline(h=0, col = "darkgray")
-#   if(y_val=="coho_smolt_per_fem"){legend_place = "bottomleft"} else {legend_place="topleft"}
-#   if(sum(neg_values,na.rm=T)>0){
-#     legend(legend_place, pch = c(19,neg_val_pch,24, NA),
-#            pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
-#            col = c("black", neg_value_col,"black", obs_col),
-#            pt.bg=c(NA,NA,obs_col, NA), lwd = c(NA,NA,NA,2), lty = c(NA,NA,NA,1),
-#            legend = c("Predicted", "Predicted (neg. value)",
-#                       "Observed", "Pred. - Obs. difference"))
-#   } else {
-#     legend(legend_place, pch = c(19,24, NA),
-#            pt.lwd = c(NA,2, NA), pt.cex = c(1,1.2, NA), bg="white",
-#            col = c("black", "black", obs_col),
-#            pt.bg=c(NA,obs_col, NA), lwd = c(NA,NA,2), lty = c(NA,NA,1),
-#            legend = c("Predicted",
-#                       "Observed", "Pred. - Obs. difference"))
-#
-#   }
-# }
 #
 #
 #
