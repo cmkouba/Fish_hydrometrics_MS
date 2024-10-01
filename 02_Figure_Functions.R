@@ -1270,7 +1270,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
 
   #B: deviance and non-0 coefficients
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  par(mar=c(5,5,3,5))
+  # par(mar=c(5,5,3,5))
   plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
        ylab = "% of null deviation explained by model",
        xlab = "Lambda value (shrinkage penalty)",
@@ -1283,7 +1283,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
   points(lambdas_and_rmse$bestlam,
        lambdas_and_rmse$bestlam_numpred, pch=19, col = num_pred_col)
   axis(side=4,at=pretty(range(lasso_mod$df)))
-  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.8)
+  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.7)
   abline(v=selected_lam, lty = 2, col = lam_color)
   legend(x = "topright", col=c(num_pred_col_leg,"black","dodgerblue",lam_color),
          lwd = c(NA,1,2,1), lty = c(NA,1,1,2), pch=c(19,NA,NA,NA),
