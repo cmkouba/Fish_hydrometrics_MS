@@ -11,7 +11,7 @@
 
 # setup -------------------------------------------------------------------
 
-
+res_dpi = 800
 figure_units = "metric"
 cfs_to_TAF_per_day = 1/43560 * 60*60*24 / 1000 # 1cfs / sq ft_per_acre * seconds_per_day / 1000
 cfs_to_m3sec = 1 / 35.3147 # 1 cfs / cubic ft per cubic m
@@ -254,10 +254,11 @@ save_setting_figure = function(){
     draw_plot(inset_grob, width = .35, height = .6, x = .67, y = .49)
 
   # produce map
-  graphic_filename = file.path(ms_dir,"Graphics and Supplements","scott valley setting.png")
+  graphic_filename = file.path(ms_dir,"Graphics and Supplements",
+                               "Graphics source","scott valley setting.png")
   file.remove(graphic_filename) # remove old version to save new one
   png(filename = graphic_filename,
-      width = 7, height = 8.3, units = "in", res = 400)
+      width = 7, height = 8.3, units = "in", res = res_dpi)
       # width = 9, height = 10, units = "in", res = 400)
   result
   dev.off()
@@ -1499,26 +1500,6 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
                                             pred_rank_tab = pred_rank_tab,
                                             lasso_mod_range = lasso_mod))}
 }
-
-# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-# png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-#
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_per_fem")
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juv_per_adult",
-# #                        remove_SY_metrics=T)
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_smolt_abun_est")
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "percent_coho_smolt_survival")
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_redds_in_brood",
-# #                        remove_SY_metrics=T)
-# #
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_spawner_abundance",
-# #                        remove_SY_metrics=T)
-# # lasso_regression_plots(metrics_tab = metrics_tab, y_val = "chinook_juvenile_abundance")
-# #
-# lasso_regression_plots(metrics_tab = metrics_tab, y_val = "coho_spawner_abundance",
-#                        remove_SY_metrics=T)
-#
-# dev.off(); fig_i = fig_i + 1
 
 
 get_lasso_mod = function(metrics_tab,

@@ -564,6 +564,9 @@ fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_r
 colnames(fflows)[1] = "Water_Year"
 fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
 
+# copy to Graphics and Supplements folder as a supplemental table
+file.copy(from = file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_result.csv"),
+          to = file.path(graphics_dir, "Supplemental Table 1. Annual Scott River Functional Flows.csv"))
 
 
 

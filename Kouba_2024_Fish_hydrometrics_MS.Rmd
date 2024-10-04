@@ -1,5 +1,5 @@
 ---
-title: A watershed-specific formula to predict coho salmon reproduction using river flow metrics
+title: A watershed-specific formula to predict coho salmon reproduction using functional flow metrics
 author: "Claire Kouba, Jason Wiener and Thomas Harter"
 date: "Oct. 2024"
 output: 
@@ -52,8 +52,9 @@ source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
 
 # Save figures as images, yes or no?
 save_figs_here = graphics_dir
-save_imgs=F
-replace_setting_fig = F
+save_imgs=F # generate the figures in the folder
+include_figs = T 
+replace_setting_fig = F # setting to F can save time if no need to re-render map
 fig_i = 1
 
 # pick last water year for the HB function to calculate a value for
@@ -90,15 +91,12 @@ A river's flow regime is often referred to as a "master variable" controlling ge
 Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @Monk2006; @Guareschi2014; @Kevic2018; @Mazor2018; @Larsen2021; @Peek2022], and secondly, fish diversity and community assemblage [e.g., @McManamay2013; @Peterson2016; @Cartwright2017; @Sinnathamby2018; @Hain2018; @Guedes2020; @Yao2021]. Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-Koster2011; @Booth2014; @DeWeber2020; @Hale2023], as well as the extent of habitat types [@Chowdhury2007; @Brand2011] and the presence of organisms including vegetation and plankton [@Riis2008; @Catford2014; @Qian2016; @Tesfaye2017; @Saby2022]. Hydrologic predictors range widely, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @Ayllon2014; @Lamouroux2015; @McManamay2015; @Bower2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerrera2017; @Gao2020; @White2018; @Daneshvar2017; @Herbst2019].
 
 Investigations of flow-ecology relationships can also be grouped by approach [as in @Brummer2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @Konrad2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Medallo-Diaz2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring is related to flow differences between streams [e.g., @Monk2008; @Riis2008; @Catford2014; @Bower2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@Brummer2016]. 
-<!-- Frequently in space-for-time analyses the flow change is quantified in terms of hydrologic alteration from a natural or historical regime, as in the Ecological Limits of Hydrologic Alteration (ELOHA) framework [@Richter2006; @Poff2010b]. ELOHA and other methods to identify natural flow regimes are adaptable and have been applied widely to many distinct regional systems [e.g., @Knight2014; @Brummer2016; @Bower2022].  -->
 
 Bridging the gap between science and policy has been a persistent challenge in this field. In many cases a key research motivation is to support decision-making in a variety of contexts, including dam operation, river restoration, and regulations of water extraction and land use [@Richter2006; @Han2015; @Sinnathamby2018; @Bradley2017; @Brummer2016]. But historical approaches based on relationship-finding are several steps removed from the policy-making process [@Webb2018]. For example, the Ecological Limits of Hydrologic Alteration (ELOHA) framework or similar approaches can generate flow-ecology relationships or flow standards for particular rivers, but cannot translate specific management decisions into hydrologic or ecological outcomes [@Richter2006; @Cartwright2017]. 
-<!-- Additionally, studies of multiple stressors on river systems suggest that flow changes alone are not enough to predict ecological response at regional, multi-basin scales [e.g., @Worrall2014; @Knight2014; @McManamay2013; @McManamay2015] or in some single basins [e.g., @AceroTriana2021]. Finally, many flow-ecology relationships are based on insufficient data. Methods have been proposed to mitigate this, but the exercise is generally inhibited by small sample size of relevant ecological metrics [@Gwinn2016]. -->
 
 An ideal framework for supporting decision-making would involve two key steps, firstly connecting land and water management actions to flow changes, and secondly connecting flow changes to ecological responses [@Peterson2016; @DeWeber2020; @AceroTriana2021]. Both steps can involve complex models and substantial uncertainty, often representing an interdisciplinary challenge. Threshold values for "sufficient" flows would be ideal for a management context [@Rosenfeld2017], but can be difficult to identify and in some cases may not exist [@Lueders2023].  Additionally, identifying natural flow regimes may be less immediately relevant to water resource management than an approach which can quantify ecological responses to "designer" or functional flows (which can often be controlled or influenced by dam releases) [@Arthington2014; @Webb2018], with the caveat that the designer flows approach may risk overlooking ecological flow needs that are not currently monitored [@Bower2022]. Finally, stakeholders in at least one study requested flow-ecology relationships based on empirical monitoring, rather than more easily-simulated proxies like flow changes or thermal exposure [@DeWeber2020].
 
 The present study is a longitudinal analysis, using empirical data and a case study, to address the second of the two key links identified above. We use empirical data to develop a predictive model of a biological response to measurable (and simulatable) changes in flow metrics. We refer to this model as a "hydrologic benefit function" (i.e., intending to quantify the ecological services provided by flow) for a single species. This provides the critical link to evaluate fish outcomes resulting from future alternative watershed management practices which affect the hydrology of a stream ecosystem. A forthcoming companion study will investigate the other link, simulating flow changes from watershed management actions using an appropriate hydrologic model, then use hydrologic benefit functions to summarize the ecologic outcomes of a portfolio of water and land use scenarios.
-
 
 # Methods: Case study setting and species of concern
 
@@ -111,16 +109,16 @@ Ecologic data in Scott Valley is available due to routine monitoring of spawning
 
 ```{r ScottWatershedMap, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "The Scott River watershed, with regional geographic context (see inset) and local features.\\label{fig:ScottWatershedMap}"}
 
-# this stupid inset map thing made it not play nice with knitr. so have to include it as a png.
-if(replace_setting_fig == TRUE){save_setting_figure()}
+# if(replace_setting_fig == TRUE){save_setting_figure()}
 
 if(save_imgs==T){
-  file.copy(from = file.path(graphics_dir, "scott valley setting.png"),
+  file.copy(from = file.path(graphics_dir, "Graphics source","scott valley setting.png"),
             to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
 }
 
-knitr::include_graphics(file.path(graphics_dir, "scott valley setting.png"))
-# knitr::include_graphics(file.path(graphics_dir, "scott valley setting_old2.png"))
+if(include_figs==T){
+  knitr::include_graphics(file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
 
 fig_i = fig_i +1
 
@@ -139,13 +137,13 @@ In most dry-to-average water years, sections of the Scott River become seasonall
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 6, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
   
   fj_flow_figure(roll_window = 30)
   
   dev.off()
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
@@ -153,8 +151,6 @@ fig_i = fig_i +1
 ### Water uses and management objectives
 
 Water in Scott Valley is used for agricultural, domestic, and municipal supply. It also facilitates recreation and provides Native American cultural services, among other designated beneficial uses [NCRWQCB -@NCRWQCB2006b]. Because the watershed is undammed, managers and water users influence Scott River flow primarily via diversion of surface waters and pumping of groundwater. Consequently, the most powerful tool available to manage Scott River water flow is regulation of land use and thus water demand [Siskiyou County -@SiskiyouCounty2021]. 
-
-<!-- Scott Valley is not a census-designated place and therefore does not have an official population estimate; however, census block-level population data, area-weighted according to the fraction of each block that overlaps with the watershed, indicate that in 2020 the population of the Scott River watershed was approximately 5,186 [@USCensus2021]. Most reside outside the boundaries of the two incorporated towns Fort Jones and Etna, with estimated populations of 695 and 678, respectively [@USCensus2021]. -->
 
 Historically, local regulation of land use has focused on maintaining the rural and agricultural character of Scott Valley [@SVAP1980]. Regulating land use to improve ecological outcomes would entail significant economic, political and social risks, because much of the economic activity in this area is related to agriculture. The primary crops grown in Scott Valley are pasture for cattle feed and alfalfa [Siskiyou County -@SiskiyouCounty2021]. In addition to local economic impact, Scott River conditions influence fish population dynamics both within the watershed and in the broader Klamath system. The health of the Klamath salmon run has implications for commercial fishing, recreational activities, and cultural practices of Native American tribes in the region, including the Quartz Valley Indian Community and the Karuk and Yurok Tribes [@Graham2012].
 
@@ -173,15 +169,7 @@ Monitoring activity in the past 20 years has included population estimates from 
 
 Returning adult coho spawn in natal streams between November and January [@CDFW2020], and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts [@Moyle2002; @McMahon1983]. In the Scott River system these natal streams are the tributaries along the margins of the valley floor [@SiskiyouRCD2004].
 
-<!-- Their habitat needs are somewhat different during summer and winter: in summer, coho are found most commonly in cool pools, more than 1 meter deep, with abundant cover (e.g., woody debris or undercut banks) [@Moyle2002; @Giannico2007; @Nickelson1992]. In winter, coho are most abundant in areas with flow refugia, such as alcoves and beaver ponds [@Nickelson1992] or riverine ponds [@Peterson1982], and complex cover such as low velocities, shade, and complex woody debris [@McMahon1989; @Bustard1975]. In winter, without such refugia, juvenile coho risk being swept downstream or out to sea by storm flows before they are physiologically ready to live in ocean conditions [@McMahon1983].  -->
-
-<!-- Coho salmon can be harmed by acute or chronic thermal stress, by exposure to suspended solids, and (at a population level) by hatchery effects. Critical thermal maxima of coho (the temperature at which acute exposure is fatal) has been measured between 28.21 and 29.23 degrees C [@Konecki1995]. Below critical thermal maxima, chronic exposure to elevated temperatures (above a threshold of approximately 16-18 degrees C) can increase prevalence of disease and reduce survival rates [@Miller2014]; however, if sufficient food resources are available to sustain the faster growth that takes place at higher temperatures, chronic thermal stresses may be mitigated [@Lusardi2020]. Similarly, juvenile coho exposed to high levels (2-3 g/L) of suspended solids have exhibited higher stress levels, lower feeding rates, and lower resistances to disease [@Redding1987]. Additionally, hatchery fish tend to have lower fitness than wild-reared fish, and releasing them into wild populations can negatively impact wild coho salmon populations [@Quinones2014a]; one proposed cause is that the lack of sexual selection in hatchery fish populations leads to a higher number of less fit individuals competing for resources [@Theriault2011]. -->
-
 In previous studies, the strongest predictor of juvenile coho abundance in a stream system was spatial habitat [@Bradford2016; @Nickelson1992; @Bustard1975], although adequate food and cover were also important [@McMahon1983]. The primary mechanism for spatial constraints on abundance appears to be that juvenile coho become more territorial as they grow [@McMahon1983].
-
-<!-- , and those that cannot hold a territory typically emigrate downstream or all the way to the ocean in their first summer or spring.  -->
-
-<!-- These early migrators are not well suited to ocean conditions and are much less likely to return as spawning adults [@McMahon1983], though there is evidence that some of these fish may be able to rear in non-natal habitats [@Gorman2016]. -->
 
 An average coho life cycle is illustrated in Figure \@ref(fig:cohoLifeCycleFigure). Some coho salmon return to spawn at age 2 as grilse, but the majority (e.g., 92.4% in 2020) return after more than one year in the ocean, giving the Scott coho salmon run its characteristic 3-year cohort return interval [@CDFW2021a].
 
@@ -189,8 +177,10 @@ Coho salmon in the Scott Valley are listed as threatened under the federal and C
 
 ```{r cohoLifeCycleFigure, echo = F, message = F, warning =F, out.height= "8.5in", fig.cap = "Typical life stage progression of coho salmon in the Scott River watershed."}
 
-knitr::include_graphics(file.path(graphics_dir, "coho life cycle table_2022.02.03.jpg"))
-
+if(include_figs==T){
+knitr::include_graphics(file.path(graphics_dir, "Graphics source", 
+                                  "coho life cycle table_2022.02.03.jpg"))
+}
 ```
 
 ### Life cycle and status of Chinook salmon (*Onchorhynchus tsawytscha*)
@@ -228,12 +218,7 @@ Finally, to identify the presence of scouring flows [i.e., storm events that can
 
 When calculating the timing of river connectivity, discrete thresholds were selected from the continuum of flows, ranging between a minimum value of 8 cfs and a (conservatively high) maximum value of 1000 cfs. At the lowest value all tributaries are known to be disconnected and significant dry reaches exist along the main stem, while the highest value is associated with winter storm events in a fully-connected river system [@Tolley2019].
 
-<!-- Although many of the higher thresholds are unlikely to represent distinct connectivity states from the perspective of a migrating salmon, a wide range of flow thresholds was included to provide a conservatively large number of predictors to the lasso regression (i.e., we didn't want to miss one just because it was slightly higher than our cutoff). -->
-
-<!-- most tributaries connect with the mainstem and the mainstem Scott River is flowing contiguously, including the "tailings" section, a boulder sediment substrata section of the mainstem that is most susceptible to falling dry** [@Tolley2019; @SiskiyouCounty2021]. -->
-
 The re- and disconnection timing of proximate flow thresholds is somewhat correlated. Lasso regression is an appropriate method for this type of data because it can eliminate some redundancy in predictor information [@James2013]. 
-<!-- The predictor selection feature also allowed for a conservatively wide range of flow thresholds to be included in the timing analysis, to avoid missing signals due to an arbitrary flowrate cutoff. -->
 
 ```{r funcFlowTermsTab, echo = FALSE, results = 'asis'}
 
@@ -249,9 +234,6 @@ colnames(ff_tab) = column_labels
 
 ff_tab_ft = flextable(data=ff_tab)
 ff_tab_ft = set_caption(ff_tab_ft, caption = caption_text)
-# autofit(ff_tab_ft)
-# ff_tab_ft = fit_to_width(ff_tab_ft, max_width = 7)
-# ff_tab_ft = flextable::hline(ff_tab_ft, i = 4)
 ff_tab_ft = flextable::width(ff_tab_ft,j=1,  width = 1.1)
 ff_tab_ft = flextable::width(ff_tab_ft,j=2,  width = 1.5)
 ff_tab_ft = flextable::width(ff_tab_ft,j=3, width = 1)
@@ -262,12 +244,15 @@ ff_tab_ft
  
 ```{r fig2Yarnell2020, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
 
-knitr::include_graphics(file.path(graphics_dir, "Yarnell2020_Fig2.png"))
-
 if(save_imgs==T){
-  file.copy(from = file.path(graphics_dir, "Yarnell2020_Fig2.png"),
+  file.copy(from = file.path(graphics_dir, "Graphics source", "Yarnell2020_Fig2.png"),
             to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
 }
+
+if(include_figs==T){
+knitr::include_graphics(file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
 
 fig_i = fig_i +1
 
@@ -280,7 +265,7 @@ fig_i = fig_i +1
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 4.5, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 4.5, units = "in", res = res_dpi)
   
 recon_and_discon_explainer_hydrograph(
   water_year = 2016, tot_flow_annotate = F, 
@@ -288,7 +273,7 @@ recon_and_discon_explainer_hydrograph(
   
   dev.off()
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
@@ -373,7 +358,7 @@ metrics_tab = calc_metrics_hydro_by_affected_brood_year(
 
 write.csv(x = metrics_tab, quote = F, row.names = F,
   file = file.path(graphics_dir,
-                   "Supplemental Table 2 - Flow Metrics by Brood Year.csv"))
+                   "Supplemental Table 2. Flow Metrics by Brood Year.csv"))
 
 # calculate number of predictors for text below
 
@@ -384,13 +369,11 @@ y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
                                                  "coho_smolt_abun_est",
                                                  "chinook_spawner_abundance",
                                               "chinook_juvenile_abundance"
-                                       # "percent_coho_smolt_survival",
                                        ),
                              y_val_title = c("coho spf","Chinook jpa",
                                              "coho escapement",
                                              "coho redd abundace",
                                              "est. coho smolt abundance",
-                                             # "percent coho smolt survival",
                                              "Chinook escapement", 
                                              "Chinook juv. abundance"
                                              ),
@@ -399,7 +382,6 @@ y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
                                              "Num. coho spawners (escapement)",
                                              "Num. obs. coho redds",
                                              "Est. num. coho smolt",
-                                             # "% coho smolt survival",
                                              "Num. Chinook spawners (escapement)",
                                              "Num. Chinook juveniles"),
                              remove_sy = c(F,T,T,T,F,T,T),
@@ -511,13 +493,13 @@ fflows_hist_obs = read_fflows_csv(scen_id = "hist_obs")
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 9, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 9, units = "in", res = res_dpi)
   
 func_flow_timeseries_fig(fj_flow = fj_flow, fflows = fflows_hist_obs)
   
   dev.off()
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 
@@ -529,13 +511,13 @@ fig_i = fig_i +1
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 6, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
   
 re_and_discon_timeseries_figure()
   
   dev.off()
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 
@@ -557,7 +539,7 @@ corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs")
 
 
 metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
-                              rep("darkgray",8), # fish outcome metrics
+                              rep("darkgray",7), # fish outcome metrics
                               rep(fall_col,nthresh), # BY fall recon 
                               rep(spring_col,nthresh), # RY spring discon
                               rep(fall_col,nthresh),   # RY fall discon
@@ -580,15 +562,16 @@ metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
                               )
 
 if(save_imgs==T){
-  pdf(file = file.path(graphics_dir, "corr_explorer_2.pdf"), width = 40, height = 40)
+  pdf(file = file.path(graphics_dir, "Supplemental Figure 1. Correlation Matrix.pdf"), width = 40, height = 40)
 par(mar=c(5,4,6,2))
 corrplot(corr_tab_all_metrics,
          tl.col = metrics_tab_column_colors, tl.cex = 1.1,
          col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
-         na.label = "--", main = NA)#"Correlation Matrix of Hydrologic and Fish Outcome Metrics")
-text(x=30,y=68, cex=3, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
-polygon(x=c(10,59,59,10,10)+.5, y = c(49,49,54,54,49)+.4, border = "deeppink", lwd = 6, lty = 2)
-polygon(x=c(10,59,59,10,10)+.5, y = c(54,54,57,57,54)+.6, border = "darkviolet", lwd = 6, lty = 4)
+         na.label = "--", main = NA)
+text(x=30,y=107, cex=3, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
+x1 = 9; x2 = 97; y1 = 88; y2=y1+4; y3=y2+3
+polygon(x=c(x1,x2,x2,x1,x1)+.5, y = c(y1,y1,y2,y2,y1)+.4, border = "deeppink", lwd = 6, lty = 2)
+polygon(x=c(x1,x2,x2,x1,x1)+.5, y = c(y2,y2,y3,y3,y2)+.6, border = "darkviolet", lwd = 6, lty = 4)
 dev.off()
 
 }
@@ -626,14 +609,14 @@ pred_subset = row.names(corr_matrix_pearson)[greater_than_thresh_finder]
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   
 corr_matrix_fig_2(corr_matrix = corr_matrix_pearson, 
                   pred_subset = pred_subset)
   
   dev.off()
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 
@@ -691,7 +674,7 @@ We therefore assumed the monotonic lambda-test error relationship was an artefac
 
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)}
+if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
 lasso_results_co = lasso_regression_plots_and_tabs(
   metrics_tab = metrics_tab,
@@ -712,7 +695,7 @@ if(save_imgs == TRUE){
   write.csv(x=pred_tab_co, file=file.path(graphics_dir,pred_tab_filename),
             quote=F, row.names = F)
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 
@@ -723,7 +706,7 @@ fig_i = fig_i +1
 
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)}
+if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
 lasso_results_ch = lasso_regression_plots_and_tabs(
   metrics_tab = metrics_tab,
@@ -746,7 +729,7 @@ if(save_imgs == TRUE){dev.off()
             quote=F, row.names = F)
 
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 
@@ -769,7 +752,6 @@ pred_points = as.data.frame(matrix(data=0,nrow=nrow(pred_rank_co), ncol = length
 colnames(pred_points)=ranked_preds
 num_points = rev(1:n_kept_preds)
 for(i in 1:n_kept_preds){
-  # pred_rank_co[,paste0("pred",i,"_pts")] = 5
   for(j in 1:nrow(pred_points)){
     pred_points[j, match(x=pred_rank_co[j,paste0("pred",i)],
                          table = colnames(pred_points))] = num_points[i]
@@ -785,14 +767,12 @@ keep_preds_co = names(pred_points_sum[1:n_kept_preds])
 
 # Chinook
 ranked_preds = sort(unique(as.vector(unlist(pred_rank_ch[,paste0("pred",1:5)]))))
-  # sort(table(pred_rank_co$pred1), decreasing = T)
 overall_freq = sort(table(as.vector(unlist(pred_rank_ch[,paste0("pred",1:5)]))), decreasing=T)
 
 pred_points = as.data.frame(matrix(data=0,nrow=nrow(pred_rank_ch), ncol = length(ranked_preds)))
 colnames(pred_points)=ranked_preds
 num_points = rev(1:n_kept_preds)
 for(i in 1:n_kept_preds){
-  # pred_rank_co[,paste0("pred",i,"_pts")] = 5
   for(j in 1:nrow(pred_points)){
     pred_points[j, match(x=pred_rank_ch[j,paste0("pred",i)],
                          table = colnames(pred_points))] = num_points[i]
@@ -989,11 +969,9 @@ Conversely, for Chinook, because such an inflexible model was selected, no trend
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 8, units = "in", res = 300)
-   # png(filename = fig_path, width = 11.5, height = 4.2, units = "in", res = 300)
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
   par(mfrow=c(2,1))
-  # par(mfrow = c(1,2))
   # Panel 1. Coho
   hbf_over_time_fig(metrics_tab = metrics_tab,
                     hbf_tab = hbf_coho, y_val = y_val_coho,
@@ -1010,7 +988,7 @@ if(save_imgs == TRUE){
   
   dev.off()
 }
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
@@ -1097,7 +1075,7 @@ if(save_imgs==T){
 }
   
 
-knitr::include_graphics(fig_path)
+if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
