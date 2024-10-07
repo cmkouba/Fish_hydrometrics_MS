@@ -48,12 +48,12 @@ if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
   source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) 
 }
 load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
-source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure functions
+source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table functions
 
 # Save figures as images, yes or no?
 save_figs_here = graphics_dir
 save_imgs=F # generate the figures in the folder
-include_figs = T 
+include_figs = T
 replace_setting_fig = F # setting to F can save time if no need to re-render map
 fig_i = 1
 
