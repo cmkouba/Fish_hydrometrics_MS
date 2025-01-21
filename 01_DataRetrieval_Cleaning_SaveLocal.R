@@ -378,7 +378,7 @@ fj_flow = renameNWISColumns(fj_flow)
 fj_flow$wy = year(fj_flow$Date); fj_flow$wy[month(fj_flow$Date) > 9] = fj_flow$wy[month(fj_flow$Date) > 9]+1
 
 date_string = format(Sys.Date(), "%Y.%m.%d")
-write.csv(fj_flow, paste("fj flow", date_string,".csv"), row.names = F, quote=F)
+write.csv(fj_flow, paste0("fj flow ", date_string,".csv"), row.names = F, quote=F)
 
 # NOAA NCDC ---------------------------------------------------------------
 
@@ -559,10 +559,55 @@ spawners$chinook_klamath = as.numeric(gsub(pattern = ",", replacement = "", x = 
 spawners$chinook_scott = as.numeric(gsub(pattern = ",", replacement = "", x = spawners$chinook_scott))
 
 
-# Functional flow metrics -------------------------------------------------------------------
+# Read functional flow metrics -------------------------------------------------------------------
 fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_result.csv"))
 colnames(fflows)[1] = "Water_Year"
 fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
+
+# Calc. functional flow metrics -------------------------------------------------------------------
+
+# # auto pull and process FJ gauge
+# # ffc$step_one_functional_flow_results(gage_id=fj_num,
+# #                                      token = ffc_token,
+# #                                      output_folder = ffc_dir)
+#
+#
+# ffc_dir = file.path(data_dir, "Calculated Functional Flows")
+# library(ffcAPIClient)
+# ffc_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaXJzdE5hbWUiOiJDbGFpcmUiLCJsYXN0TmFtZSI6IktvdWJhIiwiZW1haWwiOiJjbGFpcmUua291YmFAeWFsZS5lZHUiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTczNzQ4MDEyMH0.yk1GcEq-jDHEnFxembVZ44NuCs4d2K-ehbBA81xk3BI"
+# # record lat and long from NWIS
+# fj_data = readNWISsite(fj_num)
+#
+#
+# # ffc = FFCProcessor$new()
+#
+# all_files = list.files(svihm_results_dir)
+# fj_flow_files = all_files[grep(pattern = "FJ outflow", x = all_files)]
+#
+# # begin for loop
+# i=1
+# fj_flow_file = fj_flow_files[i]
+# scen_id = gsub(pattern = " FJ outflow.csv", replacement = "", x = fj_flow_file)
+# fj_flow_i = read.csv(file.path(svihm_results_dir, fj_flow_file))
+# fj_flow_i$Date=as.Date(fj_flow_i$Date)
+# fj_input = data.frame(flow = fj_flow_i$Flow,
+#                       # date = fj_flow_i$Date)
+#                       date = format(x=fj_flow_i$Date, "%m/%d/%Y"))
+#
+# ffcAPIClient::evaluate_alteration(
+#   timeseries_df = fj_input,
+#   token = ffc_token,
+#   plot_output_folder = ffc_dir,
+#   # comid=yoursegmentcomid # REQUIRED OR specify lat/lon
+#   # longitude = fj_data$dec_long_va,
+#   # latitude = fj_data$dec_lat_va
+#   longitude = -123.01503707, latitude = 41.64069017)
+
+# # rename file with scenario ID
+
+
+
+
 
 # copy to Graphics and Supplements folder as a supplemental table
 file.copy(from = file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_result.csv"),
