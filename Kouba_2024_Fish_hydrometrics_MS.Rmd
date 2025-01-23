@@ -212,9 +212,17 @@ All selected functional flow metrics have some known ecological function or inte
 
 Secondly, two additional metrics were devised for this study area related to timing of anadromous fish access to preferred spawning habitat (illustrated in Figure \@ref(fig:reconnectExplainerHydrograph)). These metrics are referred to as "reconnection" and "disconnection" dates. They assume a flow threshold, defined at the Fort Jones gauge, that corresponds to a certain degree of "connectivity" in the Scott River stream system (with the assumption that higher connectivity corresponds to salmon access to more and better spawning  habitat). The date on which this connectivity is lost in the spring/summer or gained in the fall has implications for whether salmon passage exists during the preferred migrating time window. These metrics are related to the California-specific functional flows, namely, the timing and slope of spring recess and the timing of a fall pulse flow (Table \@ref(tab:funcFlowTermsTab)). More importantly, they add value to this analysis because of their direct relation to fish passage in the watershed.
 
-Finally, to identify the presence of scouring flows [i.e., storm events that can mobilize large amounts of sediment and either bury or wash away salmonid eggs; @SRWC2018], which presumably have a detrimental effect on survival, we calculated the number of days in each year with average daily flow greater than the 90th flow percentile (for the full Fort Jones hydrologic record). 
+Finally, to identify the presence of scouring flows [i.e., storm events that can mobilize large amounts of sediment and either bury or wash away salmonid eggs; @SRWC2018], which presumably have a detrimental effect on egg survival, we calculated the number of days in each year with average daily flow greater than the 90th flow percentile (for the full Fort Jones hydrologic record). 
 
 ### Selecting flow thresholds for dis- and re-connection timing
+
+**REVISE: NOW INCLUDING ONLY 2. 20 AND 120. these correspond approximately to mainstem connectivity and full tributary connectivity.**
+
+In average-to-dry water years, after portions of the Scott River run dry, the timing of fall river reconnection determines when salmon can access mainstem and tributary spawning habitat (**CITE**). [**sentence about whether salmon can wait?**] To calculate the timing of river connectivity, two discrete thresholds were selected from the continuum of flows to represent a partially and a fully connected stream system. The thresholds correspond to two distinct events: first, 20 cfs (0.57 cms), corresponding to connectivity within mainstem Scott River; and second, 120 cfs (3.4 cms) connectivity of the full stream network, allowing access to tributary habitat. Because these flows are measured at the Fort Jones gauge, they are a proxy for conditions in the full stream network; however, [**evidence for why this works**] [@Kouba2024].
+
+The re- and disconnection timing of proximate flow thresholds is somewhat correlated. Lasso regression is an appropriate method for this type of data because it can eliminate some redundancy in predictor information [@James2013]. 
+
+
 
 When calculating the timing of river connectivity, discrete thresholds were selected from the continuum of flows, ranging between a minimum value of 8 cfs and a (conservatively high) maximum value of 1000 cfs. At the lowest value all tributaries are known to be disconnected and significant dry reaches exist along the main stem, while the highest value is associated with winter storm events in a fully-connected river system [@Tolley2019].
 
@@ -269,7 +277,7 @@ if(save_imgs == TRUE){
   
 recon_and_discon_explainer_hydrograph(
   water_year = 2016, tot_flow_annotate = F, 
-  connection_date_annotate = "10_and_100_only")
+  connection_date_annotate = "20_and_120_only")
   
   dev.off()
 }
@@ -348,9 +356,10 @@ Because spawning occurs in the fall for both coho and Chinook salmon in the Scot
 brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
                                                              smolt_years = 2001:2024)
 
-thresh_for_corr_fig = c(8, 10, 15, 20, 40, 
-                        70, 100, 150, 200, 300, 
-                        400, 500, 750, 1000)
+# thresh_for_corr_fig = c(8, 10, 15, 20, 40, 
+#                         70, 100, 150, 200, 300, 
+#                         400, 500, 750, 1000)
+thresh_for_corr_fig = c(20,120)
 
 metrics_tab = calc_metrics_hydro_by_affected_brood_year(
   hydro_by_brood_year = brood_year_hydro_tab,
@@ -507,7 +516,7 @@ fig_i = fig_i +1
 ```
 
 
-```{r reAndDisconTimeseries, echo = F, warning =F, fig.height = 8, fig.cap = "Disconnection and reconnection dates for the 100 cfs (2.8 cms) flow threshold, water years 1942-2023. The disconnection date refers to the first day in the spring on which flow drops below the designated threshold (100 cfs); the reconnection date refers to the first date in the fall on which flow rises above the designated threshold. Trends over the past 80 years suggest that the spring flow recession is trending earlier, and the fall river reconnection is trending later. \\label{fig:reAndDisconTimeseries}"}
+```{r reAndDisconTimeseries, echo = F, warning =F, fig.height = 8, fig.cap = "Disconnection and reconnection dates for the 120 cfs (3.4 cms) flow threshold, water years 1942-2023. The disconnection date refers to the first day in the spring on which flow drops below the designated threshold (120 cfs); the reconnection date refers to the first date in the fall on which flow rises above the designated threshold. Trends over the past 80 years suggest that the spring flow recession is trending earlier, and the fall river reconnection is trending later. \\label{fig:reAndDisconTimeseries}"}
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){

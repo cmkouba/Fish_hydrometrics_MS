@@ -627,9 +627,9 @@ recon_and_discon_explainer_hydrograph= function(water_year = 2016,
     }
   }
 
-  if(connection_date_annotate == "20_and_100_only"){
+  if(connection_date_annotate == "20_and_120_only"){
     # Connection dates
-    threshold_color_tab = data.frame(thresholds_cfs = c(10,20,30,40,60,100),
+    threshold_color_tab = data.frame(thresholds_cfs = c(10,20,30,40,60,120),
                                      color_fall = c(NA, "chocolate4", NA, NA,NA, "chocolate4"),
                                      color_spring = c(NA, "darkolivegreen4", NA, NA,NA, "darkolivegreen4"))
     day_buffer = 8
