@@ -718,29 +718,33 @@ recon_and_discon_explainer_hydrograph= function(water_year = 2016,
 }
 
 
-re_and_discon_timeseries_figure = function(){
-  connect_tab = re_and_disconnect_date_tab(fj_flow = fj_flow, last_wy = 2023)
+re_and_discon_timeseries_figure = function(thresh = 120){
+  connect_tab = re_and_disconnect_date_tab(fj_flow = fj_flow, last_wy = 2023, thresholds = thresh)
   # clean - turn 0s to NAs
-  connect_tab$recon_date_100[connect_tab$recon_date_100==0] = NA
-  connect_tab$discon_date_100[connect_tab$discon_date_100==1] = NA
+  col_name_recon = paste0("recon_date_",thresh)
+  col_name_discon = paste0("discon_date_",thresh)
+  connect_tab[connect_tab[,col_name_recon]==0,col_name_recon] = NA
+  connect_tab[connect_tab[,col_name_discon]==1,col_name_discon] = NA
 
   # par(mar = c(5,4,3,1))
-  plot(x = connect_tab$water_year, y = connect_tab$recon_date_100, col = fall_col,
-       main = "Fall reconnection and spring disconnection dates, \n 100 cfs (2.8 cms) threshold",type = "o",
-       ylab = "Days since Aug. 31", xlab = "Water Year", pch=19, ylim = c(-70,366))
+  plot(x = connect_tab$water_year, y = connect_tab[,col_name_recon], col = fall_col,
+       main = paste0("Fall reconnection and spring disconnection dates, \n",
+                    thresh," cfs (", round(thresh*cfs_to_m3sec,1)," cms) threshold"),
+       type = "o", pch=19, ylim = c(-70,366),
+       ylab = "Days since Aug. 31", xlab = "Water Year")
   grid()
-  abline(lm(connect_tab$recon_date_100 ~ connect_tab$water_year), lty = 2)
+  abline(lm(connect_tab[,col_name_recon] ~ connect_tab$water_year), lty = 2)
 
-  points(x = connect_tab$water_year, y = connect_tab$discon_date_100,
+  points(x = connect_tab$water_year, y = connect_tab[,col_name_discon],
          col = spring_col, pch=19)
-  lines(x = connect_tab$water_year, y = connect_tab$discon_date_100, col = spring_col)
-  abline(lm(connect_tab$discon_date_100 ~ connect_tab$water_year), lty = 2)
+  lines(x = connect_tab$water_year, y = connect_tab[,col_name_discon], col = spring_col)
+  abline(lm(connect_tab[,col_name_discon] ~ connect_tab$water_year), lty = 2)
 
 
   legend(x="bottomright",lty = c(1,1,2), pch = c(19,19,NA), col = c(fall_col, spring_col, "black"),
          inset = .02,
-         legend = c("First fall day when flow exceeded 100 cfs",
-                    "First spring day when flow fell below 100 cfs",
+         legend = c(paste("First fall day when flow exceeded",thresh,"cfs"),
+                    paste("First spring day when flow fell below",thresh,"cfs"),
                     "Line of best fit"))
 }
 
