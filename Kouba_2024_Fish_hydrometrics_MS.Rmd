@@ -1,6 +1,6 @@
 ---
 title: A watershed-specific formula to predict coho salmon reproduction using functional flow metrics
-author: "Claire Kouba, Jason Wiener and Thomas Harter"
+author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
 date: "Oct. 2024"
 output: 
   bookdown::word_document2: 
@@ -59,6 +59,12 @@ fig_i = 1
 
 # pick last water year for the HB function to calculate a value for
 last_wy = 2023
+```
+
+```{r load_FF_metrics, include = FALSE}
+fflows = read_fflows_FJ(calc = "Flashy")
+# fflows = read_fflows_FJ(calc = "Regular")
+
 ```
 
 # Abstract {-}

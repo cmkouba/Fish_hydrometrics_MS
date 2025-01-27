@@ -127,26 +127,47 @@ outmigs$Smolt.point.Estimate = as.numeric(as.character(outmigs$Smolt.point.Estim
 
 # subfunctions ------------------------------------------------------------
 
-read_fflows_csv = function(scen_id){
-  fflows_scen = read.csv(file.path(data_dir, "SVIHM Model Results", "tables for func flows",
-                                   paste(scen_id, "func flow metrics.csv")))
-  fflows = data.frame(t(as.matrix(fflows_scen)))
-  colnames(fflows)=fflows_scen[,1]
-  fflows = fflows[row.names(fflows)!="Year",]
-  for(i in 1:ncol(fflows)){
-    fflows[,i]=as.numeric(as.character(fflows[,i]))
+# Read functional flow metrics -------------------------------------------------------------------
+
+read_fflows_FJ = function(calculator = "Regular"){
+  # fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_result.csv")) # old metrics
+
+  if(tolower(calculator) == "regular"){
+    fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2025.01.21_annual_Reg_Calc.csv"))
+  }
+  if(tolower(calculator) == "flashy"){
+    fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2025.01.21_annual_Flashy_Calc.csv"))
+  }
+  # clean table
+  if(colnames(fflows)[1]=="X"){fflows[1]=NULL} # remove column of row numbers
+  colnames(fflows)[1] = "Water_Year" # name it Water Year instead of just Year for clarity.
+  # all the columns in this df should be numeric.
+  if(class(fflows[,2])=="character"){
+    fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
   }
 
-  years = as.numeric(substr(x=rownames(fflows), start = 2, stop = 5)) # convert rownames to years
-  max_yr = max(years); min_yr = min(years)
-  fflows$Water_Year = min_yr:max_yr
-
-  new_col_order = c("Water_Year", colnames(fflows)[colnames(fflows)!="Water_Year"])
-  fflows = fflows[,new_col_order]
-  row.names(fflows) = NULL
-
-  return(fflows)
 }
+
+# read_fflows_csv = function(scen_id){
+#   fflows_scen = read.csv(file.path(data_dir, "SVIHM Model Results", "tables for func flows",
+#                                    paste(scen_id, "func flow metrics.csv")))
+#   fflows = data.frame(t(as.matrix(fflows_scen)))
+#   colnames(fflows)=fflows_scen[,1]
+#   fflows = fflows[row.names(fflows)!="Year",]
+#   for(i in 1:ncol(fflows)){
+#     fflows[,i]=as.numeric(as.character(fflows[,i]))
+#   }
+#
+#   years = as.numeric(substr(x=rownames(fflows), start = 2, stop = 5)) # convert rownames to years
+#   max_yr = max(years); min_yr = min(years)
+#   fflows$Water_Year = min_yr:max_yr
+#
+#   new_col_order = c("Water_Year", colnames(fflows)[colnames(fflows)!="Water_Year"])
+#   fflows = fflows[,new_col_order]
+#   row.names(fflows) = NULL
+#
+#   return(fflows)
+# }
 
 # Intro, Case Study functions ---------------------------------------------------------------
 

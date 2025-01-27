@@ -559,10 +559,6 @@ spawners$chinook_klamath = as.numeric(gsub(pattern = ",", replacement = "", x = 
 spawners$chinook_scott = as.numeric(gsub(pattern = ",", replacement = "", x = spawners$chinook_scott))
 
 
-# Read functional flow metrics -------------------------------------------------------------------
-fflows = read.csv(file.path(data_dir, "ScottR_FJ_wy1942_2024.05.06_annual_flow_result.csv"))
-colnames(fflows)[1] = "Water_Year"
-fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
 
 # Calc. functional flow metrics -------------------------------------------------------------------
 
