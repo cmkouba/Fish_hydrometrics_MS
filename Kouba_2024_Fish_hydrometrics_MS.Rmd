@@ -52,7 +52,7 @@ source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table func
 
 # Save figures as images, yes or no?
 save_figs_here = graphics_dir
-save_imgs=F # generate the figures in the folder
+save_imgs=T # generate the figures in the folder
 include_figs = T
 replace_setting_fig = F # setting to F can save time if no need to re-render map
 fig_i = 1
@@ -62,8 +62,8 @@ last_wy = 2023
 ```
 
 ```{r load_FF_metrics, include = FALSE}
-fflows = read_fflows_FJ(calc = "Flashy")
-# fflows = read_fflows_FJ(calc = "Regular")
+fflows = read_fflows_FJ(calculator = "Flashy")
+# fflows = read_fflows_FJ(calculator = "Regular")
 
 ```
 
@@ -210,7 +210,7 @@ Chinook and coho salmon are distinct in several ways relevant to this study and 
 
 We used lasso regression [@James2013; @Ranstam2018] to assess the feasibility of predicting an ecological response, in this case coho and Chinook reproductive outcomes, using dozens of potential hydrologic predictor metrics. The objectives of the lasso exercise were to 1) perform predictor selection, i.e., empirically estimate which hydrologic metrics were most related to coho and Chinook reproductive outcomes and 2) estimate the uncertainty of a predictive Hydrologic Benefit formula, using the selected set of predictors and their calculated coefficients. Each step in the analysis is numbered and explained below.
 
-## Step 1. Calculate predictors: Flow metrics to describe Scott River flow regime
+## Step 1. Calculate predictors and screen for collinearity: Flow metrics to describe Scott River flow regime
 
 Firstly, a set of hydrologic predictor metrics needed to be derived characterizing the Scott Valley hydrologic regime. An initial set of metrics was selected from the catalog of California-specific functional flows (as illustrated in Figure 4) [@Yarnell2020; @Patterson2020] to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. These hydrologic predictors were calculated from the daily flow record at the Fort Jones river gauge from 1942-2023 using the approach of Patterson et al. [-@Patterson2020]. The full suite of 88 metrics is calculated on a water-year basis (i.e., each type of metric produces one value for each water year; *Supplemental Table 1*). Abbreviations, relevant time periods (including salmon life stage alignment; see Section 3.3), and metric calculation details are listed in Table \@ref(tab:funcFlowTermsTab). Additional information is available in @Patterson2020 and supporting documentation. 
 
@@ -292,6 +292,11 @@ fig_i = fig_i +1
 
 ```
 
+### Screen predictors for collinearity
+
+
+
+
 ## Step 2. Assemble responses: Ecological monitoring data
 
 Multiple observed quantities were evaluated as candidates to represent the ecological response (dependent variable) in the flow-ecology relationship. 
@@ -370,6 +375,10 @@ thresh_for_corr_fig = c(20,120)
 metrics_tab = calc_metrics_hydro_by_affected_brood_year(
   hydro_by_brood_year = brood_year_hydro_tab,
   thresholds = thresh_for_corr_fig) 
+
+# Remove the log metrics (TEMPORARY; if it works just remove from table function)
+exclude_these = grepl(pattern = "log_",x=colnames(metrics_tab))
+metrics_tab = metrics_tab[!exclude_these,]; metrics_tab = metrics_tab[,!exclude_these]
 
 write.csv(x = metrics_tab, quote = F, row.names = F,
   file = file.path(graphics_dir,
@@ -504,7 +513,7 @@ In aggregate over the past 80 years, these metrics show an increasing prevalence
 
 ```{r funcFlowTimeseries, echo = F, warning =F, fig.height = 8.6, fig.cap = "Total annual flow volume (panel A) and functional flow metrics (panels B-H; Patterson et al. 2020), derived from daily average flow measurements at the Fort Jones USGS flow gauge (ID 11519500) for water years 1942-2023.\\label{fig:funcFlowTimeseries}"}
 
-fflows_hist_obs = read_fflows_csv(scen_id = "hist_obs")
+fflows_hist_obs = read_fflows_FJ(calculator = "Flashy")#read_fflows_csv(scen_id = "hist_obs")
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
@@ -550,7 +559,8 @@ nthresh_gt_70 = sum(thresh_for_corr_fig >= 70)
 # Calculate correlation matrix and remove values that don't make temporal sense 
 # (i.e., the wet season values in water year 2011 would not influence the
 # number of spawners that arrived in fall of 2010)
-corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs")
+corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs",
+                           method = "spearman")
 
 
 metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
@@ -592,6 +602,39 @@ dev.off()
 }
 
 ```
+
+
+```{r predictor_correlation_screening, echo = F, warning =F, comment = F}
+
+
+high_corr_threshold = 0.7
+
+corr_tab_screener = corr_tab_all_metrics
+diag(corr_tab_screener) = NA
+
+exclude_these = colnames(corr_tab_screener) %in% c("brood_year","smolt_year")
+
+exclude_these = exclude_these +
+  grepl(pattern = "coho", x = colnames(corr_tab_screener)) | 
+  grepl(pattern = "chinook", x = colnames(corr_tab_screener)) 
+
+corr_tab_screener= corr_tab_screener[!exclude_these, ]
+corr_tab_screener= corr_tab_screener[ ,!exclude_these]
+
+corr_tab_long = melt(corr_tab_screener)
+corr_tab_screened = corr_tab_long[ !is.na(corr_tab_long$value)
+                                   & corr_tab_long$value > high_corr_threshold,]
+
+
+greater_than_thresh_finder = apply(X= corr_tab_screener, MARGIN = 1,
+                                function(x){sum(abs(x) >= high_corr_threshold,
+                                                na.rm=T) > 0})
+pred_subset = row.names(corr_tab_screener)[greater_than_thresh_finder] 
+
+corr_tab_screened = corr_tab_screener[colnames(corr_tab_screener) %in% pred_subset,]
+
+```
+
 
 
 ```{r select_eco_metric_3, echo = F, warning =F, comment = F}
@@ -879,8 +922,8 @@ names(coefs_interp) = coefs_interp_names
 # add interpretation to each coefficient
 if(y_val_coho == "coho_smolt_per_fem"){
   
-  coefs_interp$BY_recon_100 = "Earlier reconnection (100 cfs)"
-  coefs_interp$BY_recon_200 = "Earlier reconnection (200 cfs)"
+  coefs_interp$BY_recon_120 = "Earlier reconnection (120 cfs)"
+  # coefs_interp$BY_recon_200 = "Earlier reconnection (200 cfs)"
   coefs_interp$RY_discon_200 = "Later disconnection (200 cfs)"
   coefs_interp$RY_recon_8 = "Earlier reconnection (8 cfs)"
   coefs_interp$RY_DS_Mag_90 = "Lower flow magnitude (dry season)"

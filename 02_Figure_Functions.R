@@ -145,29 +145,29 @@ read_fflows_FJ = function(calculator = "Regular"){
   if(class(fflows[,2])=="character"){
     fflows[colnames(fflows[2:ncol(fflows)])] = sapply(fflows[colnames(fflows[2:ncol(fflows)])],as.numeric)
   }
-
+  return(fflows)
 }
 
-# read_fflows_csv = function(scen_id){
-#   fflows_scen = read.csv(file.path(data_dir, "SVIHM Model Results", "tables for func flows",
-#                                    paste(scen_id, "func flow metrics.csv")))
-#   fflows = data.frame(t(as.matrix(fflows_scen)))
-#   colnames(fflows)=fflows_scen[,1]
-#   fflows = fflows[row.names(fflows)!="Year",]
-#   for(i in 1:ncol(fflows)){
-#     fflows[,i]=as.numeric(as.character(fflows[,i]))
-#   }
-#
-#   years = as.numeric(substr(x=rownames(fflows), start = 2, stop = 5)) # convert rownames to years
-#   max_yr = max(years); min_yr = min(years)
-#   fflows$Water_Year = min_yr:max_yr
-#
-#   new_col_order = c("Water_Year", colnames(fflows)[colnames(fflows)!="Water_Year"])
-#   fflows = fflows[,new_col_order]
-#   row.names(fflows) = NULL
-#
-#   return(fflows)
-# }
+read_fflows_csv = function(scen_id){
+  fflows_scen = read.csv(file.path(data_dir, "SVIHM Model Results", "tables for func flows",
+                                   paste(scen_id, "func flow metrics.csv")))
+  fflows = data.frame(t(as.matrix(fflows_scen)))
+  colnames(fflows)=fflows_scen[,1]
+  fflows = fflows[row.names(fflows)!="Year",]
+  for(i in 1:ncol(fflows)){
+    fflows[,i]=as.numeric(as.character(fflows[,i]))
+  }
+
+  years = as.numeric(substr(x=rownames(fflows), start = 2, stop = 5)) # convert rownames to years
+  max_yr = max(years); min_yr = min(years)
+  fflows$Water_Year = min_yr:max_yr
+
+  new_col_order = c("Water_Year", colnames(fflows)[colnames(fflows)!="Water_Year"])
+  fflows = fflows[,new_col_order]
+  row.names(fflows) = NULL
+
+  return(fflows)
+}
 
 # Intro, Case Study functions ---------------------------------------------------------------
 
@@ -844,28 +844,28 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   ## Smolt year (SY): Wet_BFL_Mag_50, Wet_Tim, Wet_BFL_Dur, SP_Tim, SP_ROC
 
 
-  output_colnames_extended = c("brood_year", "smolt_year",
-                               "coho_smolt_per_fem",
-                               "chinook_juv_per_adult",
-                               "coho_spawner_abundance",
-                               "coho_redds_in_brood",
-                               "coho_smolt_abun_est",
-                               "chinook_spawner_abundance",
-                               "chinook_juvenile_abundance",
-                               # "percent_coho_smolt_survival",
-                               # more advanced outcomes?
-                               paste0("BY_recon_",thresholds),
-                               paste0("RY_discon_",thresholds),
-                               paste0("RY_recon_",thresholds),
-                               paste0("SY_discon_",thresholds),
-                               "BY_min_flow_sepdec","RY_min_flow","SY_min_flow_janjul",
-                               "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
-                               "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", "BY_num_days_gt_90_pctile",
-
-                               "RY_Wet_BFL_Mag_50","RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_num_days_gt_90_pctile",
-                               "RY_SP_Tim" ,"RY_SP_ROC",  "RY_DS_Tim","RY_DS_Mag_50", "RY_DS_Mag_90", "RY_DS_Dur_WS","RY_FA_Mag", "RY_FA_Tim", "RY_FA_Dur",
-
-                               "SY_Wet_BFL_Mag_50" ,"SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_num_days_gt_90_pctile", "SY_SP_Tim" ,"SY_SP_ROC")
+  # output_colnames_extended = c("brood_year", "smolt_year",
+  #                              "coho_smolt_per_fem",
+  #                              "chinook_juv_per_adult",
+  #                              "coho_spawner_abundance",
+  #                              "coho_redds_in_brood",
+  #                              "coho_smolt_abun_est",
+  #                              "chinook_spawner_abundance",
+  #                              "chinook_juvenile_abundance",
+  #                              # "percent_coho_smolt_survival",
+  #                              # more advanced outcomes?
+  #                              paste0("BY_recon_",thresholds),
+  #                              paste0("RY_discon_",thresholds),
+  #                              paste0("RY_recon_",thresholds),
+  #                              paste0("SY_discon_",thresholds),
+  #                              "BY_min_flow_sepdec","RY_min_flow","SY_min_flow_janjul",
+  #                              "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
+  #                              "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", "BY_num_days_gt_90_pctile",
+  #
+  #                              "RY_Wet_BFL_Mag_50","RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_num_days_gt_90_pctile",
+  #                              "RY_SP_Tim" ,"RY_SP_ROC",  "RY_DS_Tim","RY_DS_Mag_50", "RY_DS_Mag_90", "RY_DS_Dur_WS","RY_FA_Mag", "RY_FA_Tim", "RY_FA_Dur",
+  #
+  #                              "SY_Wet_BFL_Mag_50" ,"SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_num_days_gt_90_pctile", "SY_SP_Tim" ,"SY_SP_ROC")
 
   output_colnames = c("brood_year", "smolt_year",
                       "coho_smolt_per_fem",
@@ -881,15 +881,30 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                       paste0("RY_discon_",thresholds),
                       paste0("RY_recon_",thresholds),
                       paste0("SY_discon_",thresholds),
-                      "BY_min_flow_sepdec","RY_min_flow","SY_min_flow_janjul",
-                      "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
-                      "log_tot_flow_CFLP" ,"log_BY_tot_flow_sepdec" ,"log_RY_tot_flow" ,"log_SY_tot_flow_janjul",
-                      "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", "BY_num_days_gt_90_pctile",
-                      "RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_SP_ROC", "RY_DS_Mag_50", "RY_DS_Mag_90", "RY_FA_Mag",
-                      "RY_FA_Tim", "RY_FA_Dur", "RY_Wet_BFL_Mag_50","RY_num_days_gt_90_pctile",
-                      "RY_DS_Tim","RY_SP_Tim", "RY_DS_Dur_WS",
-                      "RY_Peak_Dur_2","RY_Peak_Dur_5","RY_Peak_Dur_10","RY_Peak_Fre_2","RY_Peak_Fre_5","RY_Peak_Fre_10",
-                      "SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_SP_ROC" #"SY_Wet_BFL_Mag_50" ,"SY_num_days_gt_90_pctile", "SY_SP_Tim" ,
+                      # hoping total flow can get captured by dry season metrics?
+                      # doesn't make sense to split strictly by month when the other metrics are hydro-phenomenon based
+                      # "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
+                      # "log_tot_flow_CFLP" ,"log_BY_tot_flow_sepdec" ,"log_RY_tot_flow" ,"log_SY_tot_flow_janjul",
+                      "d1_DS_Dur_WS", "d1_DS_Tim", "d1_DS_Mag_50", "d1_DS_Mag_90",
+                      "f1_FA_Mag", "f1_FA_Tim", "f1_FA_Dur_1", "f1_FA_Dif_num",
+
+                      "w1_Wet_BFL_Dur", "w1_Wet_BFL_Mag_10", "w1_Wet_BFL_Mag_50", "w1_Wet_Tim",
+                      "w1_Peak_Dur_2","w1_Peak_Dur_5","w1_Peak_Dur_10",
+                      "w1_Peak_Fre_2","w1_Peak_Fre_5","w1_Peak_Fre_10",
+                      "w1_Peak_Tim_10","w1_Peak_Tim_2","w1_Peak_Tim_5",
+                      "w1_Peak_10","w1_Peak_2","w1_Peak_5",
+                      "w1_num_days_gt_90_pctile",
+                      "s1_SP_ROC", "s1_SP_ROC", "s1_SP_ROC_Max", "s1_SP_Mag",
+
+                      "d2_DS_Dur_WS", "d2_DS_Tim", "d2_DS_Mag_50", "d2_DS_Mag_90",
+                      "f2_FA_Mag", "f2_FA_Tim", "f2_FA_Dur_1", "f2_FA_Dif_num",
+                      "w2_Wet_BFL_Dur", "w2_Wet_BFL_Mag_10", "w2_Wet_BFL_Mag_50", "w2_Wet_Tim",
+                      "w2_Peak_Dur_2","w2_Peak_Dur_5","w2_Peak_Dur_10",
+                      "w2_Peak_Fre_2","w2_Peak_Fre_5","w2_Peak_Fre_10",
+                      "w2_Peak_Tim_10","w2_Peak_Tim_2","w2_Peak_Tim_5",
+                      "w2_Peak_10","w2_Peak_2","w2_Peak_5",
+                      "w2_num_days_gt_90_pctile",
+                      "s1_SP_ROC", "s1_SP_ROC", "s1_SP_ROC_Max", "s1_SP_Mag",
   )
 
   #1. Initialize table
@@ -976,6 +991,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     RY_flow_recon = hbbm$Flow[hbbm$Date %in% RY_dates_recon & hbbm$smolt_year == smolt_yr]
     SY_flow_discon = hbbm$Flow[hbbm$Date %in% SY_dates_discon & hbbm$smolt_year == smolt_yr]
 
+    # Calculate reconnection and disconnection timing
     for(j in 1:length(thresholds)){
       thresh = thresholds[j]
       BY_recon_day_since_aug31  = calc_recon_days_since_aug_31(dates = BY_dates_recon, flow = BY_flow_recon, recon_threshold=thresh)
@@ -991,7 +1007,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
       # Convert infinite reconnection dates (i.e., the flow never rose above that
       # threshold in that time period) to NA values
       conn_cols = paste0(c("BY_recon_","RY_discon_",
-                            "RY_recon_","SY_discon_"),  thresh)
+                           "RY_recon_","SY_discon_"),  thresh)
       output_tab[i, conn_cols][!is.finite(as.numeric(output_tab[i, conn_cols]))] = NA
     }
 
@@ -1003,69 +1019,123 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
     n_BY = length(BY_flow_m3d); n_RY = length(RY_flow_m3d); n_SY = length(SY_flow_m3d)
     n_CFLP = sum(hbbm$smolt_year == smolt_yr)
-    if(n_BY==122){
-      output_tab[i,"BY_min_flow_sepdec"] =  min(BY_flow_m3d)
-      output_tab[i, "BY_tot_flow_sepdec"] = sum(BY_flow_m3d) / (10^6)
-      output_tab[i, "log_BY_tot_flow_sepdec"] = log10(sum(BY_flow_m3d))
-    }
-    if(n_RY>=365){
-      output_tab[i,"RY_min_flow"] =  min(RY_flow_m3d)
-      output_tab[i, "RY_tot_flow"] = sum(RY_flow_m3d) / (10^6)
-      output_tab[i, "log_RY_tot_flow"] = log10(sum(RY_flow_m3d))
-    }
-    if(n_SY>=182){
-      output_tab[i,"SY_min_flow_janjul"] =  min(SY_flow_m3d)
-      output_tab[i, "SY_tot_flow_janjul"] = sum(SY_flow_m3d) / (10^6)
-      output_tab[i, "log_SY_tot_flow_janjul"] = log10(sum(SY_flow_m3d))
-    }
-    if(n_CFLP>=669){
-      output_tab[i, "tot_flow_CFLP"] = sum(c(BY_flow_m3d, RY_flow_m3d, SY_flow_m3d)) / (10^6)
-      output_tab[i, "log_tot_flow_CFLP"] = log10(sum(c(BY_flow_m3d, RY_flow_m3d, SY_flow_m3d)))
-    }
+    # if(n_BY==122){
+    #   output_tab[i,"BY_min_flow_sepdec"] =  min(BY_flow_m3d)
+    #   output_tab[i, "BY_tot_flow_sepdec"] = sum(BY_flow_m3d) / (10^6)
+    #   output_tab[i, "log_BY_tot_flow_sepdec"] = log10(sum(BY_flow_m3d))
+    # }
+    # if(n_RY>=365){
+    #   output_tab[i,"RY_min_flow"] =  min(RY_flow_m3d)
+    #   output_tab[i, "RY_tot_flow"] = sum(RY_flow_m3d) / (10^6)
+    #   output_tab[i, "log_RY_tot_flow"] = log10(sum(RY_flow_m3d))
+    # }
+    # if(n_SY>=182){
+    #   output_tab[i,"SY_min_flow_janjul"] =  min(SY_flow_m3d)
+    #   output_tab[i, "SY_tot_flow_janjul"] = sum(SY_flow_m3d) / (10^6)
+    #   output_tab[i, "log_SY_tot_flow_janjul"] = log10(sum(SY_flow_m3d))
+    # }
+    # if(n_CFLP>=669){
+    #   output_tab[i, "tot_flow_CFLP"] = sum(c(BY_flow_m3d, RY_flow_m3d, SY_flow_m3d)) / (10^6)
+    #   output_tab[i, "log_tot_flow_CFLP"] = log10(sum(c(BY_flow_m3d, RY_flow_m3d, SY_flow_m3d)))
+    # }
 
     #5. Assign Functional Flow metric predictors
-    ## Brood Year FFs
-    if(n_BY==122){
-      output_tab[i, "BY_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
-      output_tab[i, "BY_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
-      output_tab[i, "BY_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
-    }
-    ## Rearing Year FFs
-    if(n_RY>=365){
-      output_tab[i, "RY_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_DS_Tim"] = fflows$DS_Tim[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_DS_Dur_WS"] = fflows$DS_Dur_WS[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Peak_Dur_2"] = fflows$Peak_Dur_2[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Peak_Dur_5"] = fflows$Peak_Dur_5[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Peak_Dur_10"] = fflows$Peak_Dur_10[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Peak_Fre_2"] = fflows$Peak_Fre_2[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Peak_Fre_5"] = fflows$Peak_Fre_5[fflows$Water_Year == brood_yr + 1]
-      output_tab[i, "RY_Peak_Fre_10"] = fflows$Peak_Fre_10[fflows$Water_Year == brood_yr + 1]
-      if(is.element(el=brood_yr+2, set = fflows$Water_Year)){
-        output_tab[i, "RY_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 2]
-        output_tab[i, "RY_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 2]
-        output_tab[i, "RY_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 2]
-      }
-    }
+    ## d1 - FFs for dry season preceding parents' spawning
+    output_tab[i, "d1_DS_Dur_WS"] = fflows$DS_Dur_WS[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d1_DS_Tim"] = fflows$DS_Tim[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d1_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d1_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr] # match up brood year to water year
+
+    ## f1 - FFs for fall rewetting transition during parents' spawning
+    # if(n_BY==122){
+    output_tab[i, "f1_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f1_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f1_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f1_FA_Dif_num"] = fflows$FA_Dif_num[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    # }
+    ## w1 - FFs for first wet season as egg and fry
+    # if(n_RY>=365){
+    output_tab[i, "w1_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Wet_BFL_Mag_10"] = fflows$Wet_BFL_Mag_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_10"] = fflows$Peak_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_5"] = fflows$Peak_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_2"] = fflows$Peak_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Dur_10"] = fflows$Peak_Dur_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Dur_5"] = fflows$Peak_Dur_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Dur_2"] = fflows$Peak_Dur_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Fre_10"] = fflows$Peak_Fre_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Fre_5"] = fflows$Peak_Fre_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Fre_2"] = fflows$Peak_Fre_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Tim_10"] = fflows$Peak_Tim_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Tim_5"] = fflows$Peak_Tim_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w1_Peak_Tim_2"] = fflows$Peak_Tim_2[fflows$Water_Year == brood_yr + 1]
+
+    ## s1 - FFs for first spring season as juvenile fish
+    output_tab[i, "s1_SP_Dur"] = fflows$SP_Dur[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s1_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s1_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s1_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s1_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s1_SP_Mag"] = fflows$SP_SP_Mag[fflows$Water_Year == brood_yr + 1]
+
+
+    # if(is.element(el=brood_yr+2, set = fflows$Water_Year)){
+    ## d2 - FFs for dry season as juvenile fish
+    output_tab[i, "d2_DS_Dur_WS"] = fflows$DS_Dur_WS[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d2_DS_Tim"] = fflows$DS_Tim[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d2_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d2_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr] # match up brood year to water year
+    # }
+    output_tab[i, "f2_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f2_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f2_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f2_FA_Dif_num"] = fflows$FA_Dif_num[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+
+    # }
+
+    output_tab[i, "w2_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Wet_BFL_Mag_10"] = fflows$Wet_BFL_Mag_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_10"] = fflows$Peak_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_5"] = fflows$Peak_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_2"] = fflows$Peak_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Dur_10"] = fflows$Peak_Dur_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Dur_5"] = fflows$Peak_Dur_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Dur_2"] = fflows$Peak_Dur_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Fre_10"] = fflows$Peak_Fre_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Fre_5"] = fflows$Peak_Fre_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Fre_2"] = fflows$Peak_Fre_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Tim_10"] = fflows$Peak_Tim_10[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Tim_5"] = fflows$Peak_Tim_5[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Peak_Tim_2"] = fflows$Peak_Tim_2[fflows$Water_Year == brood_yr + 1]
+
+    ## s1 - FFs for first spring season as juvenile fish
+    output_tab[i, "s2_SP_Dur"] = fflows$SP_Dur[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s2_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s2_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s2_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s2_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s2_SP_Mag"] = fflows$SP_SP_Mag[fflows$Water_Year == brood_yr + 1]
+
+    # CLEAN THIS FUNCTION
+    # AND ADD ANNUAL METRICS
+
     ## Smolt Year FFs
-    if(n_SY>=182 & is.element(el=brood_yr+2, set = fflows$Water_Year)){
-      # output_tab[i, "SY_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 2]
-      output_tab[i, "SY_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 2]
-      output_tab[i, "SY_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 2]
-      # output_tab[i, "SY_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 2]
-      output_tab[i, "SY_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 2]
-    }
+    # if(n_SY>=182 & is.element(el=brood_yr+2, set = fflows$Water_Year)){
+    # output_tab[i, "SY_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 2]
+    # output_tab[i, "SY_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 2]
+    # output_tab[i, "SY_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 2]
+    # # output_tab[i, "SY_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 2]
+    # output_tab[i, "SY_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 2]
+    # }
 
     # 6. Storm days
     cfs_90th_pctile = quantile(fj_flow$Flow, 0.9)
-    output_tab[i, "BY_num_days_gt_90_pctile"] = sum(BY_flow > cfs_90th_pctile)
-    output_tab[i, "RY_num_days_gt_90_pctile"] = sum(RY_flow > cfs_90th_pctile)
+    output_tab[i, "w1_num_days_gt_90_pctile"] = sum(w1_flow > cfs_90th_pctile)
+    output_tab[i, "w2_num_days_gt_90_pctile"] = sum(w2_flow > cfs_90th_pctile)
     # output_tab[i, "SY_num_days_gt_90_pctile"] = sum(SY_flow > cfs_90th_pctile)
 
   }
