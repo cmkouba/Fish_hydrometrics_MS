@@ -1083,42 +1083,47 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
     # if(is.element(el=brood_yr+2, set = fflows$Water_Year)){
     ## d2 - FFs for dry season as juvenile fish
-    output_tab[i, "d2_DS_Dur_WS"] = fflows$DS_Dur_WS[fflows$Water_Year == brood_yr] # match up brood year to water year
-    output_tab[i, "d2_DS_Tim"] = fflows$DS_Tim[fflows$Water_Year == brood_yr] # match up brood year to water year
-    output_tab[i, "d2_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr] # match up brood year to water year
-    output_tab[i, "d2_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr] # match up brood year to water year
+    output_tab[i, "d2_DS_Dur_WS"] = fflows$DS_Dur_WS[fflows$Water_Year == brood_yr +1] # match up brood year to water year
+    output_tab[i, "d2_DS_Tim"] = fflows$DS_Tim[fflows$Water_Year == brood_yr +1] # match up brood year to water year
+    output_tab[i, "d2_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr +1] # match up brood year to water year
+    output_tab[i, "d2_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr +1] # match up brood year to water year
     # }
-    output_tab[i, "f2_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
-    output_tab[i, "f2_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
-    output_tab[i, "f2_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
-    output_tab[i, "f2_FA_Dif_num"] = fflows$FA_Dif_num[fflows$Water_Year == brood_yr + 1] # match up brood year to water year
+    output_tab[i, "f2_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
+    output_tab[i, "f2_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
+    output_tab[i, "f2_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
+    output_tab[i, "f2_FA_Dif_num"] = fflows$FA_Dif_num[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
 
     # }
 
-    output_tab[i, "w2_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Wet_BFL_Mag_10"] = fflows$Wet_BFL_Mag_10[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_10"] = fflows$Peak_10[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_5"] = fflows$Peak_5[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_2"] = fflows$Peak_2[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Dur_10"] = fflows$Peak_Dur_10[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Dur_5"] = fflows$Peak_Dur_5[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Dur_2"] = fflows$Peak_Dur_2[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Fre_10"] = fflows$Peak_Fre_10[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Fre_5"] = fflows$Peak_Fre_5[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Fre_2"] = fflows$Peak_Fre_2[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Tim_10"] = fflows$Peak_Tim_10[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Tim_5"] = fflows$Peak_Tim_5[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "w2_Peak_Tim_2"] = fflows$Peak_Tim_2[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "w2_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Wet_BFL_Mag_10"] = fflows$Wet_BFL_Mag_10[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_10"] = fflows$Peak_10[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_5"] = fflows$Peak_5[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_2"] = fflows$Peak_2[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Dur_10"] = fflows$Peak_Dur_10[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Dur_5"] = fflows$Peak_Dur_5[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Dur_2"] = fflows$Peak_Dur_2[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Fre_10"] = fflows$Peak_Fre_10[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Fre_5"] = fflows$Peak_Fre_5[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Fre_2"] = fflows$Peak_Fre_2[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Tim_10"] = fflows$Peak_Tim_10[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Tim_5"] = fflows$Peak_Tim_5[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "w2_Peak_Tim_2"] = fflows$Peak_Tim_2[fflows$Water_Year == brood_yr + 2]
 
     ## s1 - FFs for first spring season as juvenile fish
-    output_tab[i, "s2_SP_Dur"] = fflows$SP_Dur[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s2_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s2_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s2_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s2_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s2_SP_Mag"] = fflows$SP_SP_Mag[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s2_SP_Dur"] = fflows$SP_Dur[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "s2_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "s2_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "s2_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "s2_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "s2_SP_Mag"] = fflows$SP_SP_Mag[fflows$Water_Year == brood_yr + 2]
+
+    output_tab[i, "y1_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "y2_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "y1_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "y2_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 2]
 
     # CLEAN THIS FUNCTION
     # AND ADD ANNUAL METRICS
