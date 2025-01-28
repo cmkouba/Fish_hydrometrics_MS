@@ -904,7 +904,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                       "w2_Peak_Tim_10","w2_Peak_Tim_2","w2_Peak_Tim_5",
                       "w2_Peak_10","w2_Peak_2","w2_Peak_5",
                       "w2_num_days_gt_90_pctile",
-                      "s1_SP_ROC", "s1_SP_ROC", "s1_SP_ROC_Max", "s1_SP_Mag",
+                      "s1_SP_ROC", "s1_SP_ROC", "s1_SP_ROC_Max", "s1_SP_Mag"
   )
 
   #1. Initialize table
@@ -983,8 +983,9 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
     # Subset flow for metric calcs
     BY_flow = hbbm$Flow[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
-    RY_flow = hbbm$Flow[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
-    SY_flow = hbbm$Flow[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
+    RECALCULATE DATES FOR HIGH W1 AND W2 FLOW
+    # w1_flow = hbbm$Flow[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
+    # w2_flow = hbbm$Flow[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
 
     BY_flow_recon = hbbm$Flow[hbbm$Date %in% BY_dates_recon & hbbm$smolt_year == smolt_yr]
     RY_flow_discon = hbbm$Flow[hbbm$Date %in% RY_dates_discon & hbbm$smolt_year == smolt_yr]
@@ -1013,9 +1014,9 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
     # 4. Assign Total Flow metric predictors (if data's availble)
     # Subset flow for TAF calcs
-    BY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
-    RY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
-    SY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
+    # BY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
+    # RY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
+    # SY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
 
     n_BY = length(BY_flow_m3d); n_RY = length(RY_flow_m3d); n_SY = length(SY_flow_m3d)
     n_CFLP = sum(hbbm$smolt_year == smolt_yr)
@@ -1078,7 +1079,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     output_tab[i, "s1_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 1]
     output_tab[i, "s1_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 1]
     output_tab[i, "s1_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s1_SP_Mag"] = fflows$SP_SP_Mag[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "s1_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 1]
 
 
     # if(is.element(el=brood_yr+2, set = fflows$Water_Year)){
@@ -1088,13 +1089,14 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     output_tab[i, "d2_DS_Mag_50"] = fflows$DS_Mag_50[fflows$Water_Year == brood_yr +1] # match up brood year to water year
     output_tab[i, "d2_DS_Mag_90"] = fflows$DS_Mag_90[fflows$Water_Year == brood_yr +1] # match up brood year to water year
     # }
+    # FFs for fall pulse as juvenile fish
     output_tab[i, "f2_FA_Mag"] = fflows$FA_Mag[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
     output_tab[i, "f2_FA_Tim"] = fflows$FA_Tim[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
     output_tab[i, "f2_FA_Dur"] = fflows$FA_Dur[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
     output_tab[i, "f2_FA_Dif_num"] = fflows$FA_Dif_num[fflows$Water_Year == brood_yr + 2] # match up brood year to water year
 
     # }
-
+    # w2 - FFs during second winter as overwintering juveniles
     output_tab[i, "w2_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "w2_Wet_BFL_Mag_10"] = fflows$Wet_BFL_Mag_10[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "w2_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 2]
@@ -1112,13 +1114,13 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     output_tab[i, "w2_Peak_Tim_5"] = fflows$Peak_Tim_5[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "w2_Peak_Tim_2"] = fflows$Peak_Tim_2[fflows$Water_Year == brood_yr + 2]
 
-    ## s1 - FFs for first spring season as juvenile fish
+    ## s2 - FFs for second spring season as outmigrating smolt
     output_tab[i, "s2_SP_Dur"] = fflows$SP_Dur[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "s2_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "s2_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "s2_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "s2_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 2]
-    output_tab[i, "s2_SP_Mag"] = fflows$SP_SP_Mag[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "s2_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 2]
 
     output_tab[i, "y1_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 1]
     output_tab[i, "y2_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 2]
