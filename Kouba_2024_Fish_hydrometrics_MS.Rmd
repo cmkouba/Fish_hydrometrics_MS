@@ -375,10 +375,11 @@ thresh_for_corr_fig = c(20,120)
 metrics_tab = calc_metrics_hydro_by_affected_brood_year(
   hydro_by_brood_year = brood_year_hydro_tab,
   thresholds = thresh_for_corr_fig) 
-
-# Remove the log metrics (TEMPORARY; if it works just remove from table function)
-exclude_these = grepl(pattern = "log_",x=colnames(metrics_tab))
-metrics_tab = metrics_tab[!exclude_these,]; metrics_tab = metrics_tab[,!exclude_these]
+# factorize water year category
+metrics_tab$wy1_WY_Cat = as.numeric(factor(metrics_tab$wy1_WY_Cat,
+                                   levels = c("dry year", "mod year", "wet year")))
+metrics_tab$wy2_WY_Cat = as.numeric(factor(metrics_tab$wy2_WY_Cat,
+                                   levels = c("dry year", "mod year", "wet year")))
 
 write.csv(x = metrics_tab, quote = F, row.names = F,
   file = file.path(graphics_dir,
@@ -559,6 +560,8 @@ nthresh_gt_70 = sum(thresh_for_corr_fig >= 70)
 # Calculate correlation matrix and remove values that don't make temporal sense 
 # (i.e., the wet season values in water year 2011 would not influence the
 # number of spawners that arrived in fall of 2010)
+
+
 corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs",
                            method = "spearman")
 
@@ -569,35 +572,35 @@ metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
                               rep(spring_col,nthresh), # RY spring discon
                               rep(fall_col,nthresh),   # RY fall discon
                               rep(spring_col, nthresh_gt_70), #SY spring discon
-                              rep("darkorchid",3), # min. flow metrics
-                              rep("peachpuff3",4),    # total flow metrics
-                              rep("peachpuff4", 4),    # log total flow metrics
-                              rep(fall_col,3),
-                              rep(wet_sn_col, 3),
-                              spring_col,
-                              rep(dry_sn_col, 2),
-                              rep(fall_col,3),
-                              rep(wet_sn_col,2),
-                              rep(dry_sn_col,1),
-                              spring_col,
-                              rep(dry_sn_col,1),
-                              rep(peak_col,6),
-                              rep(wet_sn_col,2),
-                              spring_col
-                              )
+                              # rep("darkorchid",3), # min. flow metrics
+                              # rep("peachpuff3",4),    # total flow metrics
+                              # rep("peachpuff4", 4),    # log total flow metrics
+                              rep(c(
+                                rep(dry_sn_col, 4),
+                                rep(fall_col, 4),
+                                rep(wet_sn_col, 16),
+                                rep(spring_col, 5),
+                                rep("peachpuff3",2)), 2),    # annual metrics
+                              rep("peachpuff4",2)        # scouring flow days
+)
 
 if(save_imgs==T){
   pdf(file = file.path(graphics_dir, "Supplemental Figure 1. Correlation Matrix.pdf"), width = 40, height = 40)
 par(mar=c(5,4,6,2))
 corrplot(corr_tab_all_metrics,
-         tl.col = metrics_tab_column_colors, tl.cex = 1.1,
-         col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
-         na.label = "--", main = NA)
-text(x=30,y=107, cex=3, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
-x1 = 9; x2 = 97; y1 = 88; y2=y1+4; y3=y2+3
-polygon(x=c(x1,x2,x2,x1,x1)+.5, y = c(y1,y1,y2,y2,y1)+.4, border = "deeppink", lwd = 6, lty = 2)
-polygon(x=c(x1,x2,x2,x1,x1)+.5, y = c(y2,y2,y3,y3,y2)+.6, border = "darkviolet", lwd = 6, lty = 4)
-dev.off()
+         tl.col = metrics_tab_column_colors, tl.cex = 1.1, 
+         # col.lim = rev(c(-1.1,1.1)),
+         # col.lim = c(-1, -0.7, -0.4, -0.1, 0.1, 0.4, 0.7, 2),
+         col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+                 # rep("white",2), 
+                 rep("lightcyan",2), 
+                 rep("lightskyblue",2),rep("deepskyblue4")),
+         na.label = "--", main = NA) # diag = F
+# text(x=30,y=107, cex=3, label="Correlations highlighted for coho (pink box, dashed) and Chinook (purple box, dot dash)")
+# x1 = 9; x2 = 97; y1 = 88; y2=y1+4; y3=y2+3
+# polygon(x=c(x1,x2,x2,x1,x1)+.5, y = c(y1,y1,y2,y2,y1)+.4, border = "deeppink", lwd = 6, lty = 2)
+# polygon(x=c(x1,x2,x2,x1,x1)+.5, y = c(y2,y2,y3,y3,y2)+.6, border = "darkviolet", lwd = 6, lty = 4)
+# dev.off()
 
 }
 
@@ -606,13 +609,21 @@ dev.off()
 
 ```{r predictor_correlation_screening, echo = F, warning =F, comment = F}
 
+# figure out how to screen out 
+mt_years_count = apply(X=metrics_tab, MARGIN = 2, FUN = function(x){sum(!is.na(x))})
+minimum_years = 10
+too_few_years = names(mt_years_count)[mt_years_count < minimum_years]
+
 
 high_corr_threshold = 0.7
 
 corr_tab_screener = corr_tab_all_metrics
 diag(corr_tab_screener) = NA
 
-exclude_these = colnames(corr_tab_screener) %in% c("brood_year","smolt_year")
+exclude_these = colnames(corr_tab_screener) %in% too_few_years
+
+exclude_these = exclude_these +
+  colnames(corr_tab_screener) %in% c("brood_year","smolt_year")
 
 exclude_these = exclude_these +
   grepl(pattern = "coho", x = colnames(corr_tab_screener)) | 
@@ -624,14 +635,17 @@ corr_tab_screener= corr_tab_screener[ ,!exclude_these]
 corr_tab_long = melt(corr_tab_screener)
 corr_tab_screened = corr_tab_long[ !is.na(corr_tab_long$value)
                                    & corr_tab_long$value > high_corr_threshold,]
+View(corr_tab_screened)
 
 
-greater_than_thresh_finder = apply(X= corr_tab_screener, MARGIN = 1,
-                                function(x){sum(abs(x) >= high_corr_threshold,
-                                                na.rm=T) > 0})
-pred_subset = row.names(corr_tab_screener)[greater_than_thresh_finder] 
+CURRENTLY: REMOVE DUPLICATE rows. go through process of picking one from each pair.
 
-corr_tab_screened = corr_tab_screener[colnames(corr_tab_screener) %in% pred_subset,]
+# greater_than_thresh_finder = apply(X= corr_tab_screener, MARGIN = 1,
+#                                 function(x){sum(abs(x) >= high_corr_threshold,
+#                                                 na.rm=T) > 0})
+# pred_subset = row.names(corr_tab_screener)[greater_than_thresh_finder] 
+# 
+# corr_tab_screened = corr_tab_screener[colnames(corr_tab_screener) %in% pred_subset,]
 
 ```
 

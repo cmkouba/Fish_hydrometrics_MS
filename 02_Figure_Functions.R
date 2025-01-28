@@ -823,50 +823,25 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
   hbbm = hydro_by_brood_year
 
-  # metric table column names
+  # 1. enumerate FF column names
+  ff_names_df = read.csv(file.path(data_dir, "Func_Flow_Flashy_Names.csv"), header = T)
+  ff_names = ff_names_df$Functional_Flow_Names
+  # identify abbreviations - e.g. f1 for first fall rewetting event
+  period_abbrev = rep("", length(ff_names))
+  period_abbrev[grepl(pattern = "DS", x = ff_names)] = "d1"
+  period_abbrev[grepl(pattern = "FA", x = ff_names)] = "f1"
+  period_abbrev[grepl(pattern = "Wet", x = ff_names)] = "w1"
+  period_abbrev[grepl(pattern = "Peak", x = ff_names)] = "w1"
+  period_abbrev[grepl(pattern = "SP", x = ff_names)] = "s1"
+  period_abbrev[grepl(pattern = "Ann", x = ff_names)] = "wy1"
+  period_abbrev[grepl(pattern = "WY", x = ff_names)] = "wy1"
 
-  #Outcomes
-  ## coho_abundance, chinook_abundance, smolt_per_fem, percent_smolt_survival
-  # Possibly add advanced outcomes:
-  ## percent increase over previous cohort year (for coho)
+  ff_names_wy1 = paste0(period_abbrev, "_", ff_names)
+  ff_names_wy2 = gsub(pattern = "1_", replacement = "2_", x = ff_names_wy1)
+  ff_names_cflp = c(ff_names_wy1, ff_names_wy2)
 
-  # predictors
-  # 24 columns of recon/discon dates. 4 x 6
-  ## reconnection - brood, rear years
-  ## disconnection - rear, smolt years
-  ## 10, 20, 30, 40, 60, 100 cfs.
-  # total flow for the whole period
-  # total flow for brood months, rear year, smolt months
-  # Number of days of flow above the 90th percentile
-  # Precalc metrics :
-  ## Brood year (BY): FA_Mag, FA_Tim
-  ## Rear year (RY): Wet_BFL_Mag_50, Wet_Tim, Wet_BFL_Dur, SP_Tim, SP_ROC, DS_Mag_50, FA_Mag, FA_Tim
-  ## Smolt year (SY): Wet_BFL_Mag_50, Wet_Tim, Wet_BFL_Dur, SP_Tim, SP_ROC
-
-
-  # output_colnames_extended = c("brood_year", "smolt_year",
-  #                              "coho_smolt_per_fem",
-  #                              "chinook_juv_per_adult",
-  #                              "coho_spawner_abundance",
-  #                              "coho_redds_in_brood",
-  #                              "coho_smolt_abun_est",
-  #                              "chinook_spawner_abundance",
-  #                              "chinook_juvenile_abundance",
-  #                              # "percent_coho_smolt_survival",
-  #                              # more advanced outcomes?
-  #                              paste0("BY_recon_",thresholds),
-  #                              paste0("RY_discon_",thresholds),
-  #                              paste0("RY_recon_",thresholds),
-  #                              paste0("SY_discon_",thresholds),
-  #                              "BY_min_flow_sepdec","RY_min_flow","SY_min_flow_janjul",
-  #                              "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
-  #                              "BY_FA_Mag" , "BY_FA_Tim", "BY_FA_Dur", "BY_num_days_gt_90_pctile",
-  #
-  #                              "RY_Wet_BFL_Mag_50","RY_Wet_Tim" ,"RY_Wet_BFL_Dur", "RY_num_days_gt_90_pctile",
-  #                              "RY_SP_Tim" ,"RY_SP_ROC",  "RY_DS_Tim","RY_DS_Mag_50", "RY_DS_Mag_90", "RY_DS_Dur_WS","RY_FA_Mag", "RY_FA_Tim", "RY_FA_Dur",
-  #
-  #                              "SY_Wet_BFL_Mag_50" ,"SY_Wet_Tim" ,"SY_Wet_BFL_Dur", "SY_num_days_gt_90_pctile", "SY_SP_Tim" ,"SY_SP_ROC")
-
+  # 2. enumerate output table column names
+  # Brood year index, Eco responses, connectivity timing, FFs, and # days of scouring flows
   output_colnames = c("brood_year", "smolt_year",
                       "coho_smolt_per_fem",
                       "chinook_juv_per_adult",
@@ -877,37 +852,17 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                       "chinook_juvenile_abundance",
                       # "percent_coho_smolt_survival",
                       # more advanced outcomes?
-                      paste0("BY_recon_",thresholds),
-                      paste0("RY_discon_",thresholds),
-                      paste0("RY_recon_",thresholds),
-                      paste0("SY_discon_",thresholds),
+                      paste0("f1_recon_",thresholds),
+                      paste0("s1_discon_",thresholds),
+                      paste0("f2_recon_",thresholds),
+                      paste0("s2_discon_",thresholds),
                       # hoping total flow can get captured by dry season metrics?
-                      # doesn't make sense to split strictly by month when the other metrics are hydro-phenomenon based
-                      # "tot_flow_CFLP" ,"BY_tot_flow_sepdec" ,"RY_tot_flow" ,"SY_tot_flow_janjul",
-                      # "log_tot_flow_CFLP" ,"log_BY_tot_flow_sepdec" ,"log_RY_tot_flow" ,"log_SY_tot_flow_janjul",
-                      "d1_DS_Dur_WS", "d1_DS_Tim", "d1_DS_Mag_50", "d1_DS_Mag_90",
-                      "f1_FA_Mag", "f1_FA_Tim", "f1_FA_Dur_1", "f1_FA_Dif_num",
-
-                      "w1_Wet_BFL_Dur", "w1_Wet_BFL_Mag_10", "w1_Wet_BFL_Mag_50", "w1_Wet_Tim",
-                      "w1_Peak_Dur_2","w1_Peak_Dur_5","w1_Peak_Dur_10",
-                      "w1_Peak_Fre_2","w1_Peak_Fre_5","w1_Peak_Fre_10",
-                      "w1_Peak_Tim_10","w1_Peak_Tim_2","w1_Peak_Tim_5",
-                      "w1_Peak_10","w1_Peak_2","w1_Peak_5",
-                      "w1_num_days_gt_90_pctile",
-                      "s1_SP_ROC", "s1_SP_ROC", "s1_SP_ROC_Max", "s1_SP_Mag",
-
-                      "d2_DS_Dur_WS", "d2_DS_Tim", "d2_DS_Mag_50", "d2_DS_Mag_90",
-                      "f2_FA_Mag", "f2_FA_Tim", "f2_FA_Dur_1", "f2_FA_Dif_num",
-                      "w2_Wet_BFL_Dur", "w2_Wet_BFL_Mag_10", "w2_Wet_BFL_Mag_50", "w2_Wet_Tim",
-                      "w2_Peak_Dur_2","w2_Peak_Dur_5","w2_Peak_Dur_10",
-                      "w2_Peak_Fre_2","w2_Peak_Fre_5","w2_Peak_Fre_10",
-                      "w2_Peak_Tim_10","w2_Peak_Tim_2","w2_Peak_Tim_5",
-                      "w2_Peak_10","w2_Peak_2","w2_Peak_5",
-                      "w2_num_days_gt_90_pctile",
-                      "s1_SP_ROC", "s1_SP_ROC", "s1_SP_ROC_Max", "s1_SP_Mag"
+                      ff_names_cflp,
+                      "w1_num_days_gt_90_pctile","w2_num_days_gt_90_pctile"
   )
 
-  #1. Initialize table
+
+  #3. Initialize table
   ## Identify brood year coverage to find number of rows
   if(reduce_to_eco_data_years_only==T){
     brood_years_min = min(c(smolt_per_fem$Adult_Year_Brood_Year,
@@ -948,78 +903,84 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   # output_tab$percent_coho_smolt_survival = outmigs$Percent.smolt.survival[match(output_tab$smolt_year, outmigs$Smolt.Year)]
   output_tab$coho_redds_in_brood = redds$total_redds[match(output_tab$brood_year, redds$water_year-1)]
 
-  #3. Assign disconnection and reconnection date predictors
-  # 4. Total Flow metrics and 5. Functional Flow metrics assigned inside for loop
+  #3. Assign disconnection and reconnection dates
+  # 4. Functional Flow metrics and 5. Scouring flow metrics assigned inside for loop
   for(i in 1:nrow(output_tab)){
 
     brood_yr = output_tab$brood_year[i]; smolt_yr = brood_yr+2
 
     # Subset dates for metric calcs
-    BY_date1 = as.Date(paste0(brood_yr,"-09-01"))
-    BY_date2 = as.Date(paste0(brood_yr,"-12-31"))
-    BY_dates = seq.Date(from=BY_date1, to = BY_date2, by="day")
+    # modified water year starts on Sep 01 (instead of Oct 01, which is standard)
+    # to capture rare Sep storms
+    wy1_date1 = as.Date(paste0(brood_yr,"-09-01"))
+    wy1_date2 = as.Date(paste0(brood_yr+1, "-08-31"))
+    wy1_dates = seq.Date(from=wy1_date1, to = wy1_date2, by="day")
 
-    BY_date2_recon = as.Date(paste0(brood_yr+1,"-02-28"))
-    BY_dates_recon = seq.Date(from=BY_date1, to = BY_date2_recon, by="day")
+    wy2_date1 = as.Date(paste0(brood_yr+1,"-09-01"))
+    wy2_date2 = as.Date(paste0(brood_yr+2, "-08-31"))
+    wy2_dates = seq.Date(from=wy2_date1, to = wy2_date2, by="day")
 
-    RY_date1 = as.Date(paste0(brood_yr+1,"-01-01"))
-    RY_date2 = as.Date(paste0(brood_yr+1,"-12-31"))
-    RY_dates = seq.Date(from=RY_date1, to = RY_date2, by="day")
+    # Define date ranges to look for reconnection and disconnection timing
 
-    RY_date1_discon = as.Date(paste0(brood_yr+1,"-03-01"))
-    RY_date2_discon = as.Date(paste0(brood_yr+1,"-08-31"))
-    RY_dates_discon = seq.Date(from=RY_date1_discon, to = RY_date2_discon, by="day")
+    # reconnection in the first fall rewetting, during parents' spawning
+    f1_date2_recon = as.Date(paste0(brood_yr+1,"-02-28"))
+    f1_dates_recon = seq.Date(from=wy1_date1, to = f1_date2_recon, by="day")
 
-    RY_date1_recon = as.Date(paste0(brood_yr+1,"-09-01"))
-    RY_date2_recon = as.Date(paste0(brood_yr+2,"-02-28"))
-    RY_dates_recon = seq.Date(from=RY_date1_recon, to = RY_date2_recon, by="day")
+    # disconnection in the first spring recession
+    s1_date1_discon = as.Date(paste0(brood_yr+1,"-03-01"))
+    s1_date2_discon = as.Date(paste0(brood_yr+1,"-08-31"))
+    s1_dates_discon = seq.Date(from=s1_date1_discon, to = s1_date2_discon, by="day")
 
-    SY_date1 = as.Date(paste0(brood_yr+2,"-01-01"))
-    SY_date2 = as.Date(paste0(brood_yr+2,"-07-31"))
-    SY_dates = seq.Date(from=SY_date1, to = SY_date2, by="day")
+    # reconnection in the fall rewetting experienced as juvenile fish
+    f2_date2_recon = as.Date(paste0(brood_yr+2,"-02-28"))
+    f2_dates_recon = seq.Date(from=wy2_date1, to = f2_date2_recon, by="day")
 
-    SY_date1_discon = as.Date(paste0(brood_yr+2,"-03-01"))
-    SY_dates_discon = seq.Date(from=SY_date1_discon, to = SY_date2, by="day")
+    # disconnection in the second spring recession as outmigrating smolt
+    s2_date1_discon = as.Date(paste0(brood_yr+2,"-03-01"))
+    s2_date2_discon = as.Date(paste0(brood_yr+2,"-08-31"))
+    s2_dates_discon = seq.Date(from=s2_date1_discon, to = s2_date2_discon, by="day")
 
-    # Subset flow for metric calcs
-    BY_flow = hbbm$Flow[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
-    RECALCULATE DATES FOR HIGH W1 AND W2 FLOW
-    # w1_flow = hbbm$Flow[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
-    # w2_flow = hbbm$Flow[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
+    # Subset date range for seeking scouring flows
+    w1_dates = seq.Date(from = wy1_date1, to = s1_date2_discon, by = "day")
+    w2_dates = seq.Date(from = wy2_date1, to = s2_date2_discon, by = "day")
 
-    BY_flow_recon = hbbm$Flow[hbbm$Date %in% BY_dates_recon & hbbm$smolt_year == smolt_yr]
-    RY_flow_discon = hbbm$Flow[hbbm$Date %in% RY_dates_discon & hbbm$smolt_year == smolt_yr]
-    RY_flow_recon = hbbm$Flow[hbbm$Date %in% RY_dates_recon & hbbm$smolt_year == smolt_yr]
-    SY_flow_discon = hbbm$Flow[hbbm$Date %in% SY_dates_discon & hbbm$smolt_year == smolt_yr]
+    # subset flow within date ranges for connectivity timing (fall and spring) and scouring flows (full wet season)
+    f1_flow_recon = hbbm$Flow[hbbm$Date %in% f1_dates_recon & hbbm$smolt_year == smolt_yr]
+    w1_flow = hbbm$Flow[hbbm$Date %in% w1_dates & hbbm$smolt_year == smolt_yr]
+    s1_flow_discon = hbbm$Flow[hbbm$Date %in% s1_dates_discon & hbbm$smolt_year == smolt_yr]
+
+    f2_flow_recon = hbbm$Flow[hbbm$Date %in% f2_dates_recon & hbbm$smolt_year == smolt_yr]
+    w2_flow = hbbm$Flow[hbbm$Date %in% w2_dates & hbbm$smolt_year == smolt_yr]
+    s2_flow_discon = hbbm$Flow[hbbm$Date %in% s2_dates_discon & hbbm$smolt_year == smolt_yr]
 
     # Calculate reconnection and disconnection timing
     for(j in 1:length(thresholds)){
       thresh = thresholds[j]
-      BY_recon_day_since_aug31  = calc_recon_days_since_aug_31(dates = BY_dates_recon, flow = BY_flow_recon, recon_threshold=thresh)
-      RY_discon_day_since_aug31 = calc_discon_days_since_aug_31(dates = RY_dates_discon, flow = RY_flow_discon, discon_threshold=thresh)
-      RY_recon_day_since_aug31 = calc_recon_days_since_aug_31(dates = RY_dates_recon, flow = RY_flow_recon, recon_threshold=thresh)
-      SY_discon_day_since_aug31 = calc_discon_days_since_aug_31(dates = SY_dates_discon, flow = SY_flow_discon, discon_threshold=thresh)
+      f1_recon_day_since_aug31  = calc_recon_days_since_aug_31(dates = f1_dates_recon, flow = f1_flow_recon, recon_threshold=thresh)
+      s1_discon_day_since_aug31 = calc_discon_days_since_aug_31(dates = s1_dates_discon, flow = s1_flow_discon, discon_threshold=thresh)
+      f2_recon_day_since_aug31 = calc_recon_days_since_aug_31(dates = f2_dates_recon, flow = f2_flow_recon, recon_threshold=thresh)
+      s2_discon_day_since_aug31 = calc_discon_days_since_aug_31(dates = s2_dates_discon, flow = s2_flow_discon, discon_threshold=thresh)
 
-      output_tab[i, paste0("BY_recon_",  thresh)] = BY_recon_day_since_aug31
-      output_tab[i, paste0("RY_discon_", thresh)] = RY_discon_day_since_aug31
-      output_tab[i, paste0("RY_recon_",  thresh)] = RY_recon_day_since_aug31
-      output_tab[i, paste0("SY_discon_", thresh)] = SY_discon_day_since_aug31
+      output_tab[i, paste0("f1_recon_",  thresh)] = f1_recon_day_since_aug31
+      output_tab[i, paste0("s1_discon_", thresh)] = s1_discon_day_since_aug31
+      output_tab[i, paste0("f2_recon_",  thresh)] = f2_recon_day_since_aug31
+      output_tab[i, paste0("s2_discon_", thresh)] = s2_discon_day_since_aug31
 
       # Convert infinite reconnection dates (i.e., the flow never rose above that
       # threshold in that time period) to NA values
-      conn_cols = paste0(c("BY_recon_","RY_discon_",
-                           "RY_recon_","SY_discon_"),  thresh)
+      conn_cols = paste0(c("f1_recon_","s1_discon_",
+                           "f2_recon_","s2_discon_"),  thresh)
       output_tab[i, conn_cols][!is.finite(as.numeric(output_tab[i, conn_cols]))] = NA
     }
 
     # 4. Assign Total Flow metric predictors (if data's availble)
     # Subset flow for TAF calcs
-    # BY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% BY_dates & hbbm$smolt_year == smolt_yr]
+    # BY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% f1_dates & hbbm$smolt_year == smolt_yr]
     # RY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% RY_dates & hbbm$smolt_year == smolt_yr]
     # SY_flow_m3d = hbbm$Flow_m3day[hbbm$Date %in% SY_dates & hbbm$smolt_year == smolt_yr]
 
-    n_BY = length(BY_flow_m3d); n_RY = length(RY_flow_m3d); n_SY = length(SY_flow_m3d)
-    n_CFLP = sum(hbbm$smolt_year == smolt_yr)
+    # n_BY = length(BY_flow_m3d); n_RY = length(RY_flow_m3d); n_SY = length(SY_flow_m3d)
+    # n_CFLP = sum(hbbm$smolt_year == smolt_yr)
     # if(n_BY==122){
     #   output_tab[i,"BY_min_flow_sepdec"] =  min(BY_flow_m3d)
     #   output_tab[i, "BY_tot_flow_sepdec"] = sum(BY_flow_m3d) / (10^6)
@@ -1079,8 +1040,6 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     output_tab[i, "s1_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 1]
     output_tab[i, "s1_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 1]
     output_tab[i, "s1_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "s1_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 1]
-
 
     # if(is.element(el=brood_yr+2, set = fflows$Water_Year)){
     ## d2 - FFs for dry season as juvenile fish
@@ -1120,35 +1079,21 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     output_tab[i, "s2_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "s2_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 2]
     output_tab[i, "s2_SP_ROC_Max"] = fflows$SP_ROC_Max[fflows$Water_Year == brood_yr + 2]
-    output_tab[i, "s2_SP_Mag"] = fflows$SP_Mag[fflows$Water_Year == brood_yr + 2]
 
-    output_tab[i, "y1_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "y2_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 2]
-    output_tab[i, "y1_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 1]
-    output_tab[i, "y2_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 2]
-
-    # CLEAN THIS FUNCTION
-    # AND ADD ANNUAL METRICS
-
-    ## Smolt Year FFs
-    # if(n_SY>=182 & is.element(el=brood_yr+2, set = fflows$Water_Year)){
-    # output_tab[i, "SY_Wet_BFL_Mag_50"] = fflows$Wet_BFL_Mag_50[fflows$Water_Year == brood_yr + 2]
-    # output_tab[i, "SY_Wet_Tim"] = fflows$Wet_Tim[fflows$Water_Year == brood_yr + 2]
-    # output_tab[i, "SY_Wet_BFL_Dur"] = fflows$Wet_BFL_Dur[fflows$Water_Year == brood_yr + 2]
-    # # output_tab[i, "SY_SP_Tim"] = fflows$SP_Tim[fflows$Water_Year == brood_yr + 2]
-    # output_tab[i, "SY_SP_ROC"] = fflows$SP_ROC[fflows$Water_Year == brood_yr + 2]
-    # }
+    output_tab[i, "wy1_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "wy2_Mean_Ann_Flow"] = fflows$Mean_Ann_Flow[fflows$Water_Year == brood_yr + 2]
+    output_tab[i, "wy1_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 1]
+    output_tab[i, "wy2_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 2]
 
     # 6. Storm days
     cfs_90th_pctile = quantile(fj_flow$Flow, 0.9)
     output_tab[i, "w1_num_days_gt_90_pctile"] = sum(w1_flow > cfs_90th_pctile)
     output_tab[i, "w2_num_days_gt_90_pctile"] = sum(w2_flow > cfs_90th_pctile)
-    # output_tab[i, "SY_num_days_gt_90_pctile"] = sum(SY_flow > cfs_90th_pctile)
 
   }
 
   #remove SY discon 20, since that usually happens after the smolt leave the watershed
-  problem_discons = paste("SY_discon", thresholds[thresholds < 60], sep = "_")
+  problem_discons = paste("s2_discon", thresholds[thresholds < 60], sep = "_")
   output_tab = output_tab[,!(colnames(output_tab) %in% problem_discons)]
 
   return(output_tab)
@@ -1465,10 +1410,10 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
 
   # 1b. Optional. Remove the other thresholds or Smolt Year metrics
   # if(remove_extra_recon_thresholds==T){
-  #   remove_these = c("BY_recon_15", "BY_recon_20", "BY_recon_50", "BY_recon_80",
-  #                    "RY_discon_15", "RY_discon_20", "RY_discon_50", "RY_discon_80",
-  #                    "RY_recon_15", "RY_recon_20", "RY_recon_50", "RY_recon_80",
-  #                    "SY_discon_80")
+  #   remove_these = c("f1_recon_15", "f1_recon_20", "f1_recon_50", "f1_recon_80",
+  #                    "s1_discon_15", "s1_discon_20", "s1_discon_50", "s1_discon_80",
+  #                    "f2_recon_15", "f2_recon_20", "f2_recon_50", "f2_recon_80",
+  #                    "s2_discon_80")
   #   mt = mt[,!(colnames(mt) %in% remove_these)]
   # }
   if(remove_SY_metrics == T){
