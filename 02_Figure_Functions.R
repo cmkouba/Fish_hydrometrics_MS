@@ -1119,11 +1119,16 @@ calc_corr_matrix=function(metrics_tab,
     fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "chinook", x = colnames(metrics_tab))]
   }
 
-  predictor_cols = colnames(metrics_tab)[grepl(pattern = "BY", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "RY", x = colnames(metrics_tab))|
-                                           grepl(pattern = "SY", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "tot", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "min", x = colnames(metrics_tab)) ]
+  predictor_cols = colnames(metrics_tab)[grepl(pattern = "d1", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "f1", x = colnames(metrics_tab))|
+                                           grepl(pattern = "w1", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "s1", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "d2", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "f2", x = colnames(metrics_tab))|
+                                           grepl(pattern = "w2", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "s2", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "wy1", x = colnames(metrics_tab)) |
+                                           grepl(pattern = "wy2", x = colnames(metrics_tab)) ]
 
   #Initialize output matrix
   output_tab = data.frame(matrix(data=NA, nrow = length(predictor_cols),
@@ -1144,19 +1149,27 @@ calc_corr_matrix=function(metrics_tab,
   colnames(output_tab) = fish_outcome_cols
   rownames(output_tab) = predictor_cols
 
-  # remove NA values (currently just 5- and 10-year flood metrics. They have too few obs. to make a corr calculation)
+  # remove NA values (currently just peak flood metrics. They have too few obs. to make a corr calculation)
   output_tab = output_tab[!is.na(output_tab$coho_smolt_per_fem),]
 
   # clear out metrics in RY and SY that don't affect the number of spawners (in BY)
-  ry_rows = grepl(pattern = "RY", x = row.names(output_tab))
-  sy_rows = grepl(pattern = "SY", x = row.names(output_tab))
-  ry_and_sy_rows = ry_rows | sy_rows
+  # spawning occurs affected by preceding dry season and first fall rewetting
+  d1_f1_rows = grepl(pattern = "d1", x = row.names(output_tab)) |
+    grepl(pattern = "f1", x = row.names(output_tab))
+  # coho redd observations probably affected by d1 and f1 plus first wet season conditions
+  w1_rows = grepl(pattern = "w1", x = colnames(output_tab))
+  # outmigrating Chinook smolt not affected by year 2, starting with dry season 2
+  wy2_rows = grepl(pattern = "d2", x = colnames(output_tab)) |
+    grepl(pattern = "f2", x = colnames(output_tab))|
+    grepl(pattern = "w2", x = colnames(output_tab)) |
+    grepl(pattern = "s2", x = colnames(output_tab)) |
+    grepl(pattern = "wy2", x = colnames(output_tab))
 
-  output_tab$chinook_spawner_abundance[ry_and_sy_rows] = NA
-  output_tab$chinook_juvenile_abundance[sy_rows] = NA
-  output_tab$chinook_juv_per_adult[sy_rows] = NA
-  output_tab$coho_spawner_abundance[ry_and_sy_rows] = NA
-  output_tab$coho_redds_in_brood[ry_and_sy_rows] = NA
+  output_tab$chinook_spawner_abundance[!d1_f1_rows] = NA # keep only d1 and f1
+  output_tab$chinook_juvenile_abundance[wy2_rows] = NA # exclude wy2
+  output_tab$chinook_juv_per_adult[wy2_rows] = NA # exclude wy2
+  output_tab$coho_spawner_abundance[!d1_f1_rows] = NA # keep only d1 and f1
+  output_tab$coho_redds_in_brood[! (d1_f1_rows | w1_rows)] = NA # keep only d1, f1 and w1
 
   return(output_tab)
 }
