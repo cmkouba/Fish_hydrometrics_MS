@@ -833,6 +833,7 @@ fig_i = fig_i +1
 
 # Addl screening for temporal relevance to Chinook freshwater period
 metrics_before_chinook_outmigrate = 
+  colnames(metrics_tab_screened) %in% non_preds |
   grepl(pattern = "d1", x = colnames(metrics_tab_screened)) | 
   grepl(pattern = "f1", x = colnames(metrics_tab_screened)) | 
   grepl(pattern = "w1", x = colnames(metrics_tab_screened)) | 
@@ -850,8 +851,8 @@ if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "i
 lasso_results_ch = lasso_regression_plots_and_tabs(
   metrics_tab = metrics_tab_screened_chinook,
   y_val = y_val_chinook,
-  remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_chinook],
-  remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_chinook],
+  # remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_chinook],
+  # remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_chinook],
   yvlt = yvlt,
   selected_lam = lam_ch,
   show_plot = save_imgs)

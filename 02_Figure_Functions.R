@@ -1401,9 +1401,7 @@ plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
 }
 
 get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
-                                             y_val = "coho_smolt_per_fem",
-                                             remove_RY_metrics = F,
-                                             remove_SY_metrics = T){
+                                             y_val = "coho_smolt_per_fem"){
   mt = metrics_tab
   #step 1. Prep x matrix and y array
   # (Dev: run manuscript .Rmd through line 395)
@@ -1433,16 +1431,16 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
   #                    "s2_discon_80")
   #   mt = mt[,!(colnames(mt) %in% remove_these)]
   # }
-  if(remove_SY_metrics == T){
-    remove_these = grepl(pattern = "SY", x=colnames(mt)) |
-      grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
-    mt = mt[,!remove_these]
-  }
-  if(remove_RY_metrics == T){
-    remove_these = grepl(pattern = "RY", x=colnames(mt)) |
-      grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
-    mt = mt[,!remove_these]
-  }
+  # if(remove_SY_metrics == T){
+  #   remove_these = grepl(pattern = "SY", x=colnames(mt)) |
+  #     grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
+  #   mt = mt[,!remove_these]
+  # }
+  # if(remove_RY_metrics == T){
+  #   remove_these = grepl(pattern = "RY", x=colnames(mt)) |
+  #     grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
+  #   mt = mt[,!remove_these]
+  # }
 
   # 2. Lasso Regression
 
@@ -1465,8 +1463,8 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
 lasso_regression_plots_and_tabs = function(metrics_tab,
                                   y_val = "coho_smolt_per_fem",
                                   remove_extra_recon_thresholds = F,
-                                  remove_SY_metrics = T,
-                                  remove_RY_metrics = F,
+                                  # remove_SY_metrics = T,
+                                  # remove_RY_metrics = F,
                                   return_pred_appear_tab = T,
                                   yvlt,
                                   selected_lam,
@@ -1474,15 +1472,16 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
 
   # Lasso regression. Informed by lab from ISLR 7th printing
   x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
-                                              y_val = y_val,
-                                              remove_RY_metrics = remove_RY_metrics,
-                                              remove_SY_metrics = remove_SY_metrics)
+                                              y_val = y_val
+                                              # remove_RY_metrics = remove_RY_metrics,
+                                              # remove_SY_metrics = remove_SY_metrics
+                                              )
   x = x_and_y[[1]]; y = x_and_y[[2]]
 
   # name rmse file
   fname = paste( y_val,"- lambdas_and_rmse")
-  if(remove_SY_metrics==T){fname = paste(fname, "no SY")  }
-  if(remove_RY_metrics==T){fname = paste(fname,"no RY")  }
+  # if(remove_SY_metrics==T){fname = paste(fname, "no SY")  }
+  # if(remove_RY_metrics==T){fname = paste(fname,"no RY")  }
   lambda_tab_path = file.path(data_dir,paste(fname,".csv" ))
 
   # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
@@ -1568,18 +1567,16 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
 
 get_lasso_mod = function(metrics_tab,
                          y_val = "coho_smolt_per_fem",
-                         lambda_val,
+                         lambda_val#,
                          # remove_extra_recon_thresholds = F,
-                         remove_RY_metrics = F,
-                         remove_SY_metrics = T
+                         # remove_RY_metrics = F,
+                         # remove_SY_metrics = T
 ){
 
   #step 1. Prep x matrix and y array
   # Lasso regression. Informed by lab from ISLR 7th printing
   x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
-                                              y_val = y_val,
-                                              remove_RY_metrics = remove_RY_metrics,
-                                              remove_SY_metrics = remove_SY_metrics)
+                                              y_val = y_val)
   x = x_and_y[[1]]; y = x_and_y[[2]]
 
   lasso_mod = glmnet(x, y, alpha = 1, lambda = lambda_val)
