@@ -1587,7 +1587,7 @@ get_lasso_mod = function(metrics_tab,
   return(lasso_mod)
 }
 
-get_hbf_tab = function(metrics_tab, coefs, int){
+get_hbf_tab = function(mt, coefs, int){
   # coefs = as.data.frame(t(as.matrix(coef(lasso_mod))))
   # coef_names = row.names(coef(hbf_coho))
   #removing the intercept will make the row names unusable
@@ -1596,7 +1596,7 @@ get_hbf_tab = function(metrics_tab, coefs, int){
   intercept = int
 
   # store relevant metric values in an intermediate table
-  intermed_tab=metrics_tab
+  intermed_tab=mt
   intermed_tab=intermed_tab[,colnames(intermed_tab) %in%
                               c(names(coefs),"brood_year")]
   # match metrics tab to coefficients
@@ -1621,7 +1621,7 @@ get_hbf_tab = function(metrics_tab, coefs, int){
   return(output_tab)
 }
 
-hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
+hbf_over_time_fig = function(mt, hbf_tab, y_val,
                              y_val_axis, write_hist_HB_vals=F){
   # plot details
   neg_values = hbf_tab$hbf_total < 0
@@ -1640,23 +1640,23 @@ hbf_over_time_fig = function(metrics_tab, hbf_tab, y_val,
   par(mar=c(5,5,2,2))
   plot(x=hbf_tab$brood_year, y=hbf_tab$hbf_total,
        col = NA,
-       ylim = c(min(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T),
-                max(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)), #yaxt = "n",
+       ylim = c(min(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T),
+                max(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T)), #yaxt = "n",
        xlab = "Brood Year",
        ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
   # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
   abline(v = seq(from = 1940, to = 2140, by = 10),
-         h = pretty(range(c(hbf_tab$hbf_total,metrics_tab[,y_val]),na.rm=T)),
+         h = pretty(range(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T)),
          lty = 3, col = "gray")
   abline(h=0, col = "darkgray")
   points(hbf_tab$brood_year, hbf_tab$hbf_total, pch = 19)
   lines(hbf_tab$brood_year, hbf_tab$hbf_total)
   # Add observed values
-  points(metrics_tab$brood_year, metrics_tab[,y_val],
+  points(mt$brood_year, mt[,y_val],
          pch = 24, bg= obs_col, cex = 1.1)
   # Add arrows connecting predicted values with observed
-  arrows_x = metrics_tab$brood_year
-  arrows_y0 = metrics_tab[,y_val]
+  arrows_x = mt$brood_year
+  arrows_y0 = mt[,y_val]
   arrows_y1 = hbf_tab$hbf_total[hbf_tab$brood_year %in% arrows_x]
   arrows(x0 = arrows_x, y0 = arrows_y0, x1 = arrows_x, y1 = arrows_y1,
          length = 0, lty = 1, col = obs_col, lwd = 2)

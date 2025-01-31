@@ -724,7 +724,7 @@ The correlation coefficients do not show uniform effects of hydrology on both sp
 
 keepers = c(non_preds, as.character(unique(ctl$Var1)))
 metrics_tab_screened = metrics_tab[,keepers]
-corr_matrix_pearson = calc_corr_matrix(metrics_tab, corr_method = "pearson")
+corr_matrix_pearson = calc_corr_matrix(metrics_tab_screened, corr_method = "pearson")
 
 
 
@@ -787,7 +787,7 @@ frac_ch_0_pred = sum(l_and_r_ch$bestlam_numpred == 0)/nrow(l_and_r_ch)
 frac_ch_other_pred = sum(l_and_r_ch$bestlam_numpred>1)/nrow(l_and_r_ch)
 
 # final lambda vals
-if(y_val_coho=="coho_smolt_per_fem") {lam_co = 7}#10}
+if(y_val_coho=="coho_smolt_per_fem") {lam_co = 5.5}#10}
 if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 50}
 
 ```
@@ -800,12 +800,11 @@ We therefore assumed the monotonic lambda-test error relationship was an artefac
 
 ```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsCoho}"}
 
-
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
 lasso_results_co = lasso_regression_plots_and_tabs(
-  metrics_tab = metrics_tab,
+  metrics_tab = metrics_tab_screened,
   y_val = y_val_coho,
   remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_coho],
    remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_coho],
@@ -832,12 +831,24 @@ fig_i = fig_i +1
 
 ```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook outcomes with hydrologic metrics. Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (lower panel).\\label{fig:lassoResultsChinook}"}
 
+# Addl screening for temporal relevance to Chinook freshwater period
+metrics_before_chinook_outmigrate = 
+  grepl(pattern = "d1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "f1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "w1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "s1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "wy1", x = colnames(metrics_tab_screened)) 
+  
+  
+metrics_tab_screened_chinook = 
+  metrics_tab_screened[, metrics_before_chinook_outmigrate]
+
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
 lasso_results_ch = lasso_regression_plots_and_tabs(
-  metrics_tab = metrics_tab,
+  metrics_tab = metrics_tab_screened_chinook,
   y_val = y_val_chinook,
   remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_chinook],
   remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_chinook],
@@ -989,14 +1000,19 @@ intercept_co = lasso_mod_co$a0[lasso_index_co]
 coefs_interp_names = names(coefs_co)
 coefs_interp = as.character(coefs_co)
 names(coefs_interp) = coefs_interp_names
-# add interpretation to each coefficient
+# add interpretation to each non-0 coefficient
 if(y_val_coho == "coho_smolt_per_fem"){
   
-  coefs_interp$BY_recon_120 = "Earlier reconnection (120 cfs)"
-  # coefs_interp$BY_recon_200 = "Earlier reconnection (200 cfs)"
-  coefs_interp$RY_discon_200 = "Later disconnection (200 cfs)"
-  coefs_interp$RY_recon_8 = "Earlier reconnection (8 cfs)"
-  coefs_interp$RY_DS_Mag_90 = "Lower flow magnitude (dry season)"
+  coefs_interp$f1_recon_120 = "Earlier reconnection (120 cfs, fall of parents' spawning)"
+  # # coefs_interp$BY_recon_200 = "Earlier reconnection (200 cfs)"
+  # coefs_interp$RY_discon_200 = "Later disconnection (200 cfs)"
+  # coefs_interp$RY_recon_8 = "Earlier reconnection (8 cfs)"
+  coefs_interp$d1_DS_Dur_WS = "Shorter dry season duration (pre-spawning)"
+  coefs_interp$w1_Wet_BFL_Mag_10 = "Higher wet season baseflow (as eggs and fry)"
+  coefs_interp$w1_Wet_Tim = "Earlier wet season onset timing, first wet season (as eggs)"
+  coefs_interp$s1_SP_ROC = "Slower(?) rate of change, second spring recession (as outmigrating coho smolt)"
+  coefs_interp$d2_DS_Mag_90 = "Lower dry season flows, second dry season (as juv. coho)"
+  coefs_interp$s2_SP_ROC = "Faster(?) rate of change, second spring recession (as outmigrating coho smolt)"
 }
 
 coefs_co_vals = c(round(intercept_co, 1),round(coefs_co[coefs_co!="0"],3))
@@ -1030,11 +1046,13 @@ names(coefs_interp) = coefs_interp_names
 # add interpretation to each coefficient
 if(y_val_chinook == "chinook_juv_per_adult"){
   
-  coefs_interp$log_BY_tot_flow_sepdec = "Lower brooding period total flow (log-transformed)"
+  # coefs_interp$log_BY_tot_flow_sepdec = "Lower brooding period total flow (log-transformed)"
+  coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season flows (first wet season, as eggs and fry)"
+  coefs_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
 }
 
 
-coefs_ch_vals = c(round(intercept_ch, 1),round(coefs_ch[coefs_ch!="0"],1))
+coefs_ch_vals = c(round(intercept_ch, 1),round(coefs_ch[coefs_ch!="0"],3))
 coefs_ch_interp = c("Intercept", unlist(coefs_interp[coefs_ch!="0"]))
 coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
                          Value = as.vector(coefs_ch_vals),
@@ -1069,9 +1087,12 @@ metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
   thresholds = thresh_for_corr_fig, 
   reduce_to_eco_data_years_only = F) 
 
+metrics_tab_long = metrics_tab_long[,keepers]
+
 # calculate hbf for all years in which there are hydrodata
-hbf_coho = get_hbf_tab(metrics_tab = metrics_tab_long, 
-                       coefs = coefs_co, int = intercept_co)
+hbf_coho = get_hbf_tab(mt = metrics_tab_long, 
+                       coefs = coefs_co[abs(coefs_co)>0], 
+                       int = intercept_co)
 hbf_chinook = get_hbf_tab(metrics_tab = metrics_tab_long, 
                           coefs = coefs_ch, int = intercept_ch)
 
