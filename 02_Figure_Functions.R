@@ -1206,6 +1206,10 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
            xlab = "", ylab = "", main = "", na.label = "--",
            axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
            # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+           col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+             # rep("white",2),
+             rep("lightcyan",2),
+             rep("lightskyblue",2),rep("deepskyblue4")),
            cl.pos = "b")
   vert_line_y1 = length(pred_subset)+0.5
   # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,

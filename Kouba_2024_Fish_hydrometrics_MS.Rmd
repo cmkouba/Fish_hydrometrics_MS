@@ -722,12 +722,14 @@ The correlation coefficients do not show uniform effects of hydrology on both sp
 
 ```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 7 ecological monitoring metrics: the two normalized metrics (left two columns), three additional metrics for coho (center), and two additional metrics for Chinook (right). Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier date is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
 
+keepers = c(non_preds, as.character(unique(ctl$Var1)))
+metrics_tab_screened = metrics_tab[,keepers]
 corr_matrix_pearson = calc_corr_matrix(metrics_tab, corr_method = "pearson")
 
 
 
 # find prediction subset for figure.
-inclusion_threshold = 0.45
+inclusion_threshold = 0.5
 greater_than_thresh_finder = apply(X= corr_matrix_pearson, MARGIN = 1,
                                 function(x){sum(abs(x) >= inclusion_threshold,
                                                 na.rm=T) > 0})
@@ -785,7 +787,7 @@ frac_ch_0_pred = sum(l_and_r_ch$bestlam_numpred == 0)/nrow(l_and_r_ch)
 frac_ch_other_pred = sum(l_and_r_ch$bestlam_numpred>1)/nrow(l_and_r_ch)
 
 # final lambda vals
-if(y_val_coho=="coho_smolt_per_fem") {lam_co = 10}
+if(y_val_coho=="coho_smolt_per_fem") {lam_co = 7}#10}
 if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 50}
 
 ```
