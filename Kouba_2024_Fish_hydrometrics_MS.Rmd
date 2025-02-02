@@ -787,8 +787,8 @@ frac_ch_0_pred = sum(l_and_r_ch$bestlam_numpred == 0)/nrow(l_and_r_ch)
 frac_ch_other_pred = sum(l_and_r_ch$bestlam_numpred>1)/nrow(l_and_r_ch)
 
 # final lambda vals
-if(y_val_coho=="coho_smolt_per_fem") {lam_co = 5.5}#10}
-if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 50}
+if(y_val_coho=="coho_smolt_per_fem") {lam_co = 7}#10}
+if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 37}#50}
 
 ```
 
@@ -806,8 +806,8 @@ if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "i
 lasso_results_co = lasso_regression_plots_and_tabs(
   metrics_tab = metrics_tab_screened,
   y_val = y_val_coho,
-  remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_coho],
-   remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_coho],
+  # remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_coho],
+  #  remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_coho],
   yvlt=yvlt, selected_lam = lam_co,
   #if you just need the tables, and are not saving the images, don't show the plot
   show_plot = save_imgs) 
@@ -1008,6 +1008,9 @@ if(y_val_coho == "coho_smolt_per_fem"){
   # # coefs_interp$BY_recon_200 = "Earlier reconnection (200 cfs)"
   # coefs_interp$RY_discon_200 = "Later disconnection (200 cfs)"
   # coefs_interp$RY_recon_8 = "Earlier reconnection (8 cfs)"
+  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+  coefs_interp$f2_FA_Dif_num = "Smaller fall pulse(?) (as juvenile fish)"
+  
   coefs_interp$d1_DS_Dur_WS = "Shorter dry season duration (pre-spawning)"
   coefs_interp$w1_Wet_BFL_Mag_10 = "Higher wet season baseflow (as eggs and fry)"
   coefs_interp$w1_Wet_Tim = "Earlier wet season onset timing, first wet season (as eggs)"
@@ -1048,6 +1051,7 @@ names(coefs_interp) = coefs_interp_names
 if(y_val_chinook == "chinook_juv_per_adult"){
   
   # coefs_interp$log_BY_tot_flow_sepdec = "Lower brooding period total flow (log-transformed)"
+  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
   coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season flows (first wet season, as eggs and fry)"
   coefs_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
 }
