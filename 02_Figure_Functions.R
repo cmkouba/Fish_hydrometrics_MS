@@ -1202,7 +1202,7 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
   corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset,]
 
 
-  corrplot(as.matrix(corr_matrix1), #cex.axis = .5,
+  corrplot(as.matrix(corr_matrix1), addCoef.col = "black",#cex.axis = .5,
            xlab = "", ylab = "", main = "", na.label = "--",
            axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
            # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),

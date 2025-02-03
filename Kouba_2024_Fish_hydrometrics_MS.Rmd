@@ -673,16 +673,16 @@ while(length(collin_preds)>0){
 }
 ```
 
-```{r pred_corr_screening_table, echo = F, warning =F, comment = F}
+```{r predCorrScreeningTable, echo = F, warning =F, comment = F}
 
 # Restructure the groups and eliminated predictors in a table
 elim_pred_tab_col1 = unlist(lapply(X=collinear_group, FUN = function(x){paste(x, collapse = ", ")}))
-elim_pred_tab_col2 = c("How wet the wet season (year 1)",
-                       "How wet the wet season (year 2)",
+elim_pred_tab_col2 = c("How wet the wet season (year 1, as eggs and fry)",
+                       "How wet the wet season (year 2, as rearing juv.)",
                        "How dry the dry season (pre-spawning)",
                        "Dry to wet transition timing (year 2, rearing juv.)",
-                       "How long the wet season (year 1, as brooding eggs and fry)",
-                       "Fall pulse magnitude (year 1, during spawning)",
+                       "How long the wet season (year 1, as eggs and fry)",
+                       "Fall pulse magnitude (year 1, during parents' spawning)",
                        "Fall pulse magnitude (year 2, as rearing juv.)")
 elim_pred_tab_col3 = unlist(selected_pred)
 
@@ -698,7 +698,7 @@ colnames(elim_pred_tab) = column_labels
 
 ept_tab_ft = flextable(data=elim_pred_tab)
 ept_tab_ft = set_caption(ept_tab_ft, caption = caption_text)
-ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 4)
+ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 3)
 ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2)
 ept_tab_ft
 ```
@@ -722,14 +722,26 @@ The correlation coefficients do not show uniform effects of hydrology on both sp
 
 ```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 7 ecological monitoring metrics: the two normalized metrics (left two columns), three additional metrics for coho (center), and two additional metrics for Chinook (right). Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier date is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
 
-keepers = c(non_preds, as.character(unique(ctl$Var1)))
-metrics_tab_screened = metrics_tab[,keepers]
+# identify which columns we should keep in our correlation analysis
+keepers_co = c(non_preds, as.character(unique(ctl$Var1)))
+metrics_tab_screened = metrics_tab[,keepers_co]
+
+# Addl screening for temporal relevance to Chinook freshwater period
+metrics_before_chinook_outmigrate = 
+  colnames(metrics_tab_screened) %in% non_preds |
+  grepl(pattern = "d1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "f1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "w1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "s1", x = colnames(metrics_tab_screened)) | 
+  grepl(pattern = "wy1", x = colnames(metrics_tab_screened)) 
+keepers_ch = intersect(x = keepers_co, colnames(metrics_tab_screened)[metrics_before_chinook_outmigrate])
+
+# Run correlations for all metrics in coho table (which includes all metrics in chinook table)
 corr_matrix_pearson = calc_corr_matrix(metrics_tab_screened, corr_method = "pearson")
 
 
-
 # find prediction subset for figure.
-inclusion_threshold = 0.5
+inclusion_threshold = 0.45
 greater_than_thresh_finder = apply(X= corr_matrix_pearson, MARGIN = 1,
                                 function(x){sum(abs(x) >= inclusion_threshold,
                                                 na.rm=T) > 0})
@@ -764,7 +776,7 @@ Finally, we used the final lambda value and the full dataset to generate a regre
 
 
 fname_co = paste( y_val_coho,"- lambdas_and_rmse")
-fname_ch = paste( y_val_chinook,"- lambdas_and_rmse no SY")
+fname_ch = paste( y_val_chinook,"- lambdas_and_rmse")
 
 if(file.exists( file.path(data_dir,paste(fname_co,".csv" )))){
   l_and_r_co = read.csv(file.path(data_dir,paste(fname_co,".csv")))
@@ -831,18 +843,8 @@ fig_i = fig_i +1
 
 ```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook outcomes with hydrologic metrics. Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (lower panel).\\label{fig:lassoResultsChinook}"}
 
-# Addl screening for temporal relevance to Chinook freshwater period
-metrics_before_chinook_outmigrate = 
-  colnames(metrics_tab_screened) %in% non_preds |
-  grepl(pattern = "d1", x = colnames(metrics_tab_screened)) | 
-  grepl(pattern = "f1", x = colnames(metrics_tab_screened)) | 
-  grepl(pattern = "w1", x = colnames(metrics_tab_screened)) | 
-  grepl(pattern = "s1", x = colnames(metrics_tab_screened)) | 
-  grepl(pattern = "wy1", x = colnames(metrics_tab_screened)) 
-  
-  
 metrics_tab_screened_chinook = 
-  metrics_tab_screened[, metrics_before_chinook_outmigrate]
+  metrics_tab_screened[, keepers_ch]
 
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
@@ -1092,13 +1094,13 @@ metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
   thresholds = thresh_for_corr_fig, 
   reduce_to_eco_data_years_only = F) 
 
-metrics_tab_long = metrics_tab_long[,keepers]
+metrics_tab_long = metrics_tab_long[ , keepers_co]
 
 # calculate hbf for all years in which there are hydrodata
 hbf_coho = get_hbf_tab(mt = metrics_tab_long, 
                        coefs = coefs_co[abs(coefs_co)>0], 
                        int = intercept_co)
-hbf_chinook = get_hbf_tab(metrics_tab = metrics_tab_long, 
+hbf_chinook = get_hbf_tab(mt = metrics_tab_long, 
                           coefs = coefs_ch, int = intercept_ch)
 
 # calculate lowest hbf value
@@ -1127,14 +1129,14 @@ if(save_imgs == TRUE){
   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
   par(mfrow=c(2,1))
   # Panel 1. Coho
-  hbf_over_time_fig(metrics_tab = metrics_tab,
+  hbf_over_time_fig(mt = metrics_tab_screened,
                     hbf_tab = hbf_coho, y_val = y_val_coho,
                     y_val_axis = y_axis_label)
   
   # Panel 2. Chinook
   hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook] 
-  hbf_over_time_fig(metrics_tab = metrics_tab,
+  hbf_over_time_fig(mt = metrics_tab_screened,
                     hbf_tab = hbf_chinook, 
                     y_val = y_val_chinook,
                     y_val_axis = y_axis_label) 
