@@ -1,0 +1,9 @@
+Abbrev. ,Description,Salmon life stage,Species affected
+d1,First dry season,Dry season before/during parents' spawning,"Coho, Chinook"
+f1,First fall rewetting,Fall rewetting during/after parents' spawning,"Coho, Chinook"
+w1,First wet season,"Eggs, juvenile fish","Coho, Chinook"
+s1,First spring recession,Rearing juveniles/outmigrating smolt,"Coho, Outmigrating Chinook"
+d2,Second dry season,Rearing juveniles,Coho
+f2,Second fall rewetting,Rearing juveniles,Coho
+w2,Second wet season,Rearing juveniles,Coho
+s2,Second spring recession,Outmigrating smolt,Outmigrating Coho

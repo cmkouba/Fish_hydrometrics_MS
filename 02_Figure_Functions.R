@@ -1323,7 +1323,7 @@ plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
        pch = 19, col = rgb(0.5,0.5,0.5,alpha_val*3),
        main = "Test error in models for 50% test-train subsets",
        xlab = "Lambda value (shrinkage penalty)",
-       log="y",
+       # log="y",
        ylab = paste("Rel. test error (rel. RMSE) of models made \n from different combinations of data points"))
   # summarize by binning
   grid()
