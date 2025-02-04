@@ -185,9 +185,17 @@ Coho salmon in the Scott Valley are listed as threatened under the federal and C
 
 if(include_figs==T){
 knitr::include_graphics(file.path(graphics_dir, "Graphics source", 
-                                  "coho life cycle table_2022.02.03.jpg"))
+                                  # "coho life cycle table_2022.02.03.jpg"))
+                                  "Salmon life cycle and seasons graphic.jpg"))
 }
 ```
+
+**Key**
+*Wet Season*:	Functional Flow season descriptor
+*Dec-Mar*:	Typical, approximate date range for season to occur in Scott Valley
+*w1*:	Abbreviated season identifier (i.e., first wet season experienced by a salmon cohort)
+*Egg, alevin, fry*:	Life stage in which salmon experienced this season
+
 
 ### Life cycle and status of Chinook salmon (*Onchorhynchus tsawytscha*)
 
@@ -700,6 +708,7 @@ ept_tab_ft = flextable(data=elim_pred_tab)
 ept_tab_ft = set_caption(ept_tab_ft, caption = caption_text)
 ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 3)
 ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2)
+ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 2)
 ept_tab_ft
 ```
 
