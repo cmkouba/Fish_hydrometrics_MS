@@ -407,7 +407,7 @@ brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:
 # thresh_for_corr_fig = c(8, 10, 15, 20, 40, 
 #                         70, 100, 150, 200, 300, 
 #                         400, 500, 750, 1000)
-thresh_for_corr_fig = c(20,120)
+thresh_for_corr_fig = c(20,40,120)
 
 metrics_tab = calc_metrics_hydro_by_affected_brood_year(
   hydro_by_brood_year = brood_year_hydro_tab,
@@ -591,6 +591,38 @@ fig_i = fig_i +1
 
 
 ## Hydrology-ecology correlations
+
+
+```{r suppEcoVSTimeFigs, echo = F, warning =F, fig.height = 8, fig.cap = "Explanatory plots of Chinook spawner abundance versus various hydro metrics and over time. \\label{fig:suppEcoVSTimeFigs}"}
+
+y_val_for_exp_fig = "chinook_spawner_abundance"
+# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+fig_path = file.path(save_figs_here, paste0(y_val_for_exp_fig," vs hydro vs time.pdf"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
+
+  eco_vs_time_figs = function(y_val = "chinook_spawner_abundance"){
+  y_vals = metrics_tab[,y_val_for_exp_fig]
+    # plot chinook abundance vs 
+    for(i in 1:length(preds_for_fig)){
+      pred = preds_for_fig[i]
+      pred = metrics_tab[,"f1_recon_40"]
+      
+      plot(pred, y_vals, pch=19)
+    }
+      
+  }
+    
+  eco_vs_time_figs()
+  
+  dev.off()
+}
+if(include_figs==T){knitr::include_graphics(fig_path)}
+# fig_i = fig_i +1
+
+
+
+```
 
 ```{r inter_corr_matrix_supp_fig, echo = F, warning =F, comment = F}
 
