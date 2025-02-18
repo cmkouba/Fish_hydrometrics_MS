@@ -361,13 +361,32 @@ Multiple observed quantities were evaluated as candidates to represent the ecolo
 
 Factors influencing the population size of anadromous fish include ocean conditions and freshwater conditions. In this study focused on the conditions in their natal streams, we have focused on fish population metrics that are influenced by the freshwater system. The ecological observations considered for use in the final flow-ecology relationship are:
 
-1. Number of adults migrating from the ocean to freshwater natal streams to spawn. This quantity, the 'escapement', is measured at a CDFW counting facility, using a resistance board weir and video counting flume in the Scott River [e.g., @CDFW2021a]. 
+1. Number of adults migrating from the ocean to freshwater natal streams to spawn. This quantity, the 'escapement', is measured at a CDFW counting facility, using a resistance board weir and video counting flume in the Scott River [e.g., @CDFW2023a]. 
 2. Number of juvenile yearling, or smolt, salmon. Smolt are counted as outmigrants, often from rotary screw trap observations [e.g., @Massie2020]. 
 3. Number of salmon gravel nests, or redds, observed during spawning window [e.g., @SiskiyouRCD2017b] (for coho only).
 
 Two combined metrics historically calculated and reported by regional agencies [@CDFW2023a] were also considered. These metrics use data from multiple years to capture multiple life stages for a given cohort:
 
 4. The number of outmigrating coho smolt produced per spawning female (coho spf) and the outmigrating Chinook juveniles per adult (Chinook jpa).
+
+```{r ecoMetricsMonitoringTab, echo = FALSE, results = 'asis'}
+
+em_tab = read.csv(file.path(data_dir,"Ecological Monitoring Data Source Information.csv"))
+
+#Create caption and column labels
+caption_text = "Description and source information for ecological observations of the two salmonid species of concern."
+column_labels = c("Abbrev.","Description", "Monitoring Details","Relevant Seasons")
+colnames(em_tab) = column_labels
+
+em_tab_ft = flextable(data=em_tab)
+em_tab_ft = set_caption(em_tab_ft, caption = caption_text)
+em_tab_ft = flextable::width(em_tab_ft,j=1,  width = 1)
+em_tab_ft = flextable::width(em_tab_ft,j=2,  width = 2.5)
+em_tab_ft = flextable::width(em_tab_ft,j=3, width = 2.5)
+em_tab_ft = flextable::width(em_tab_ft,j=4,  width = 1)
+em_tab_ft
+
+```  
 
 ## Step 3. Align predictor and response metrics with timing of species cohorts
 

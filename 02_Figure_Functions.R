@@ -224,6 +224,8 @@ ca_or_figure = function(include_legend = T){
 
 save_setting_figure = function(){
 
+  # ADD LOCATIONS OF VIDEO COUNTING FACILITY AND ROTARY SCREW TRAP (Scott JSO 2022)
+
   main_map =
     tm_shape(hill_wsh) +
     tm_raster(palette = hillshade_palette_faded(20), legend.show = F) +
