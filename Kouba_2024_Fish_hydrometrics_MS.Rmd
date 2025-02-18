@@ -427,6 +427,11 @@ write.csv(x = metrics_tab, quote = F, row.names = F,
 
 # calculate number of predictors for text below
 
+all_szns = paste(c("d1", "f1", "w1", "s1", "d2", "f2", "w2", "s2"), collapse =", ")
+y1_szns = paste(c("d1", "f1", "w1", "s1"), collapse = ", ")
+spawn_szns = paste(c("d1", "f1", "w1"), collapse = ", ")
+# spawn_szns = paste(c("d1", "f1"), collapse = ", ")
+
 y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
                                                  "chinook_juv_per_adult",
                                                  "coho_spawner_abundance",
@@ -449,8 +454,13 @@ y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
                                              "Est. num. coho smolt",
                                              "Num. Chinook spawners (escapement)",
                                              "Num. Chinook juveniles"),
-                             remove_sy = c(F,T,T,T,F,T,T),
-                             remove_ry = c(F,F,T,T,F,T,F))
+                             influencing_seasons = c(all_szns,
+                                                     y1_szns,
+                                                     spawn_szns,
+                                                     y1_szns,
+                                                     all_szns,
+                                                     spawn_szns,
+                                                     y1_szns))
 yvlt = y_val_label_tab
 non_preds = c("brood_year", "smolt_year", yvlt$y_val)
 
@@ -595,29 +605,26 @@ fig_i = fig_i +1
 
 ```{r suppEcoVSTimeFigs, echo = F, warning =F, fig.height = 8, fig.cap = "Explanatory plots of Chinook spawner abundance versus various hydro metrics and over time. \\label{fig:suppEcoVSTimeFigs}"}
 
-y_val_for_exp_fig = "chinook_spawner_abundance"
 # fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-fig_path = file.path(save_figs_here, paste0(y_val_for_exp_fig," vs hydro vs time.pdf"))
-if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
+# if(save_imgs == TRUE){
+# png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
 
-  eco_vs_time_figs = function(y_val = "chinook_spawner_abundance"){
-  y_vals = metrics_tab[,y_val_for_exp_fig]
-    # plot chinook abundance vs 
-    for(i in 1:length(preds_for_fig)){
-      pred = preds_for_fig[i]
-      pred = metrics_tab[,"f1_recon_40"]
-      
-      plot(pred, y_vals, pch=19)
-    }
-      
-  }
+resave_eco_hydro_scatter_plots = F
+
+if(resave_eco_hydro_scatter_plots == T){
+  for(id in yvlt$y_val){
+    eco_vs_pred_figs(y_val_id = id)
     
-  eco_vs_time_figs()
+    eco_vs_time_figs(y_val_id = id)
+  }
   
-  dev.off()
 }
-if(include_figs==T){knitr::include_graphics(fig_path)}
+
+
+# dev.off()
+
+# }
+# if(include_figs==T){knitr::include_graphics(fig_path)}
 # fig_i = fig_i +1
 
 

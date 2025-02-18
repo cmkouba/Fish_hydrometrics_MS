@@ -46,6 +46,10 @@ dry_sn_col = "orangered"
 peak_col = "black"
 lam_color = "brown"
 
+season_color_tab = data.frame(season = c("fall", "wet", "spring", "dry"),
+                              abbrev = c("f", "w","s","d"),
+                              color = c("darkgoldenrod", "royalblue3", "green4", "orangered"))
+
 # subset data -------------------------------------------------------------
 
 # Isolate river
@@ -767,6 +771,88 @@ re_and_discon_timeseries_figure = function(thresh = 120){
          legend = c(paste("First fall day when flow exceeded",thresh,"cfs"),
                     paste("First spring day when flow fell below",thresh,"cfs"),
                     "Line of best fit"))
+}
+
+
+eco_vs_pred_figs = function(save_pdf=T,
+                            y_val_id = "chinook_spawner_abundance"){
+
+  if(save_pdf==T){
+    fig_path = file.path(save_figs_here, paste0(y_val_id," vs hydro.pdf"))
+    pdf(file = fig_path, width = 7, height = 8)
+    par(mfrow = c(3,2))
+  }
+
+  y_vals = metrics_tab[,y_val_id]
+  preds_for_fig = colnames(metrics_tab)[!(colnames(metrics_tab) %in% non_preds)]
+
+  # plot chinook abundance vs all predictors
+  for(i in 1:length(preds_for_fig)){
+    pred = preds_for_fig[i]
+    x_pred = metrics_tab[,pred]
+    season_abbrev = substr(x=pred, start = 1, stop = 1)
+    szn_col = season_color_tab$color[season_color_tab$abbrev==season_abbrev]
+    season_id = substr(x=pred, start = 1, stop = 2)
+    is_relevant = grepl(pattern = season_id,
+                        x = yvlt$influencing_seasons[yvlt$y_val==y_val_id])
+
+    if(is_relevant & sum(!is.na(x_pred)) >= 10 & length(unique(x_pred))>1){
+
+      plot(x_pred, y_vals, pch=19, col = szn_col,
+           xlab = pred, ylab = y_val_id)
+      abline(lm(y_vals ~ x_pred), lty = 2)
+      grid()
+      corr_val = round(cor(x=x_pred, y=y_vals, use = "pairwise.complete.obs"),2)
+      legend(x="topright", legend = paste0("R: ", corr_val),
+             lty = 2, box.col = NULL)
+
+    }
+  }
+  if(save_pdf==T){dev.off()}
+
+}
+
+eco_vs_time_figs = function(save_pdf = T, y_val_id = "chinook_spawner_abundance"){
+  if(save_pdf==T){
+    fig_path = file.path(save_figs_here, paste0(y_val_id," vs hydro vs time.pdf"))
+    pdf(file = fig_path, width = 7, height = 8)
+    par(mfrow = c(3,2))
+  }
+
+  dates = metrics_tab$brood_year
+  y_vals = metrics_tab[,y_val_id]
+  preds_for_fig = colnames(metrics_tab)[!(colnames(metrics_tab) %in% non_preds)]
+
+  # plot chinook abundance vs all predictors
+  for(i in 1:length(preds_for_fig)){
+    pred = preds_for_fig[i]
+    x_pred = metrics_tab[,pred]
+    season_abbrev = substr(x=pred, start = 1, stop = 1)
+    szn_col = season_color_tab$color[season_color_tab$abbrev==season_abbrev]
+    season_id = substr(x=pred, start = 1, stop = 2)
+    is_relevant = grepl(pattern = season_id,
+                        x = yvlt$influencing_seasons[yvlt$y_val==y_val_id])
+
+    if(is_relevant & sum(!is.na(x_pred)) >= 10 & length(unique(x_pred))>1){
+
+      par(mar=c(5,4,4,4))
+      plot(dates, y_vals, pch=19, col = szn_col,
+           xlab = "Brood Year", ylab = y_val_id)
+      # abline(lm(y_vals ~ x_pred), lty = 2)
+      grid()
+      corr_val = round(cor(x=x_pred, y=y_vals, use = "pairwise.complete.obs"),2)
+      legend(x="topright", legend = paste0("R: ", corr_val),
+             lty = 2, box.col = NULL)
+
+      par(new=T)
+      plot(dates, x_pred, pch = 2, xlab = NA, ylab = NA, axes=F)
+      axis(side = 4)
+      mtext(text = pred, side = 4, line = 2)
+
+    }
+  }
+  if(save_pdf==T){dev.off()}
+
 }
 
 
