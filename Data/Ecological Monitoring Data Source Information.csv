@@ -1,9 +1,9 @@
-Abbrev.,Description,Monitoring Details,Seasons potentially influencing observations
-coho_smolt_per_fem,Coho smolt per fem. spawner,,"d1, f1, w1, s1, d2, f2, w2, s2"
-chinook_juv_per_adult,Chinook juv. per adult,,"d1, f1, w1, s1"
-coho_spawner_abundance,Num. coho spawners (escapement),"Scott River Fish Counting Facility (Knechtle and Guidice 2023, CDFW)","d1, f1, w1"
-coho_redds_in_brood,Num. obs. coho redds,Spawning ground surveys (SOURCES),"d1, f1, w1, s1"
-coho_smolt_abun_est,Est. num. coho smolt,Rotary Screw Trap,"d1, f1, w1, s1, d2, f2, w2, s2"
-chinook_spawner_abundance,Num. Chinook spawners (escapement),"Scott River Fish Counting Facility (Knechtle and Guidice 2023, CDFW)","d1, f1, w1"
-chinook_spawner_old_method,Num. Chinook spawners (escapement),"Temporary fish marking weir, 1985-1991; capture-recapture method, 1992-2012; video fish counting facility post-2012 (Knechtle and Chesney 2012)",
-chinook_juvenile_abundance,Num. Chinook juveniles,Rotary Screw Trap,"d1, f1, w1, s1"
+Abbrev.,Description,Monitoring Details,Source,Seasons potentially influencing observations
+coho_smolt_per_fem,Coho smolt per fem. spawner,,"Knechtle and Guidice 2023, CDFW","d1, f1, w1, s1, d2, f2, w2, s2"
+chinook_juv_per_adult,Chinook juv. per adult,,"Knechtle and Guidice 2023, CDFW","d1, f1, w1, s1"
+coho_spawner_abundance,Num. coho spawners (escapement),Scott River Fish Counting Facility,"Knechtle and Guidice 2023, CDFW","d1, f1, w1"
+coho_redds_in_brood,Num. obs. coho redds,Spawning ground surveys (SOURCES),"Knechtle and Guidice 2023, CDFW","d1, f1, w1, s1"
+coho_smolt_abun_est,Est. num. coho smolt,Rotary Screw Trap,"Romero and Robinson, 2023","d1, f1, w1, s1, d2, f2, w2, s2"
+chinook_spawner_abundance,Num. Chinook spawners (escapement),Scott River Fish Counting Facility,"Knechtle and Guidice 2023, CDFW","d1, f1, w1"
+chinook_spawner_old_method,Num. Chinook spawners (escapement),"Temporary fish marking weir, 1985-1991; capture-recapture method, 1992-2012; video fish counting facility post-2012",Knechtle and Chesney 2012,"d1, f1, w1"
+chinook_juvenile_abundance,Num. Chinook juveniles,Rotary Screw Trap,"Romero and Robinson, 2023","d1, f1, w1, s1"

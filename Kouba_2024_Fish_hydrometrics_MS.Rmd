@@ -1,13 +1,13 @@
 ---
 title: A watershed-specific formula to predict coho salmon reproduction using functional flow metrics
 author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
-date: "Oct. 2024"
+date: "Feb. 2025"
 output: 
   bookdown::word_document2: 
     fig_caption: true
     number_sections: true
     global_numbering: true
-bibliography: library.bib
+bibliography: draft_library.bib
 ---
 
 ```{r setup_dirs_load_data, include = FALSE}
@@ -82,19 +82,21 @@ Robustness of the results indicate that this method for empirically deriving hyd
 
 ## Motivation and objectives 
 
-Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@Moyle2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwinton2005; @Arthington2014; @Acreman2014]. However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @Poff2010a; @Shenton2012; @Solans2016a], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@Poff2010b]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
+Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014]. However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
 
-In practice, these questions are often asked and answered locally [@Tarlock1993]. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [Siskiyou County -@SiskiyouCounty2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouRCD1994; @Parry2013; DWR -@DWR2021], but, in spite of decades of investigation by local, state and federal actors [e.g., @SRWC_RCD2003; NMFS -@NMFS2014; CDFW -@CDFW2015b; CDFW -@CDFW2021b], the ecological water needs in this balancing act are not as well constrained. 
+In practice, these questions are often asked and answered locally [@TarlockLocal1993]. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; @CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2014; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
 
-One method for estimating ecological water needs is the functional flows framework [@Poff1997; @Poff2010a]. Functional flow metrics (hydrologic metrics) are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics specific to California hydrology and made the metric-calculating algorithms publicly available [@Yarnell2020; @Patterson2020].
+One method for estimating ecological water needs is the functional flows framework [@PoffEtAlNatural1997; @PoffEtAlEcological2010]. Functional flow metrics (hydrologic metrics) are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics specific to California hydrology and made the metric-calculating algorithms publicly available [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020].
 
 In this study we examine correlations between several dozen hydrologic metrics and local salmon observations to determine the potential to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed). Using lasso regression, hydrologic metrics (predictors) were selected that best explain variation in salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
 
 ## History of flow-ecology relationships
 
-A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@Bunn2002a; @Poff2010a]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. 
+A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@Bunn2002a; @PoffEtAlEcological2010]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. 
 
 Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @Monk2006; @Guareschi2014; @Kevic2018; @Mazor2018; @Larsen2021; @Peek2022], and secondly, fish diversity and community assemblage [e.g., @McManamay2013; @Peterson2016; @Cartwright2017; @Sinnathamby2018; @Hain2018; @Guedes2020; @Yao2021]. Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-Koster2011; @Booth2014; @DeWeber2020; @Hale2023], as well as the extent of habitat types [@Chowdhury2007; @Brand2011] and the presence of organisms including vegetation and plankton [@Riis2008; @Catford2014; @Qian2016; @Tesfaye2017; @Saby2022]. Hydrologic predictors range widely, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @Ayllon2014; @Lamouroux2015; @McManamay2015; @Bower2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerrera2017; @Gao2020; @White2018; @Daneshvar2017; @Herbst2019].
+
+<!-- CURRENTLY HERE IN SOURCE INPUT TO ZOTERO -->
 
 Investigations of flow-ecology relationships can also be grouped by approach [as in @Brummer2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @Konrad2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Medallo-Diaz2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring is related to flow differences between streams [e.g., @Monk2008; @Riis2008; @Catford2014; @Bower2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@Brummer2016]. 
 
@@ -375,15 +377,16 @@ em_tab = read.csv(file.path(data_dir,"Ecological Monitoring Data Source Informat
 
 #Create caption and column labels
 caption_text = "Description and source information for ecological observations of the two salmonid species of concern."
-column_labels = c("Abbrev.","Description", "Monitoring Details","Relevant Seasons")
+column_labels = c("Abbrev.","Description", "Monitoring Details", "Source(s)", "Relevant Seasons")
 colnames(em_tab) = column_labels
 
 em_tab_ft = flextable(data=em_tab)
 em_tab_ft = set_caption(em_tab_ft, caption = caption_text)
 em_tab_ft = flextable::width(em_tab_ft,j=1,  width = 1)
-em_tab_ft = flextable::width(em_tab_ft,j=2,  width = 2.5)
-em_tab_ft = flextable::width(em_tab_ft,j=3, width = 2.5)
-em_tab_ft = flextable::width(em_tab_ft,j=4,  width = 1)
+em_tab_ft = flextable::width(em_tab_ft,j=2,  width = 1.5)
+em_tab_ft = flextable::width(em_tab_ft,j=3, width = 2)
+em_tab_ft = flextable::width(em_tab_ft,j=4,  width = 1.5)
+em_tab_ft = flextable::width(em_tab_ft,j=5,  width = 1)
 em_tab_ft
 
 ```  

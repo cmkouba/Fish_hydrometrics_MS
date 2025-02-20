@@ -3,9 +3,9 @@ DS_Dur_WS,Dry Season Duration,--,Dry-season baseflow duration (# of days from st
 DS_Tim,Dry Season Onset Timing,--,Dry-season baseflow start timing (water year day of dry season)
 DS_Mag,Dry Season Flow Magnitude,50th and 90th flow percentile,Percentile of daily flow within dry season. 
 FA_Dur,Fall Pulse Duration,--,Duration (# of days) of the fall pulse event
-FA_Mag,Fall Pulse Magnitude,--,Peak magnitude of fall pulse event (maximum daily peak flow during event) (cfs) in relevant lifestage.
 FA_Tim,Fall Pulse Timing,--,Start date of fall pulse event in water year days
-FA_Dif_num,,,
+FA_Mag,Fall Pulse Magnitude,--,Peak magnitude of fall pulse event (maximum daily peak flow during event) (cfs) in relevant lifestage.
+FA_Dif_num,Fall Pulse Magnitude (modified),,Difference between peak fall pulse discharge and dry season median discharge (Baruch et al. 2024).
 Wet_BFL_Dur,Wet Season Baseflow Duration,--,Wet-season baseflow duration (# of days from start of wet-season to start of spring season)
 Wet_BFL_Mag,Wet Season Baseflow Magnitude,50th and 10th percentile,"The magnitude of the median rate of baseflow (i.e., non-storm flow) during the wet season."
 Wet_Tim,Wet Season Onset Timing,--,Start date of wet-season in water year days
@@ -14,9 +14,9 @@ Peak_Fre,Frequency of high-flow events,"2, 5, and 10-year return interval","Numb
 Peak_Tim,Timing of first high-flow event in a water year,"2, 5, and 10-year return interval","Timing of first exceedance of threshold value for the 2-, 5- and 10-year flow (50%, 20% and 10% exceedance values), in water year days"
 Peak,Magnitude of high-flow events,"2, 5, and 10-year return interval","Single value for each threshold corresponding to the 2-, 5- and 10- year flow exceedance values, in cfs"
 SP_ROC,Spring Recession Rate of Change,--,Spring flow recession rate (median daily rate of change over decreasing periods during the recession)
-SP_ROC_Max,,,
-SP_Dur,,,
-SP_Mag,,,
+SP_ROC_Max,Maximum Spring Recession Rate of Change,,Maximum daily rate of change over decreasing periods during the recession
+SP_Dur,Duration of Spring Recession,,Period elapsed from the start date of the spring recession until the start date of the following dry season.
+SP_Mag,Magnitude of Spring Recession,,"Flow magnitude on the start date of the spring recession (the ""peak"" of the snowmelt pulse)."
 SP_Tim,Spring Onset Timing,--,Start date of spring flow recession in water year days
-Mean_Ann_Flow,,,
-WY_Cat,,,
+Mean_Ann_Flow,Mean Annual Flow,--,Mean daily flow rate over a full water year.
+WY_Cat,Water Year Category,--,"Category of water year (Dry, Moderate, Wet)"

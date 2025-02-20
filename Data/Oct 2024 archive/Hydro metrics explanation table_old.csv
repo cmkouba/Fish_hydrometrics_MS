@@ -1,0 +1,23 @@
+Abbreviation,Full Name,Threshold(s),Description
+BY,Brood Year,--,September-December window in which spawning occurs (by the parents of the designated cohort).
+RY,Rearing Year,--,January-December window during which a cohort hatches and rears in freshwater.
+SY,Smolt Year,--,January-July window during which a cohort grows in freshwater and outmigrates to the ocean.
+CFLP,Coho Freshwater Life Period,--,"The (conservatively wide) 21-month window, September through July, in which members of a cohort or the cohort's spawning parents are present in the freshwater system."
+recon,River Reconnection Day (for a given life stage and threshold),"8, 10, 15, 20, 40, 70, 100, 150, 200, 300, 400, 500, 750, 1000 cfs","The day, usually in the fall, on which the Scott River gains a certain degree of connectivity. Defined as the first day on which FJ Gauge flow rises above a designated threshold (e.g., 10 cfs) (units of days after Aug. 31). Assigned to a salmon lifestage using abbreviations such as RY (Rearing Year). Example: RY_recon_10"
+discon,River Disconnection Day (for a given life stage and threshold),"8, 10, 15, 20, 40, 70, 100, 150, 200, 300, 400, 500, 750, 1000 cfs","The day, usually in the spring or early summer, on which the Scott River loses a certain degree of connectivity. Defined as the first day on which FJ Gauge flow drops below a designated threshold (e.g., 100 cfs) (units of days after Aug. 31). Assigned to a salmon lifestage using abbreviations such as BY (Brood Year). Example: BY_discon_100"
+min_flow,Minimum Flow,--,Minimum average daily flowrate recorded in the relevant period. Months of the designated time period (e.g. Sep-Dec for Brood Year) are added to the column name for clarity. Example: BY_min_flow_sepdec
+tot_flow,Total Flow,--,Sum of all daily flow volumes recorded in the relevant period. Months of the designated time period (e.g. Jan-Jul for Smolt Year) are added to the column name for clarity. Example: SY_tot_flow_janjul
+FA_Mag,Fall Pulse Magnitude,--,Peak magnitude of fall pulse event (maximum daily peak flow during event) (cfs) in relevant lifestage. Example: RY_FA_Mag
+FA_Tim,Fall Pulse Timing,--,Start date of fall pulse event in water year days
+FA_Dur,Fall Pulse Duration,--,Duration (# of days) of the fall pulse event
+Wet_BFL_Mag,Wet Season Baseflow Magnitude,Median (50th daily flow percentile),"The magnitude of the median rate of baseflow (i.e., non-storm flow) during the wet season. Abbreviation: Wet_BFL_Mag_50"
+Wet_Tim,Wet Season Onset Timing,--,Start date of wet-season in water year days
+Wet_BFL_Dur,Wet Season Baseflow Duration,--,Wet-season baseflow duration (# of days from start of wet-season to start of spring season)
+Peak_Dur,Duration of high-flow events,"2, 5, and 10-year return interval","Number of days exceeding the 2, 5 and 10 year recurrence intervals of annual peak flow (50%, 20%, and 10% exceedance values)."
+Peak_Fre,Frequency of high-flow events,"2, 5, and 10-year return interval","Number of events exceeding the 2, 5 and 10 year recurrence intervals of annual peak flow (50%, 20%, and 10% exceedance values)."
+num_days_gt_90_pctile,Number of days of high-flow events ,90th flow percentile,Number of days in an annual period (i.e. the Rearing Year) in which the FJ daily average flow exceeded the 90th percentile flowrate in the full FJ Gauge record.
+SP_Tim,Spring Onset Timing,--,Start date of spring flow recession in water year days
+SP_ROC,Spring Recession Rate of Change,--,Spring flow recession rate (median daily rate of change over decreasing periods during the recession)
+DS_Mag,Dry Season Flow Magnitude,50th and 90th flow percentile,Percentile of daily flow within dry season
+DS_Tim,Dry Season Onset Timing,--,Dry-season baseflow start timing (water year day of dry season)
+DS_Dur_WS,Dry Season Duration,--,Dry-season baseflow duration (# of days from start of dry season to start of wet season)
