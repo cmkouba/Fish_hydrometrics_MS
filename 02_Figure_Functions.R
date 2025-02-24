@@ -1633,8 +1633,8 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
     # Plots
     par(mfrow=c(3,1), mar=c(5,5,5,2))
     y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
-    if(y_val=="coho_smolt_per_fem"){alpha_val=0.05}
-    if(y_val=="chinook_juv_per_adult"){alpha_val=0.01}
+    if(grepl(x=y_val,pattern ="coho")){alpha_val=0.05}
+    if(grepl(x=y_val,pattern="chinook")){alpha_val=0.01}
     #Panel 1 and 2
     plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
                            selected_lam = selected_lam, alpha_val=alpha_val)
