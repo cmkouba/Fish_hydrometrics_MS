@@ -1,0 +1,202 @@
+---
+title: A watershed-specific formula to predict coho salmon reproduction using functional flow metrics
+author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
+date: "Feb. 2025"
+output: 
+  bookdown::word_document2: 
+    fig_caption: true
+    number_sections: true
+    global_numbering: true
+bibliography: draft_library.bib
+---
+
+```{r setup_dirs_load_data, include = FALSE}
+
+
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(lubridate)
+library(httr)
+library(ggplot2) # for barplots 
+library(gridExtra)
+library(corrplot)  # for data exploration/correlation plots
+library(dataRetrieval) # for usgs data
+library(data.table) #month function
+library(zoo) # rolling means
+library(sf)
+library(terra)
+library(tmap)
+library(grid) # for inset maps
+library(cowplot) # for inset maps
+library(ggthemes) # for colorblind palette
+library(flextable)
+library(glmnet) # lasso regression
+library(here)
+
+# Directories
+ms_dir = here::here()
+scratch_dir = file.path(ms_dir, "scratch_work")
+data_dir = file.path(ms_dir, "Data")
+graphics_dir = file.path(ms_dir, "Graphics and Supplements")
+
+# Load spatial and tabular data
+
+# If the data files don't exist locally,
+# pull data from internet and local files
+if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
+  source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) 
+}
+load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
+source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table functions
+
+# Save figures as images, yes or no?
+save_figs_here = graphics_dir
+save_imgs=T # generate the figures in the folder
+include_figs = T
+replace_setting_fig = F # setting to F can save time if no need to re-render map
+fig_i = 1
+
+# pick last water year for the HB function to calculate a value for
+last_wy = 2023
+```
+
+```{r load_FF_metrics, include = FALSE}
+fflows = read_fflows_FJ(calculator = "Flashy")
+# fflows = read_fflows_FJ(calculator = "Regular")
+
+```
+
+
+# Study Area Description and History
+
+## Scott River watershed setting and water use
+
+### Geography, climate and hydrology
+
+The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott Valley, flowing generally from south to north and joining the Klamath River after flowing through a steep canyon (Figure \@ref(fig:ScottWatershedMap)). The Scott is a major tributary to the Klamath, which drains an area spanning sections of Northern California and Southern Oregon (Figure \@ref(fig:ScottWatershedMap), inset map). Scott Valley has a Mediterranean climate with distinctive seasons of cool, wet winters and warm, dry summers. This seasonality in water input creates highly seasonal flow in the Scott River and tributary streams, where the beginning of a water year coincides with low flow conditions that immediately precede the onset of winter precipitation (Figure \@ref(fig:fjFlowFigure)). 
+
+In most dry-to-average water years, sections of the Scott River become seasonally dewatered [NCRWQCB -@NorthCoastRegionalWaterQualityControlBoardStaff2005; Figure 5 in @TolleyEtAlSensitivity2019]. This occurs when the elevation of the water table drops below the bottom of the river channel, as streams and groundwater are highly interconnected in the Scott River watershed. Tributary streams, particularly along their alluvial fan apeces, and the upper Scott River are sources of recharge to the aquifer [@MackGeology1958; @HarterHinesSCOTT2008]. Groundwater discharge sustains streamflow in low-lying areas, especially during the dry season of August through October or November [@TolleyEtAlSensitivity2019]. For consistency with regulatory and management programs in this region, this document uses units of cubic feet per second (cfs) when reporting hydrologic fluxes.
+
+```{r fjFlowFigure, echo=FALSE, fig.cap="Each translucent line traces one annual hydrograph measured at the Fort Jones gauge, and the darker lines illustrate the 30-day smoothed median daily flow in Dry, Below Average, Above Average, and Wet water year types, for water years 1942-2023. The water year type is defined by quartiles of the distribution of total annual flow.", warning=F}
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
+  
+  fj_flow_figure(roll_window = 30)
+  
+  dev.off()
+}
+if(include_figs==T){knitr::include_graphics(fig_path)}
+fig_i = fig_i +1
+
+```
+
+### Water uses and management objectives
+
+Water in Scott Valley is used for agricultural, domestic, and municipal supply. It also facilitates recreation and provides Native American cultural services, among other designated beneficial uses [NCRWQCB -@NorthCoastRegionalWaterQualityControlBoardACTION2006]. Because the watershed is undammed, managers and water users influence Scott River flow primarily via diversion of surface waters and pumping of groundwater. Consequently, the most powerful tool available to manage Scott River water flow is regulation of land use and thus water demand [Siskiyou County -@SiskiyouCountyScott2021]. 
+
+Historically, local regulation of land use has focused on maintaining the rural and agricultural character of Scott Valley [@ScottValleyAreaPlanCommitteeScott1980]. Regulating land use to improve ecological outcomes would entail significant economic, political and social risks, because much of the economic activity in this area is related to agriculture. The primary crops grown in Scott Valley are pasture for cattle feed and alfalfa [Siskiyou County -@SiskiyouCountyScott2021]. In addition to local economic impact, Scott River conditions influence fish population dynamics both within the watershed and in the broader Klamath system. The health of the Klamath salmon run has implications for commercial fishing, recreational activities, and cultural practices of Native American tribes in the region, including the Quartz Valley Indian Community and the Karuk and Yurok Tribes [@MansfieldEtAlKlamath2012].
+
+# Functional Flows Background
+```{r funcFlowTermsTab, echo = FALSE, results = 'asis'}
+
+ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Functional Flows.csv"))
+
+#Create caption and column labels
+caption_text = "TO UPDATE. Explanation of hydrologic metrics used in this analysis. Each type of metric, for each threshold value (e.g., 100 cfs or 50th flow percentile), produces one value per water year. Example metric names also include abbreviations for salmon life periods described in Table 2 below."
+column_labels = c("Abbrev.","Full Name", "Thresholds","Description")
+colnames(ff_tab) = column_labels
+
+ff_tab_ft = flextable(data=ff_tab)
+ff_tab_ft = set_caption(ff_tab_ft, caption = caption_text)
+ff_tab_ft = flextable::width(ff_tab_ft,j=1,  width = 1.3)
+ff_tab_ft = flextable::width(ff_tab_ft,j=2,  width = 1.5)
+ff_tab_ft = flextable::width(ff_tab_ft,j=3, width = 1)
+ff_tab_ft = flextable::width(ff_tab_ft,j=4,  width = 3.1)
+ff_tab_ft
+
+``` 
+
+
+```{r fig2Yarnell2020, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
+
+if(save_imgs==T){
+  file.copy(from = file.path(graphics_dir, "Graphics source", "Yarnell2020_Fig2.png"),
+            to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
+if(include_figs==T){
+knitr::include_graphics(file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
+
+fig_i = fig_i +1
+
+```
+
+
+# Hydrologic Metrics Designed for This Study
+
+```{r customHydroMetricsTab, echo = FALSE, results = 'asis'}
+
+ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Custom metrics.csv"))
+
+#Create caption and column labels
+caption_text = "Explanation of custom hydrologic metrics designed for this study, which are less complex than functional flows in that they do not rely on signal processing techniques. Each type of metric, for each threshold value (e.g., 120 cfs), produces one value per water year. Metric names used in predictive modeling also include abbreviations for salmon life periods (Table 3 below); e.g., f1_recon_120, referring to the timing of flow exceeding 120 cfs in a ohort's first fall season."
+column_labels = c("Abbrev.","Full Name", "Thresholds","Description")
+colnames(ff_tab) = column_labels
+
+ff_tab_ft = flextable(data=ff_tab)
+ff_tab_ft = set_caption(ff_tab_ft, caption = caption_text)
+ff_tab_ft = flextable::width(ff_tab_ft,j=1,  width = 1.1)
+ff_tab_ft = flextable::width(ff_tab_ft,j=2,  width = 1.5)
+ff_tab_ft = flextable::width(ff_tab_ft,j=3, width = 1)
+ff_tab_ft = flextable::width(ff_tab_ft,j=4,  width = 3.2)
+ff_tab_ft
+
+```  
+
+
+```{r reconnectExplainerHydrograph, echo = F, warning =F, fig.cap = "Reconnection and disconnection dates are highlighted for one water year. Two example thresholds, 20 and 120 cfs (0.57 and 3.4 cms, respectively) are highlighted, which correspond to distinct river connectivity (and salmon habitat access) conditions in the Scott River watershed as observed at the Fort Jones gauge (see Results for more detail on selection of flow thresholds)."}
+
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 4.5, units = "in", res = res_dpi)
+  
+recon_and_discon_explainer_hydrograph(
+  water_year = 2016, tot_flow_annotate = F, 
+  connection_date_annotate = "20_and_120_only")
+  
+  dev.off()
+}
+if(include_figs==T){knitr::include_graphics(fig_path)}
+fig_i = fig_i +1
+
+```
+
+# Screening Predictors for Collinearity
+
+#### Groups 1 and 2
+
+These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), effectively characterized by the question, how wet was the wet season?. We selected `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during two wet seasons: `w1`, the first wet season, experienced by a cohort as eggs and newly-hatched alevin and fry, and `w2`, experienced by the cohort as overwintering parr.
+
+#### Group 3
+
+These metrics describe the magnitude and timing of dry-season flows before the cohort's spawning. We selected `d1_DS_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during the dry season before a cohort's parents' spawning.
+
+#### Groups 4 and 5
+
+These metrics quantify the timing of the wet season onset and duration (year 2). We selected `w2_Wet_Tim`, the timing of the onset of the second wet season, and `w2_Wet_BFL_Dur`, the duration of wet season baseflow, to characterize the timing of the wet season experienced by a cohort of coho as overwintering juveniles.
+
+#### Groups 6 and 7: 
+
+These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). Although `FA_num_diff` had a higher sample size, we selected `f1_FA_Mag` and `f2_FA_Mag` to better reflect the years in which an identifiable fall pulse occurred before the onset of the wet season.
+
+
+
+# Statistical Method Details
+
+# References

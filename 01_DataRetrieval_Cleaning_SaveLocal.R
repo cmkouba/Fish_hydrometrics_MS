@@ -365,6 +365,31 @@ extension_list = c("cpg", "dbf", "prj", "shx", "shp", "xml", "shp.ea.iso.xml", "
 file.remove(file.path(scratch_dir,paste("tl_2021_us_aiannh", extension_list, sep = ".")))
 file.remove(file.path(scratch_dir,zipname))
 
+# Fish Observation Points ----------------------------------------------------
+
+# The Scott River Fish Counting Facility (SRFCF) is located at river mile 18.2,
+# (041o 38' 10.93" N; 123o 04' 3.08"W) 0.63 river miles downstream of the Jones
+# Beach picnic area near the transition between the canyon and valley reaches.
+
+srfcf_coords = data.frame(name = "Scott River Fish Counting Facility",
+                          lat = 41+38/60+10.93/(60^2),
+                          lon = -1*(123+4/60+3.08/(60^2)))
+srfcf_latlong = st_as_sf(x = srfcf_coords, coords = c("lon","lat"), crs=st_crs(4326))
+srfcf = st_transform(x = srfcf_latlong, crs = st_crs(3310))
+
+#The Scott River RST site is approximately 7 RK upstream of the confluence with
+# the Klamath River and 1.6 km SW from the town of Scott Bar (41°43'35.64"N,
+# 123° 0'35.02"W; Figure 1). The USGS station #11519500 is located about 25 RK
+# upstream from the RST site and has been in operation since 1941, totaling 80
+# years of data.
+
+srrst_coords = data.frame(name = "Scott River Rotary Screw Trap",
+                          lat = 41+43/60+35.64/(60^2),
+                          lon = -1*(123+0/60+35.02/(60^2)))
+srrst_latlong = st_as_sf(x = srrst_coords, coords = c("lon","lat"), crs=st_crs(4326))
+srrst = st_transform(x = srrst_latlong, crs = st_crs(3310))
+
+fish_obs_loc = rbind(srfcf, srrst)
 
 #_TABULAR DATA ------------------------------------------------------------
 

@@ -39,6 +39,8 @@ color_cities= "#d7922d"
 # color_basin = "black"
 color_tribs = "dodgerblue1"
 color_gauges = "yellow1"
+color_rst = "green3"
+color_fcf = "red2"
 fall_col = "darkgoldenrod"
 spring_col = "green4"
 wet_sn_col = "royalblue3"
@@ -95,8 +97,11 @@ cities_centroid = st_transform(cities_centroid, crs=st_crs(3310))
 # add label location numbers
 # cities_centroid$label_xmod = c(-1.2, 2.2, 1.5)
 # cities_centroid$label_ymod = c(0, -.2, -.5)
-cities_centroid$label_xmod = c(-1.2, 2.2,    0,  0)
-cities_centroid$label_ymod = c(  0, -0.2, -0.5, -0.7)
+### cities_centroid$name = Etna, Fort Jones, Greenview, Callahan
+# cities_centroid$label_xmod = c(-0.5,  0,    0,  0)
+# cities_centroid$label_ymod = c(  0, 0.3, -0.3, -0.4)
+cities_centroid$label_xmod = c(-1.2, 0,    0,  0)
+cities_centroid$label_ymod = c(  0, 0.7, -0.7, -0.7)
 
 # Reduce number of streams to major tributaries.
 mapped_stream_names = c("Shackleford Creek","Mill Creek", "Oro Fino Creek",
@@ -223,6 +228,72 @@ ca_or_figure = function(include_legend = T){
 
 
 save_setting_figure = function(){
+
+  # tmap_mode("plot")
+
+  main_map =
+  tm_shape(hill_wsh) +
+    tm_raster(palette = hillshade_palette_faded(20), legend.show = F) +
+    tm_shape(watershed, name= "Watershed Boundary", is.master=T, unit=figure_units) + tm_borders (color_watershed, lwd = 2) +
+    # tm_shape(basin, name = "Groundwater Basin") + tm_borders(color_basin, lwd = 2) +
+    # tm_shape(adj, name = "Adjudicated Area") + tm_polygons(col = color_adju, border.col = color_adju) +
+    tm_shape(mapped_streams, name = "Tributaries") + tm_lines(color_tribs, lwd = 2) +
+    tm_shape(riv, name = "Scott River") + tm_lines(color_river, lwd = 3) +
+    tm_shape(scott_klamath_confluence) +
+    tm_symbols(col = color_confluence, shape = 25) +
+    # tm_text("name", size = 1, xmod = -3.5, ymod = -.5, fontface = "bold") +
+    tm_shape(i5, name = "Interstate 5") + tm_lines(color_interstate, lwd = 2) +
+    tm_shape(rt3, name = "State Route 3") + tm_lines(color_state_road, lwd = 1.5) +
+    tm_shape(fj_gauge, name = "FJ Gauge") + tm_symbols(color_gauges, size = 1) +
+    # tm_text("station_nm", size = 1, xmod = 1, ymod = 1, fontface = "bold") +
+    tm_shape(srfcf, name = "Fish Counting Facility") + tm_symbols(col=color_fcf, size = 1, shape = 23) +
+    tm_shape(srrst, name = "Rotary Screw Trap") + tm_symbols(col=color_rst, size = 1, shape = 22) +
+    tm_shape(qvir) + tm_polygons(color_qvir , border.lwd = 1)+
+    tm_shape(cities_centroid, name = "Town or Community") +
+    tm_symbols(color_cities, border.lwd=1, size = 0.5) +
+    tm_text("NAME", size = 0.8, xmod = cities_centroid$label_xmod, ymod = cities_centroid$label_ymod) +
+    tm_scale_bar(position = c("RIGHT", "BOTTOM"))+
+    tm_compass(type = "4star", #size=0.9, #position = c("RIGHT", "BOTTOM"), ) +
+               position = c(.82,.07)) +
+
+    # legend for main figure
+    tm_add_legend(type = "title", title = "Scott R Watershed Features") +
+    tm_add_legend( type = "line", lwd = c(2, 3, 2), col =  c(color_watershed, color_river, color_tribs),
+                   labels = c("Watershed Boundary", "Scott River", "Major Tributaries"))+
+    tm_add_legend(type="fill", col = color_qvir, border.lwd = 1, labels = "QVIR", size=1) +
+    tm_add_legend(type="symbol", border.lwd = .5,
+                  col = c(color_cities, color_gauges, color_confluence, color_fcf, color_rst),
+                  labels = c("Town or Place", "Fort Jones Gauge", "Confluence", "FCF", "RST"),
+                  shape = c(21, 21, 25, 23, 22)) + #size = 0.7,
+    tm_add_legend(type = "line", lwd = c(2, 1.5), col = c(color_interstate, color_state_road),
+                  labels = c("Interstate 5", "State Route 3")) +
+    # legend for inset map
+    tm_add_legend(type = "title", title = "Inset Map") +
+    tm_add_legend(type="fill", col = color_watershed_fill, border.col = "gray10", labels = "Scott River Watershed") +
+    tm_add_legend(type="fill", col = color_klamath, border.col = "gray10", labels = "Klamath Basin")+
+    tm_add_legend(type="fill", col = color_states, border.col = "gray10", labels = "Ore. and Calif.")+
+    tm_add_legend(type="line", col = color_county, labels = "Siskiyou County", lwd=2)+
+    # finish legend
+    # tm_layout(legend.bg.color = "white", legend.frame = T, legend.text.size = 1, legend.only = T)
+    tm_layout(legend.bg.color = "white", legend.frame = T, legend.width=.28)
+
+  ca_or_inset = ca_or_figure(include_legend = F)
+  # print(inset_map, vp=viewport(x= 0.15, y= 0.15, width= 0.3, height= 0.3))
+
+  graphic_filename = file.path(ms_dir,"Graphics and Supplements",
+                               "Graphics source","scott valley setting_tmsave.png")
+  tmap_save(tm = main_map, filename = graphic_filename,
+            insets_tm = ca_or_inset,
+            insets_vp = viewport(x= 0.8, y= 0.75, width= 0.4, height= 0.4),
+            width=7, height = 8.3, units = "in", dpi=400)
+
+  # return(result)
+}
+
+
+
+
+save_setting_figure_old = function(){
 
   # ADD LOCATIONS OF VIDEO COUNTING FACILITY AND ROTARY SCREW TRAP (Scott JSO 2022)
 
