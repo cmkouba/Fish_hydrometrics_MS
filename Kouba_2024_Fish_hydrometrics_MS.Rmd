@@ -139,32 +139,14 @@ fig_i = fig_i +1
 
 ## Species of concern: coho and Chinook salmon
 
-This study intends to predict the hydrologic needs of two species, coho and Chinook salmon. To this end, we used several decades worth of hydrologic and ecological data collected in the Scott River watershed. Although both species need fall flows to migrate from the ocean to natal spawning streams, the life history strategies of these two salmonids are distinct in several ways, and consequently are expected to have different functional flow requirements. 
-
-
-### Life cycle and status of coho salmon (*Oncorhynchus kisutch*)
-
-Returning adult coho spawn in natal streams between November and January [@KnechtleGiudice20192020], and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts [@MoyleCoho2002; @McMahonHabitat1983]. In the Scott River system these natal streams are the tributaries along the margins of the valley floor [SRCD -@SiskiyouResourceConservationDistrictFinal2004].
-
-In previous studies, the strongest predictor of juvenile coho abundance in a stream system was spatial habitat [@BradfordEtAlEmpirical1997; @NickelsonEtAlSeasonal1992; @BustardNarverAspects1975], although adequate food and cover were also important [@McMahonHabitat1983]. The primary mechanism for spatial constraints on abundance appears to be that juvenile coho become more territorial as they grow [@McMahonHabitat1983].
-
-Some coho salmon return to spawn at age 2 as grilse, but the majority (e.g., 92.4% in 2020) return after more than one year in the ocean, giving the Scott coho salmon run its characteristic 3-year cohort return interval [@KnechtleGiudice20192020].
-
-Coho salmon in the Scott Valley are listed as threatened under the federal and California Endangered Species Acts (ESAs). They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU), which was listed as threatened under the federal and state ESAs in 1997 and 2005, respectively. State-wide, coho populations have declined more than 90% since the 1940s [@BrownEtAlHistorical1994]. 
-
-### Life cycle and status of Chinook salmon (*Onchorhynchus tsawytscha*)
-
-Chinook salmon in the Scott Valley are a candidate for listing under the federal ESA, and are not listed under the California ESA. They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU). 
-Typically, adult Chinook salmon return to spawn in Scott Valley streams in the fall months September-December when flows are sufficient for salmon passage [@KnechtleGiudice20192020; @MagranetScott2015a; @MagranetScott2017]. Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life [@AgrawalEtAlPREDICTING2005]. Chinook spend the majority of their life in the ocean, and return to their natal streams shortly before spawning [@GrootMargolisLife1991]. However, substantial variability exists within this broader structure: Chinook salmon exhibit variation in multiple life stages, including time of seaward migration, age of maturity, and timing of return to natal stream [@GrootMargolisLife1991; @BourretEtAlDiversity2016].
-
-As recently as 2013, the SONCC Chinook population was stable and becoming more complex [@WainwrightEtAlCCIEA2013]. However, in monitoring from 2015-2020, the number of returning adults (the escapement) was 65% below historical average, and the change in the Scott River Chinook population has been more rapid than the decline in the overall Klamath Basin Chinook run [@CaliforniaDepartmentofFishandWildlifeScott2021]. Ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@WelchEtAlSynthesis2021]. Some studies have found that the leading cause of declining Chinook populations are ocean conditions, including including temperature, upwelling currents and food resources [@HuntEtAlOceanic1999], while others have identified hatchery practices as the primary cause [@QuinonesEtAlPotential2014]. 
-
-### Relevant distinctions in Chinook and coho life histories
-
+This study intends to predict the hydrologic needs of two species, coho and Chinook salmon. To this end, we used several decades worth of hydrologic and ecological data collected in the Scott River watershed. Although both species need fall flows to migrate from the ocean to natal spawning streams, the life history strategies of these two salmonids are distinct in several ways, and consequently are expected to have different functional flow requirements (see Supplement for additional life history information). 
 Chinook and coho salmon are distinct in several ways relevant to this study and to management considerations:
 
+<!-- * Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life, in contrast to coho, which spend a full year in the stream before migrating  . -->
+
+* The vast majority (**XX%**) of coho salmon outmigrate at 1+ years and return to spawn at 2+ years of age, producing a distinct cohort every 3 years (**CITE**), while the amount of time spent by Chinook in the ocean is more variable and more dependent on ocean conditions, and distinct cohort structure is not observed (**CITE**).
+* Juvenile coho salmon are affected by 2 years of freshwater conditions, while juvenile Chinook are affected by only one year of freshwater conditions (Figure \@ref(fig:cohoLifeCycleFigure) [@AgrawalEtAlPREDICTING2005; @KnechtleGiudice20192020].
 * In most years Chinook spawning migration takes place earlier (September-December) than coho (October-January).
-* Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life, in contrast to coho, which spend a full year in the stream before migrating  [@AgrawalEtAlPREDICTING2005; @KnechtleGiudice20192020].
 * Coho salmon prefer to spawn in reaches with smaller spawning gravels than Chinook salmon. Consequently the majority of coho redds are found in Scott River tributaries, while Chinook redds are more commonly found in the mainstem Scott River [e.g., @MagranetYokelScott2017; @MagranetScott2017].
 * Declining populations of coho salmon have been noted in the Klamath basin and more broadly in coastal California streams since the 1990s [e.g., @BrownEtAlHistorical1994], while regional Chinook populations have historically been more robust [@WainwrightEtAlCCIEA2013]. However, a declining trend was observed in the Klamath run of Chinook in the 2010s, and this trend was more significant in the Scott River system than the broader Klamath basin [@KnechtleGiudice20222023]. These trends have prompted additional monitoring of Scott Valley Chinook in the past decade [e.g., spawning surveys such as @MagranetScott2015; @MagranetScott2017].
 
@@ -175,28 +157,6 @@ knitr::include_graphics(file.path(graphics_dir, "Graphics source",
                                   "Salmon life cycle and seasons graphic.jpg"))
 }
 ```
-
-
-<!-- ```{r funcFlowTermsTabLifePeriods, echo = FALSE, results = 'asis'} -->
-
-<!-- szn_tab = read.csv(file.path(data_dir,"Salmon Life Stage and Season Table.csv")) -->
-
-
-<!-- #Create caption and column labels -->
-<!-- caption_text = "Explanation of season identifiers used in this analysis (displayed graphically in Figure 3)." -->
-<!-- column_labels = c("Abbrev.","Description", "Salmon Life Stage", "Species Affected") -->
-<!-- colnames(szn_tab) = column_labels -->
-
-<!-- szn_tab_ft = flextable(data=szn_tab) -->
-<!-- szn_tab_ft = set_caption(szn_tab_ft, caption = caption_text) -->
-<!-- szn_tab_ft = flextable::width(szn_tab_ft,j=2,  width = 1.5) -->
-<!-- szn_tab_ft = flextable::width(szn_tab_ft,j=3, width = 2.5) -->
-<!-- szn_tab_ft = flextable::width(szn_tab_ft,j=4, width = 1.5) -->
-<!-- szn_tab_ft = hline(szn_tab_ft, i = 4) -->
-<!-- szn_tab_ft -->
-
-<!-- ```  -->
-
 
 # Methods: Quantitative analysis
 
@@ -215,7 +175,7 @@ Single-species forecasts are valuable! [@WardEtAlLeveraging2024] Simpler linear 
 
 ## Step 1. Calculate predictors and screen for collinearity: Flow metrics to describe Scott River flow regime
 
-Firstly, a set of hydrologic predictor metrics needed to be derived characterizing the Scott Valley hydrologic regime. An initial set of metrics was selected from the catalog of California-specific functional flows (as illustrated in Figure 4) [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020] to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. These hydrologic predictors were calculated from the daily flow record at the Fort Jones river gauge from 1942-2023 using the approach of Patterson et al. [-@PattersonEtAlHydrologic2020]. The full suite of **XX** metrics is calculated on a water-year basis (i.e., each type of metric produces one value for each water year; *Supplemental Table 1*). Abbreviations, relevant time periods (including salmon life stage alignment; see Section 3.3), and metric calculation details are listed in Table \@ref(tab:funcFlowTermsTab). Additional information is available in @PattersonEtAlHydrologic2020 and supporting documentation.
+Firstly, we calculated set of hydrologic predictor metrics characterizing the Scott Valley hydrologic regime. An initial set of metrics was selected from the catalog of California-specific functional flows (as illustrated in Figure 4) [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020] to highlight the history and salient characteristics of the Scott River flow regime over the past eight decades. These hydrologic predictors were calculated from the daily flow record at the Fort Jones river gauge from 1942-2023 using the approach of Patterson et al. [-@PattersonEtAlHydrologic2020]. The full suite of **XX** metrics is calculated on a water-year basis (i.e., each type of metric produces one value for each water year; *Supplemental Table 1*). Abbreviations, relevant time periods (including salmon life stage alignment; see Section 3.3), and metric calculation details are listed in Table \@ref(tab:funcFlowTermsTab). Additional information is available in @PattersonEtAlHydrologic2020 and supporting documentation.
 
 All selected functional flow metrics have some known ecological function or interpretation: Total annual flow is used to evaluate water year type. Phenomena measured with fall metrics, such as fall pulse magnitude and fall pulse timing, provide olfactory migration signals and spawning access to anadromous fish; however, a discrete fall pulse does not occur in every water year. Wet season metrics, such as wet season onset timing and baseflow magnitude, can be used to gauge conditions during egg incubation or the overwintering period for juvenile coho salmon. In particular, frequency and duration of wet season high-flow events (i.e. daily average flow above exceeding a 2-, 5- and 10-year flood) indicate the potential presence of scouring flows. Spring metrics, such as spring flow recession rate of change, occur during the transition from wet to dry season, and indicate conditions during early juvenile salmon rearing as well as the flow available for outmigration from Scott Valley to the ocean. Finally, metrics like the duration and median flow of the dry season indicate the timing and severity of low-flow conditions in which spatial habitat is constrained and connectivity between reaches may be limited. 
 
@@ -262,7 +222,7 @@ em_tab = read.csv(file.path(data_dir,"Ecological Monitoring Data Source Informat
 
 #Create caption and column labels
 caption_text = "Description and source information for ecological observations of the two salmonid species of concern."
-column_labels = c("Obs. ID","Abbrev.","Description", "Monitoring Details", "Source(s)", "Relevant Seasons")
+column_labels = c("Obs. ID","Abbrev.","Description", "Monitoring Details", "Source(s)", "Predictor Seasons")
 colnames(em_tab) = column_labels
 
 em_tab_ft = flextable(data=em_tab)
@@ -310,8 +270,10 @@ Because spawning occurs in the fall for both coho and Chinook salmon in the Scot
 ```{r smolt_year_metrics_master_tab, echo = F, warning =F}
 
 # retrieve hydrology tabulated by STP
-brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
-                                                             smolt_years = 2001:2024)
+# brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
+#                                                              smolt_years = 2001:2024)
+brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1978:2022,
+                                                             smolt_years = 1980:2024)
 
 # thresh_for_corr_fig = c(8, 10, 15, 20, 40, 
 #                         70, 100, 150, 200, 300, 
@@ -557,7 +519,7 @@ corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs",
 
 
 metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
-                              rep("darkgray",7), # fish outcome metrics
+                              rep("darkgray",8), # fish outcome metrics
                               rep(fall_col,nthresh), # BY fall recon 
                               rep(spring_col,nthresh), # RY spring discon
                               rep(fall_col,nthresh),   # RY fall discon
@@ -636,6 +598,7 @@ preds_sort = sort(table(ctl$Var1[abs(ctl$value) > high_corr_threshold]), decreas
 collin_preds = preds_sort[preds_sort > 0]
 # Initialize the while loop and structures to record the collinear groups
 loop = 1; collinear_group = list(); selected_pred = list()
+
 while(length(collin_preds)>0){
   most_collin_pred = names(collin_preds[1]) # pick predicter with highest number of collinears
   collinear_with = unique(ctl$Var2[ctl$Var1 == most_collin_pred &
@@ -646,10 +609,11 @@ while(length(collin_preds)>0){
   if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1) 
   if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
   if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-  if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
-  if(loop==5){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
-  if(loop==6){selected_pred[[loop]] = "f1_FA_Mag"} # Fall pulse magnitude during spawning (diff has higher sample size)
+  if(loop==4){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
+  if(loop==5){selected_pred[[loop]] = "w2_Wet_BFL_Dur"} # Dry to wet transition timing (rearing juv)
+  if(loop==6){selected_pred[[loop]] = "d1_DS_Dur_WS"} # Fall pulse magnitude during spawning (diff has higher sample size)
   if(loop==7){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+  if(loop==8){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
   
   # Remove the other collinears 
   keep = selected_pred[[loop]] # Keep this one
@@ -660,6 +624,7 @@ while(length(collin_preds)>0){
   preds_sort = sort(table(ctl$Var1[abs(ctl$value) > high_corr_threshold]), decreasing = T)
   collin_preds = preds_sort[preds_sort>0]
   loop = loop + 1
+  loop
 }
 ```
 

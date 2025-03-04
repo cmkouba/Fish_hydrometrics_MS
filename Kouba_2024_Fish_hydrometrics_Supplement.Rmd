@@ -68,11 +68,9 @@ fflows = read_fflows_FJ(calculator = "Flashy")
 ```
 
 
-# Study Area Description and History
+# Scott River watershed setting and water use
 
-## Scott River watershed setting and water use
-
-### Geography, climate and hydrology
+## Geography, climate and hydrology
 
 The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott Valley, flowing generally from south to north and joining the Klamath River after flowing through a steep canyon (Figure \@ref(fig:ScottWatershedMap)). The Scott is a major tributary to the Klamath, which drains an area spanning sections of Northern California and Southern Oregon (Figure \@ref(fig:ScottWatershedMap), inset map). Scott Valley has a Mediterranean climate with distinctive seasons of cool, wet winters and warm, dry summers. This seasonality in water input creates highly seasonal flow in the Scott River and tributary streams, where the beginning of a water year coincides with low flow conditions that immediately precede the onset of winter precipitation (Figure \@ref(fig:fjFlowFigure)). 
 
@@ -93,11 +91,31 @@ fig_i = fig_i +1
 
 ```
 
-### Water uses and management objectives
+## Water uses and management objectives
 
 Water in Scott Valley is used for agricultural, domestic, and municipal supply. It also facilitates recreation and provides Native American cultural services, among other designated beneficial uses [NCRWQCB -@NorthCoastRegionalWaterQualityControlBoardACTION2006]. Because the watershed is undammed, managers and water users influence Scott River flow primarily via diversion of surface waters and pumping of groundwater. Consequently, the most powerful tool available to manage Scott River water flow is regulation of land use and thus water demand [Siskiyou County -@SiskiyouCountyScott2021]. 
 
 Historically, local regulation of land use has focused on maintaining the rural and agricultural character of Scott Valley [@ScottValleyAreaPlanCommitteeScott1980]. Regulating land use to improve ecological outcomes would entail significant economic, political and social risks, because much of the economic activity in this area is related to agriculture. The primary crops grown in Scott Valley are pasture for cattle feed and alfalfa [Siskiyou County -@SiskiyouCountyScott2021]. In addition to local economic impact, Scott River conditions influence fish population dynamics both within the watershed and in the broader Klamath system. The health of the Klamath salmon run has implications for commercial fishing, recreational activities, and cultural practices of Native American tribes in the region, including the Quartz Valley Indian Community and the Karuk and Yurok Tribes [@MansfieldEtAlKlamath2012].
+
+# Species of concern - coho and Chinook salmon
+
+### Life cycle and status of coho salmon (*Oncorhynchus kisutch*)
+
+Returning adult coho spawn in natal streams between November and January [@KnechtleGiudice20192020], and juvenile coho spend approximately one full year in freshwater streams before migrating to the ocean as smolts [@MoyleCoho2002; @McMahonHabitat1983]. In the Scott River system these natal streams are the tributaries along the margins of the valley floor [SRCD -@SiskiyouResourceConservationDistrictFinal2004].
+
+In previous studies, the strongest predictor of juvenile coho abundance in a stream system was spatial habitat [@BradfordEtAlEmpirical1997; @NickelsonEtAlSeasonal1992; @BustardNarverAspects1975], although adequate food and cover were also important [@McMahonHabitat1983]. The primary mechanism for spatial constraints on abundance appears to be that juvenile coho become more territorial as they grow [@McMahonHabitat1983].
+
+Some coho salmon return to spawn at age 2 as grilse, but the majority (e.g., 92.4% in 2020) return after more than one year in the ocean, giving the Scott coho salmon run its characteristic 3-year cohort return interval [@KnechtleGiudice20192020].
+
+Coho salmon in the Scott Valley are listed as threatened under the federal and California Endangered Species Acts (ESAs). They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU), which was listed as threatened under the federal and state ESAs in 1997 and 2005, respectively. State-wide, coho populations have declined more than 90% since the 1940s [@BrownEtAlHistorical1994]. 
+
+### Life cycle and status of Chinook salmon (*Onchorhynchus tsawytscha*)
+
+Chinook salmon in the Scott Valley are a candidate for listing under the federal ESA, and are not listed under the California ESA. They belong to the Southern Oregon / Northern California Coast (SONCC) Evolutionarily Significant Unit (ESU). 
+Typically, adult Chinook salmon return to spawn in Scott Valley streams in the fall months September-December when flows are sufficient for salmon passage [@KnechtleGiudice20192020; @MagranetScott2015a; @MagranetScott2017]. Chinook in this watershed hatch in the spring and migrate to the ocean in their first year of life [@AgrawalEtAlPREDICTING2005]. Chinook spend the majority of their life in the ocean, and return to their natal streams shortly before spawning [@GrootMargolisLife1991]. However, substantial variability exists within this broader structure: Chinook salmon exhibit variation in multiple life stages, including time of seaward migration, age of maturity, and timing of return to natal stream [@GrootMargolisLife1991; @BourretEtAlDiversity2016].
+
+As recently as 2013, the SONCC Chinook population was stable and becoming more complex [@WainwrightEtAlCCIEA2013]. However, in monitoring from 2015-2020, the number of returning adults (the escapement) was 65% below historical average, and the change in the Scott River Chinook population has been more rapid than the decline in the overall Klamath Basin Chinook run [@CaliforniaDepartmentofFishandWildlifeScott2021]. Ocean conditions may have contributed to a broad decline in Chinook populations from Alaska to California [@WelchEtAlSynthesis2021]. Some studies have found that the leading cause of declining Chinook populations are ocean conditions, including including temperature, upwelling currents and food resources [@HuntEtAlOceanic1999], while others have identified hatchery practices as the primary cause [@QuinonesEtAlPotential2014]. 
+
 
 # Functional Flows Background
 ```{r funcFlowTermsTab, echo = FALSE, results = 'asis'}
@@ -179,19 +197,19 @@ fig_i = fig_i +1
 
 # Screening Predictors for Collinearity
 
-#### Groups 1 and 2
+## Groups 1 and 2
 
 These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), effectively characterized by the question, how wet was the wet season?. We selected `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during two wet seasons: `w1`, the first wet season, experienced by a cohort as eggs and newly-hatched alevin and fry, and `w2`, experienced by the cohort as overwintering parr.
 
-#### Group 3
+## Group 3
 
 These metrics describe the magnitude and timing of dry-season flows before the cohort's spawning. We selected `d1_DS_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during the dry season before a cohort's parents' spawning.
 
-#### Groups 4 and 5
+## Groups 4 and 5
 
 These metrics quantify the timing of the wet season onset and duration (year 2). We selected `w2_Wet_Tim`, the timing of the onset of the second wet season, and `w2_Wet_BFL_Dur`, the duration of wet season baseflow, to characterize the timing of the wet season experienced by a cohort of coho as overwintering juveniles.
 
-#### Groups 6 and 7: 
+## Groups 6 and 7: 
 
 These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). Although `FA_num_diff` had a higher sample size, we selected `f1_FA_Mag` and `f2_FA_Mag` to better reflect the years in which an identifiable fall pulse occurred before the onset of the wet season.
 

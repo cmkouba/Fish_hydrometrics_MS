@@ -1008,6 +1008,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                       "coho_redds_in_brood",
                       "coho_smolt_abun_est",
                       "chinook_spawner_abundance",
+                      "chinook_spawner_abundance_long",
                       "chinook_juvenile_abundance",
                       # "percent_coho_smolt_survival",
                       # more advanced outcomes?
@@ -1026,10 +1027,10 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   if(reduce_to_eco_data_years_only==T){
     brood_years_min = min(c(smolt_per_fem$Adult_Year_Brood_Year,
                             outmigs$Brood.Year, coho_abun$Return_Year,
-                            chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
+                            spawners$year, chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
     brood_years_max = max(c(smolt_per_fem$Adult_Year_Brood_Year,
                             outmigs$Brood.Year,coho_abun$Return_Year,
-                            chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
+                            spawners$year, chinook_abun$Year, chinook_spawn_and_juv$Brood_Year))
   } else {
     brood_years_min=min(year(hbbm$Date[month(hbbm$Date)>8]))
     brood_years_max=max(year(hbbm$Date[month(hbbm$Date)>8]))
@@ -1052,6 +1053,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   #2. Assign output metrics
   output_tab$chinook_spawner_abundance = chinook_spawn_and_juv$Spawning_Adult_Chinook_est[match(output_tab$brood_year,
                                                                                                 chinook_spawn_and_juv$Brood_Year)] #chinook_abun$Total_Basin_estimate[match(output_tab$brood_year, chinook_abun$Year)]
+  output_tab$chinook_spawner_abundance_long = spawners$chinook_scott[match(output_tab$brood_year, spawners$year)]
   output_tab$chinook_juvenile_abundance = chinook_spawn_and_juv$Juvenile_Chinook_produced_BY_plus_1[match(output_tab$brood_year,
                                                                                                           chinook_spawn_and_juv$Brood_Year)]
   output_tab$chinook_juv_per_adult = chinook_spawn_and_juv$Chinook_juv_per_adult[match(output_tab$brood_year,
