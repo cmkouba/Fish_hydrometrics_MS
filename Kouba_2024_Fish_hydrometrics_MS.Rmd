@@ -227,11 +227,12 @@ colnames(em_tab) = column_labels
 
 em_tab_ft = flextable(data=em_tab)
 em_tab_ft = set_caption(em_tab_ft, caption = caption_text)
-em_tab_ft = flextable::width(em_tab_ft,j=1,  width = 1)
+em_tab_ft = flextable::width(em_tab_ft,j=1,  width = .5)
 em_tab_ft = flextable::width(em_tab_ft,j=2,  width = 1.5)
-em_tab_ft = flextable::width(em_tab_ft,j=3, width = 2)
+em_tab_ft = flextable::width(em_tab_ft,j=3, width = 1.5)
 em_tab_ft = flextable::width(em_tab_ft,j=4,  width = 1.5)
-em_tab_ft = flextable::width(em_tab_ft,j=5,  width = 1)
+em_tab_ft = flextable::width(em_tab_ft,j=5,  width = 1.2)
+em_tab_ft = flextable::width(em_tab_ft,j=6,  width = 0.7)
 em_tab_ft
 
 ```  
@@ -635,7 +636,8 @@ elim_pred_tab_col1 = unlist(lapply(X=collinear_group, FUN = function(x){paste(x,
 elim_pred_tab_col2 = c("How wet the wet season (year 1, as eggs and fry)",
                        "How wet the wet season (year 2, as rearing juv.)",
                        "How dry the dry season (pre-spawning)",
-                       "Dry to wet transition timing (year 2, rearing juv.)",
+                       "Dry to wet transition timing (year 1, as eggs and fry)",
+                       "Dry to wet transition timing (year 2, as rearing juv.)",
                        "How long the wet season (year 1, as eggs and fry)",
                        "Fall pulse magnitude (year 1, during parents' spawning)",
                        "Fall pulse magnitude (year 2, as rearing juv.)")
@@ -653,9 +655,9 @@ colnames(elim_pred_tab) = column_labels
 
 ept_tab_ft = flextable(data=elim_pred_tab)
 ept_tab_ft = set_caption(ept_tab_ft, caption = caption_text)
-ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 3)
+ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 2.8)
 ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2)
-ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 2)
+ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 1.8)
 ept_tab_ft
 ```
 
@@ -1207,6 +1209,12 @@ if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
+
+
+
+## MARSS
+
+<!-- CURRENTLY HERE -->
 
 
 
