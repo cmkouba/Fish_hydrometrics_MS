@@ -32,6 +32,7 @@ library(cowplot) # for inset maps
 library(ggthemes) # for colorblind palette
 library(flextable)
 library(glmnet) # lasso regression
+library(MARSS)
 library(here)
 
 # Directories
@@ -54,7 +55,7 @@ source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table func
 save_figs_here = graphics_dir
 save_imgs=T # generate the figures in the folder
 include_figs = T
-replace_setting_fig = T# setting to F can save time if no need to re-render map
+replace_setting_fig = F# setting to F can save time if no need to re-render map
 fig_i = 1
 
 # pick last water year for the HB function to calculate a value for
@@ -64,6 +65,22 @@ last_wy = 2023
 ```{r load_FF_metrics, include = FALSE}
 fflows = read_fflows_FJ(calculator = "Flashy")
 # fflows = read_fflows_FJ(calculator = "Regular")
+# data transformations
+log_transform_eco_metrics = T
+zscore_flow_metrics = T
+
+```
+
+
+```{r select_eco_metric_3, echo = F, warning =F, comment = F}
+
+  # Based on the need for a normalized metric, going to select the juvenile per adult metric.
+  # y_val_chinook = "chinook_juv_per_adult"
+  # y_val_coho = "coho_smolt_per_fem"
+y_val_chinook = "chinook_juvenile_abundance"
+y_val_coho = "coho_smolt_abun_est"
+
+# MAKE SURE y-axis label matches y-value name in plotting script on line ~1203
 
 ```
 
@@ -79,6 +96,9 @@ Robustness of the results indicate that this method for empirically deriving hyd
 
 # Introduction
 
+
+**log-transform or Z-score flow metrics to standardize effect sizes?**
+**log-transform abundance data?**
 
 ## Motivation and objectives 
 
@@ -341,6 +361,34 @@ num_predictors = length(colnames(metrics_tab))- length(non_preds)
 
 ```
 
+
+
+```{r metrics_tab_diagnostics, echo = F, warning =F}
+
+# log_transform_flow_metrics = F
+
+if(log_transform_eco_metrics == T){
+  metrics_tab[,yvlt$y_val] = log10(metrics_tab[,yvlt$y_val])
+}
+
+zscore_column_na_rm = function(x){
+  mean_x = mean(x, na.rm=T)
+  sd_x = sd(x, na.rm=T)
+  return((x - mean_x) / sd_x)
+}
+
+if(zscore_flow_metrics == T){
+  zscore_these = !(colnames(metrics_tab) %in% non_preds)
+  metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
+                                     MARGIN = 2, FUN = zscore_column_na_rm)
+}
+
+# if(log_transform_flow_metrics == T){
+#   log_these = !(colnames(metrics_tab) %in% non_preds)
+#   metrics_tab[,log_these] = log10(metrics_tab[,log_these])
+# }
+
+```
 
 ## Step 4. Calculate correlation coefficients and rule out temporally impossible relationships
 
@@ -663,16 +711,6 @@ ept_tab_ft
 
 
 
-```{r select_eco_metric_3, echo = F, warning =F, comment = F}
-
-  # Based on the need for a normalized metric, going to select the juvenile per adult metric.
-  # y_val_chinook = "chinook_juv_per_adult"
-  # y_val_coho = "coho_smolt_per_fem"
-y_val_chinook = "chinook_juvenile_abundance"
-y_val_coho = "coho_smolt_abun_est"
-
-
-```
 
 **revise**
 Correlations between hydrologic and ecologic metrics were not particularly strong (*Supplemental Figure 1*; with selected metrics shown in Figure \@ref(fig:corrMatrixFig)). The maximum absolute $R$ value was 0.58, calculated between rearing year spring disconnection timing at 400 cfs (`RY_discon_400`) and coho smolt abundance, and only nine absolute $R$ values were greater than 0.5. This is consistent with the understanding that hydrology is only one factor influencing salmonid reproductive outcomes. 
@@ -735,20 +773,29 @@ Finally, we used the final lambda value and the full dataset to generate a regre
 
 ```{r numpred_testsets_final_lam, echo = FALSE}
 
+# fname_co = paste( y_val_coho,"- lambdas_and_rmse")
+# fname_ch = paste( y_val_chinook,"- lambdas_and_rmse")
 
-fname_co = paste( y_val_coho,"- lambdas_and_rmse")
-fname_ch = paste( y_val_chinook,"- lambdas_and_rmse")
+  if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){
+    fname_co = paste( y_val_coho,"- lambdas_and_rmse, no transform fmet or ecomet" )
+    fname_ch = paste( y_val_chinook,"- lambdas_and_rmse, no transform fmet or ecomet" )
+  }
+  if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){
+    fname_co = paste( y_val_coho,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )
+    fname_ch = paste( y_val_chinook,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )
+  }
 
-if(file.exists( file.path(data_dir,paste(fname_co,".csv" )))){
-  l_and_r_co = read.csv(file.path(data_dir,paste(fname_co,".csv")))
+
+if(file.exists( file.path(data_dir,paste0(fname_co,".csv" )))){
+  l_and_r_co = read.csv(file.path(data_dir,paste0(fname_co,".csv")))
   
   frac_co_1_pred = sum(l_and_r_co$bestlam_numpred == 1)/nrow(l_and_r_co)
   frac_co_0_pred = sum(l_and_r_co$bestlam_numpred == 0)/nrow(l_and_r_co)
   frac_co_other_pred = sum(l_and_r_co$bestlam_numpred>1)/nrow(l_and_r_co)
   
 }
-if(file.exists( file.path(data_dir,paste(fname_ch,".csv" )))){
-  l_and_r_ch = read.csv(file.path(data_dir,paste(fname_ch,".csv")))
+if(file.exists( file.path(data_dir,paste0(fname_ch,".csv" )))){
+  l_and_r_ch = read.csv(file.path(data_dir,paste0(fname_ch,".csv")))
   
   frac_ch_1_pred = sum(l_and_r_ch$bestlam_numpred == 1)/nrow(l_and_r_ch)
   frac_ch_0_pred = sum(l_and_r_ch$bestlam_numpred == 0)/nrow(l_and_r_ch)
@@ -763,10 +810,21 @@ if(file.exists( file.path(data_dir,paste(fname_ch,".csv" )))){
 
 
 # final lambda vals
-if(y_val_coho=="coho_smolt_per_fem") {lam_co = 5}#10}
-if(y_val_coho=="coho_smolt_abun_est") {lam_co = 2500}
-if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 36}#50}
-if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 25000}#50}
+
+if(log_transform_eco_metrics == F & zscore_flow_metrics == F) {
+  if(y_val_coho=="coho_smolt_per_fem") {lam_co = 5}#10}
+  if(y_val_coho=="coho_smolt_abun_est") {lam_co = 2500}
+  if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 36}#50}
+  if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 25000}#50}
+}
+
+if(log_transform_eco_metrics == T & zscore_flow_metrics == T) {
+  if(y_val_coho=="coho_smolt_abun_est") {lam_co = 0.1}
+  if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 0.1}
+  if(y_val_coho=="coho_smolt_per_fem") {lam_co = .2}
+  if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = .1}
+}
+
 
 ```
 
@@ -784,11 +842,11 @@ if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "i
 lasso_results_co = lasso_regression_plots_and_tabs(
   metrics_tab = metrics_tab_screened,
   y_val = y_val_coho,
-  # remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_coho],
-  #  remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_coho],
   yvlt=yvlt, selected_lam = lam_co,
   #if you just need the tables, and are not saving the images, don't show the plot
-  show_plot = save_imgs) 
+  show_plot = save_imgs,
+  log_transform_eco_metrics = log_transform_eco_metrics, 
+  zscore_flow_metrics = zscore_flow_metrics) 
 pred_tab_co = lasso_results_co$pred_appear_tab
 pred_rank_co = lasso_results_co$pred_rank_tab
 lasso_mod_co = lasso_results_co$lasso_mod_range
@@ -819,11 +877,11 @@ if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "i
 lasso_results_ch = lasso_regression_plots_and_tabs(
   metrics_tab = metrics_tab_screened_chinook,
   y_val = y_val_chinook,
-  # remove_SY_metrics = yvlt$remove_sy[yvlt$y_val==y_val_chinook],
-  # remove_RY_metrics = yvlt$remove_ry[yvlt$y_val==y_val_chinook],
   yvlt = yvlt,
   selected_lam = lam_ch,
-  show_plot = save_imgs)
+  show_plot = save_imgs, 
+  log_transform_eco_metrics = log_transform_eco_metrics, 
+  zscore_flow_metrics = zscore_flow_metrics)
 
 
 pred_tab_ch = lasso_results_ch$pred_appear_tab
@@ -1068,7 +1126,20 @@ metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
   thresholds = thresh_for_corr_fig, 
   reduce_to_eco_data_years_only = F) 
 
-metrics_tab_long = metrics_tab_long[ , keepers_co]
+metrics_tab_long = metrics_tab_long[,colnames(metrics_tab_screened)]
+
+if(log_transform_eco_metrics == T){
+  metrics_tab_long[,yvlt$y_val] = log10(metrics_tab_long[,yvlt$y_val])
+}
+
+if(zscore_flow_metrics == T){
+  zscore_these = !(colnames(metrics_tab_long) %in% non_preds)
+  metrics_tab_long[,zscore_these] = apply(X = metrics_tab_long[,zscore_these],
+                                     MARGIN = 2, FUN = zscore_column_na_rm)
+}
+
+
+# metrics_tab_long = metrics_tab_long[ , keepers_co]
 
 # calculate hbf for all years in which there are hydrodata
 hbf_coho = get_hbf_tab(mt = metrics_tab_long, 
@@ -1122,7 +1193,35 @@ if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
+```{r hbfPredVObs, echo = F, warning = F, fig.height = 8, fig.cap = "PredVObs. \\label{fig:predVObs}"}
 
+# Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){
+  png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
+  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
+  par(mfrow=c(2,1))
+  # Panel 1. Coho
+  hbf_over_time_fig(mt = metrics_tab_screened,
+                    hbf_tab = hbf_coho, y_val = y_val_coho,
+                    y_val_axis = y_axis_label)
+  
+  # Panel 2. Chinook
+  hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
+  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook] 
+  hbf_over_time_fig(mt = metrics_tab_screened,
+                    hbf_tab = hbf_chinook, 
+                    y_val = y_val_chinook,
+                    y_val_axis = y_axis_label) 
+  
+  
+  dev.off()
+}
+if(include_figs==T){knitr::include_graphics(fig_path)}
+fig_i = fig_i +1
+
+```
 
 ### Hydrologic Benefit function component contributions
 
@@ -1138,14 +1237,15 @@ hbf_coho$hbf_total = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_coho, MARGIN = 2, FUN = mean, na.rm=T)
 keep_cols = colnames(hbf_coho[abs(is_it_0)>0])
 comp_names_co = keep_cols[keep_cols != "brood_year"]
+y_text_co = paste0("Contrib. to HB value (",
+                   yvlt$y_val_label[
+                     yvlt$y_val==y_val_coho],")")
 if(length(comp_names_co)>0){
   bar_data_co = hbf_coho[,keep_cols]
   graph_cols = c("Brood Year", comp_names_co)
   colnames(bar_data_co) = graph_cols
   bd_melt_co = reshape2::melt(dat = bar_data_co, id.vars = "Brood Year")
-  colnames(bd_melt_co)[3] = paste0("Contrib. to HB value (",
-                                  yvlt$y_val_label[
-                                    yvlt$y_val==y_val_coho],")")
+  colnames(bd_melt_co)[3] = y_text_co
 }
 
 # Arrange data - chinook
@@ -1153,14 +1253,15 @@ hbf_chinook$hbf_total = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_chinook, MARGIN = 2, FUN = mean, na.rm=T)
 keep_cols = colnames(hbf_chinook)[abs(is_it_0)>0]
 comp_names_ch = keep_cols[keep_cols != "brood_year"]
+y_text_ch = paste0("Contrib. to HB value (",
+                   yvlt$y_val_label[
+                     yvlt$y_val==y_val_chinook],")")
 if(length(comp_names_ch)>0){
   bar_data_ch = hbf_chinook[,keep_cols]
   graph_cols = c("Brood Year", comp_names_ch)
   colnames(bar_data_ch) = graph_cols
   bd_melt_ch = reshape2::melt(dat = bar_data_ch, id.vars = "Brood Year")
-  colnames(bd_melt_ch)[3] = paste0("Contrib. to HB value (",
-                                  yvlt$y_val_label[
-                                    yvlt$y_val==y_val_chinook],")")
+  colnames(bd_melt_ch)[3] = y_text_ch
 }
 # Bar charrrt
 
@@ -1214,8 +1315,44 @@ fig_i = fig_i +1
 
 ## MARSS
 
-<!-- CURRENTLY HERE -->
 
+```{r marss, echo = F, warning = F, fig.height = 8, fig.cap = "marss results. \\label{fig:marss}"}
+
+# Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.
+
+# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+# if(save_imgs == TRUE){
+#   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
+
+# y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+#                                    # y_val_names = c("coho_smolt_abun_est", "chinook_juvenile_abundance",
+#                                    #                 "coho_smolt_per_fem", "chinook_juv_per_adult"))
+#                                    y_val_names = c(y_val_coho, y_val_chinook))
+# mod.fit = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab, method = "BFGS")
+# plot(mod.fit)
+
+y_obs_tab_co = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                   y_val_names = y_val_coho)
+y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                   y_val_names = y_val_chinook)
+mod_co = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_co, method = "BFGS")
+plot(mod_co)
+mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
+plot(mod_ch)
+
+# coef(mod_co)
+
+ggplot2::autoplot(mod_co)
+
+ggplot2::autoplot(mod_ch)
+
+# x = metrics_atb
+#   dev.off()
+# }
+# if(include_figs==T){knitr::include_graphics(fig_path)}
+# fig_i = fig_i +1
+
+```
 
 
 

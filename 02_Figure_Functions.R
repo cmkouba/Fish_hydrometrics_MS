@@ -929,7 +929,7 @@ eco_vs_time_figs = function(save_pdf = T, y_val_id = "chinook_spawner_abundance"
 }
 
 
-# Metrics -------------------------------------------
+# Metrics Calculations -------------------------------------------
 
 calc_recon_days_since_aug_31 = function(dates, flow, recon_threshold){
   dates_since_aug_31 = as.numeric(dates - as.Date(paste0(year(min(dates)), "-08-31")))
@@ -1261,7 +1261,8 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 }
 
 
-# Lasso Regression -----------------------------------------------
+# Correlations ------------------------------------------------------------
+
 
 calc_corr_matrix=function(metrics_tab,
                           corr_method = "pearson",
@@ -1368,9 +1369,9 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
            axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
            # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
            col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
-             # rep("white",2),
-             rep("lightcyan",2),
-             rep("lightskyblue",2),rep("deepskyblue4")),
+                   # rep("white",2),
+                   rep("lightcyan",2),
+                   rep("lightskyblue",2),rep("deepskyblue4")),
            cl.pos = "b")
   vert_line_y1 = length(pred_subset)+0.5
   # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
@@ -1380,6 +1381,10 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
   arrows(x0=5.5, x1=5.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
 
 }
+
+
+# Lasso Regression -----------------------------------------------
+
 
 generate_pred_appear_tab = function(lasso_mod, best_lam_range){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
@@ -1629,73 +1634,38 @@ lasso_regression_plots_and_tabs = function(metrics_tab,
                                   return_pred_appear_tab = T,
                                   yvlt,
                                   selected_lam,
-                                  show_plot = T){
+                                  show_plot = T,
+                                  log_transform_eco_metrics, zscore_flow_metrics){
 
   # Lasso regression. Informed by lab from ISLR 7th printing
   x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
-                                              y_val = y_val
+                                              y_val = y_val)
                                               # remove_RY_metrics = remove_RY_metrics,
-                                              # remove_SY_metrics = remove_SY_metrics
-                                              )
+                                              # remove_SY_metrics = remove_SY_metrics)
   x = x_and_y[[1]]; y = x_and_y[[2]]
 
   # name rmse file
-  fname = paste( y_val,"- lambdas_and_rmse")
-  # if(remove_SY_metrics==T){fname = paste(fname, "no SY")  }
-  # if(remove_RY_metrics==T){fname = paste(fname,"no RY")  }
-  lambda_tab_path = file.path(data_dir,paste(fname,".csv" ))
+  # fname = paste( y_val,"- lambdas_and_rmse")
+  if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname = paste( y_val,"- lambdas_and_rmse, no transform fmet or ecomet" )}
+  if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname = paste( y_val,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )}
+  lambda_tab_path = file.path(data_dir,paste0(fname,".csv" ))
+  if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname2 = paste( y_val,"- predictor rank, no transform fmet or ecomet" )}
+  if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname2 = paste( y_val,"- predictor rank, zscore fmet T, log ecomet T" )}
+  pred_rank_path = file.path(data_dir,paste0(fname2,".csv" ))
 
   # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
-  if(file.exists(lambda_tab_path)){lambdas_and_rmse = read.csv(lambda_tab_path)}
-  if(!file.exists(lambda_tab_path)){
-    # find all combinations of test and train data points for lambda values
-    # com = t(combn(x = 1:length(y), m = 1))     # hold one out
-    com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
-    # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
-    # split data set into all possible test and train sets.
-    # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
-    if(nrow(com)>10000){
-      set.seed(1)
-      com = com[sample(x = 1:nrow(com), size = 10000),]
-    }
-    # calculate models across range of lambdas.
-    # use cross-validation to find best lambda value for each set. Save table
-    lambdas_and_rmse = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
-    write.csv(lambdas_and_rmse, lambda_tab_path, quote=F, row.names = F)
+  if(!file.exists(lambda_tab_path) | !file.exists(pred_rank_path)){
+    save_pred_and_rmse_files(metrics_tab = metrics_tab,
+                             y_val = y_val,
+                             lambda_tab_path = lambda_tab_path, pred_rank_path = pred_rank_path)
   }
+  lambdas_and_rmse = read.csv(lambda_tab_path)
+  pred_rank_tab = read.csv(pred_rank_path)
+
   min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
   max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
   by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
-
-  # } else { #stored values for best lambdas
-  #   # if(y_val=="coho_smolt_per_fem"){min_lam = 0.1; max_lam = 40; by_val = 0.1}
-  #   # if(y_val=="chinook_juv_per_adult"){min_lam = 0.5; max_lam = 195; by_val = 2}
-  # }
-
   best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
-
-  # store predictor rank table
-  fname2 = paste( y_val,"- predictor rank")
-  pred_rank_path = file.path(data_dir,paste(fname2,".csv" ))
-  # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
-  if(file.exists(pred_rank_path)){pred_rank_tab = read.csv(pred_rank_path)}
-  if(!file.exists(pred_rank_path)){
-    # find all combinations of test and train data points for lambda values
-    com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
-    # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
-    # split data set into all possible test and train sets.
-    # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
-    if(nrow(com)>10000){
-      set.seed(1)
-      com = com[sample(x = 1:nrow(com), size = 10000),]
-    }
-
-    pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
-                                              output = "predictor_rank",
-                                          outer_best_lam_range = best_lam_range)
-    write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
-  }
-
 
   # Calculate lasso models over range of lambda values
   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
@@ -1744,6 +1714,166 @@ get_lasso_mod = function(metrics_tab,
 
   return(lasso_mod)
 }
+
+
+save_multiple_rmse_and_pred_rank_files=function(metrics_tab, yvlt,
+                                                log_transform_eco_metrics, zscore_flow_metrics){
+  # to use: run through outer main script until arrive at lasso function. use
+  # metrics_tab that is the input to the lasso plotting function (i.e.,
+  # metrics_tab = metrics_tab_screened)
+
+  for(y_val in yvlt$y_val){
+
+    if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname = paste( y_val,"- lambdas_and_rmse, no transform fmet or ecomet" )}
+    if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname = paste( y_val,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )}
+    if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname2 = paste( y_val,"- predictor rank, no transform fmet or ecomet" )}
+    if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname2 = paste( y_val,"- predictor rank, zscore fmet T, log ecomet T" )}
+    lambda_tab_path = file.path(data_dir,paste0(fname,".csv" ))
+    pred_rank_path = file.path(data_dir,paste0(fname2,".csv" ))
+
+    save_pred_and_rmse_files(metrics_tab = metrics_tab,
+                             y_val = y_val,
+                             lambda_tab_path = lambda_tab_path,
+                             pred_rank_path = pred_rank_path)
+  }
+
+
+
+
+  # pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
+  #                                           output = "predictor_rank",
+  #                                           outer_best_lam_range = best_lam_range)
+  # write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
+
+}
+
+save_pred_and_rmse_files = function(metrics_tab, y_val, lambda_tab_path, pred_rank_path){
+  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
+                                              y_val = y_val)
+  x = x_and_y[[1]]; y = x_and_y[[2]]
+
+  com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
+  # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
+  # split data set into all possible test and train sets.
+  # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
+  if(nrow(com)>10000){
+    set.seed(1)
+    com = com[sample(x = 1:nrow(com), size = 10000),]
+  }
+
+  lambdas_and_rmse = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
+  write.csv(lambdas_and_rmse, lambda_tab_path, quote=F, row.names = F)
+
+  min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
+  max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
+  by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
+  best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
+
+
+  pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
+                                            output = "predictor_rank",
+                                            outer_best_lam_range = best_lam_range)
+  write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
+}
+
+
+
+# MARSS  ------------------------------------------------------------------
+
+## The code below follows the R script Baruch_2023_Putah_Creek_MARSS.R, published
+## in support of:
+## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
+## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
+
+# Manipulate observation data
+
+get_obs_data_for_MARSS = function(metrics_tab,
+                                  y_val_names = c("coho_smolt_abun_est","chinook_juvenile_abundance")){
+
+  y_obs = t(metrics_tab[,y_val_names])
+  colnames(y_obs) = metrics_tab$brood_year
+  rownames(y_obs) = y_val_names
+
+  return(y_obs)
+}
+
+
+### B2024: USE Z MATRIX THAT SUBSETS FISH: ONLY INCLUDE FISH AT A SITE IF PRESENT IN > 25% OF YEARS
+
+
+get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
+  species = rownames(y_obs_tab)
+  nspp = length(species)
+
+  # reduce observation data to years with observations in the selected metrics
+  how_many_na = apply(X = y_obs_tab, MARGIN = 2, function(x){sum(is.na(x))})
+  # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  y_obs = y_obs_tab[ , how_many_na < nspp]
+
+  ## Data structure: the "site" for each species is the entire watershed
+  ## (as monitored at the counting weir for adults and the rotary screw trap
+  ## for juveniles).
+  ##
+  ## So, we need a x-column Z matrix. One col per species, one row per species-site
+  ## combination. We have x species all at the same site.
+
+  n_sites = 1 # scott River
+  Z = matrix(1, nspp * n_sites, 1)
+  # diag(Z) = 1
+  # B2024: R matrix: species-specific observation error -> rep each species name for number of observation streams
+  # R=matrix(list(0),nspp,nspp)
+  # diag(R) = species
+
+  mod = list()
+
+  mod$Q = "diagonal and equal" # single process error across species and replicates
+  mod$U = "zero" # No drift
+  mod$B = "identity" # No B
+  mod$Z = Z
+  mod$R = "diagonal and equal"
+  mod$A = "zero"
+
+  #### DS_Dur_WS
+
+  flow_metric_ct = "w1_Wet_BFL_Mag_50"
+  covar_ct_raw = t(metrics_tab[how_many_na < nspp,
+                                           flow_metric_ct])
+  rownames(covar_ct_raw) = flow_metric_ct
+  # <- PuFF_Obs %>%
+  #   filter(Year > 1992) %>% #Include flow data spanning first to last year
+  #   select(DS_Dur_WS) %>%
+  #   t() #Transpose
+  covar_ct <- zscore(covar_ct_raw) # z-score to standardize
+
+  #Create C matrix: 1 column b/c one variable, specify if species abundance or normalized
+  C_ct <- matrix("ScottR")#matrix(c("abundance","abundance","normalized","normalized"), ncol = 1, nrow = nspp)
+  # C_ct <- matrix(rep("ScottR"), ncol = 1, nrow = nspp)
+
+  ## Now fit a MARSS model
+  mod_ct = mod
+  mod_ct$C = C_ct # Abundance and normalized data be affected by the covariate differently
+  mod_ct$c = covar_ct # Covariate data
+
+
+  #### U = zero, B = identity, Q = equal
+  # Fit the MARSS model
+  # control$trace = 1
+  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, method = method)#, method="BFGS")
+
+  return(mod_ct.fit)
+  # mod_ct.CI <- MARSSparamCIs(mod_ct.fit)
+  #
+  # # what if we just start with the basics?
+  #
+  # kemfit2 = MARSS(y_obs, model = list(
+  #   Z = matrix(1, 4, 1),
+  #   R = "diagonal and equal"))
+}
+
+
+
+# Hydrologic Benefit Function Results -------------------------------------
+
 
 get_hbf_tab = function(mt, coefs, int){
   # coefs = as.data.frame(t(as.matrix(coef(lasso_mod))))
