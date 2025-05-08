@@ -76,9 +76,9 @@ zscore_flow_metrics = T
 
   # Based on the need for a normalized metric, going to select the juvenile per adult metric.
   # y_val_chinook = "chinook_juv_per_adult"
-  # y_val_coho = "coho_smolt_per_fem"
+  y_val_coho = "coho_smolt_per_fem"
 y_val_chinook = "chinook_juvenile_abundance"
-y_val_coho = "coho_smolt_abun_est"
+# y_val_coho = "coho_smolt_abun_est"
 
 # MAKE SURE y-axis label matches y-value name in plotting script on line ~1203
 
@@ -88,17 +88,15 @@ y_val_coho = "coho_smolt_abun_est"
 
 In many rural areas of arid and semi-arid regions, balancing agricultural and environmental water needs is a key challenge facing resource managers. This is complicated  by the tendency for the water needs of cultivated crops to be better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species using a functional flows framework. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study.
 
-Taking advantage of a nearly two-decade ecological monitoring dataset and long-term stream gauge measurements, we used lasso regression to build predictive models of coho and Chinook salmon reproductive success based on hydrologic metrics. To control for cohort effects, we chose normalized ecological response metrics for coho and Chinook (number of outmigrating smolt per spawning adult or spawning adult female). For both species, we calculated optimal prediction models using a cross-validation bootstrapping approach to resample and test on unsampled observations. Lambda values, a key fitting parameter in the lasso models, were selected based on an average relative test error threshold of 1.0. Selected lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. Hydrology could explain a greater degree of variance in relative coho reproduction than in Chinook. The hydrologic metrics that explain the greatest variance in coho reproduction values occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
+Taking advantage of a nearly two-decade ecological monitoring dataset and long-term stream gauge measurements, we used lasso regression to build predictive models of coho and Chinook salmon reproductive success based on hydrologic metrics. To control for cohort effects, we chose normalized ecological response metrics for coho and Chinook (number of outmigrating smolt per spawning adult or spawning adult female). For both species, we calculated optimal prediction models using a cross-validation bootstrapping approach to resample and test on unsampled observations. Lambda values, a key fitting parameter in the lasso models, were selected based on an **average relative test error threshold of 1.0.** Selected lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. Hydrology could explain a greater degree of variance in relative coho reproduction than in Chinook. The hydrologic metrics that explain the greatest variance in coho reproduction values occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
 
 Robustness of the results indicate that this method for empirically deriving hydrologic metrics with the highest ecological benefit for a threatened species may be useful in other watersheds, where sufficient ecological data records are available, to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
 
 \newpage
 
+
 # Introduction
 
-
-**log-transform or Z-score flow metrics to standardize effect sizes?**
-**log-transform abundance data?**
 
 ## Motivation and objectives 
 
@@ -111,6 +109,13 @@ One method for estimating ecological water needs is the functional flows framewo
 In this study we examine correlations between several dozen hydrologic metrics and local salmon observations to determine the potential to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed). Using lasso regression, hydrologic metrics (predictors) were selected that best explain variation in salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
 
 ## History of flow-ecology relationships
+
+[@TharmeGlobal2003]
+[@HorneEtAlOptimization2016]
+[@JagerThinking2014]
+[@JagerRoseDesigning2003]
+[@TharmeGlobal2003]
+[@TurnerStewardsonHydrologic2014]
 
 A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@BunnArthingtonBasic2002; @PoffEtAlEcological2010]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. 
 
@@ -189,9 +194,17 @@ Parameter screening based on the 0.7 *R* threshold (based on system understandin
 
 Purpose of this paper: generate hypotheses? Or produce a predictive model? Can I do both?? Discuss with Leland? [@TredennickEtAlPractical2021]
 
-Single-species forecasts are valuable! [@WardEtAlLeveraging2024] Simpler linear models are better than more complex models (details?) [@WardEtAlLeveraging2024]! Environmental variables (which ones?) can predict X % of variation in fish recruitment. [@WardEtAlLeveraging2024] 
+Multi-species forecasts convey no advantage over single-species forecasts. [@WardEtAlLeveraging2024] Simple linear regression or GAM models are as good or better than more complex models such as lasso at predicting recruitment among ocean fisheries  [@WardEtAlLeveraging2024]! Environmental variables (which ones?) can predict X % of variation in fish recruitment. [@WardEtAlLeveraging2024] 
 
 "Ridge and lasso are risk-averse model strategies that can be expected to perform well under a wide range of underlying species-habitat relationships, particularly at small sample sizes." [@ReinekingSchroderConstrain2006]
+
+**notes about forecasting papers**
+
+[@WardEtAlLeveraging2024]
+[@DietzeEtAlIterative2018]
+[@PennekampEtAlPractice2017]
+[@DaugaardEtAlForecasting2022]
+[@SeeHolmesReducing2015] (MARSS)
 
 ## Step 1. Calculate predictors and screen for collinearity: Flow metrics to describe Scott River flow regime
 
@@ -291,10 +304,10 @@ Because spawning occurs in the fall for both coho and Chinook salmon in the Scot
 ```{r smolt_year_metrics_master_tab, echo = F, warning =F}
 
 # retrieve hydrology tabulated by STP
-# brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
-#                                                              smolt_years = 2001:2024)
-brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1978:2022,
-                                                             smolt_years = 1980:2024)
+brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
+                                                             smolt_years = 2001:2024)
+# brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1978:2022,
+#                                                              smolt_years = 1980:2024)
 
 # thresh_for_corr_fig = c(8, 10, 15, 20, 40, 
 #                         70, 100, 150, 200, 300, 
@@ -358,6 +371,7 @@ non_preds = c("brood_year", "smolt_year", yvlt$y_val)
 
 
 num_predictors = length(colnames(metrics_tab))- length(non_preds)
+preds_all = colnames(metrics_tab[,!colnames(metrics_tab) %in% non_preds])
 
 ```
 
@@ -379,6 +393,8 @@ zscore_column_na_rm = function(x){
 
 if(zscore_flow_metrics == T){
   zscore_these = !(colnames(metrics_tab) %in% non_preds)
+  metrics_mean = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = mean, na.rm=T)
+  metrics_sd = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = sd, na.rm=T)
   metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
                                      MARGIN = 2, FUN = zscore_column_na_rm)
 }
@@ -558,15 +574,27 @@ if(resave_eco_hydro_scatter_plots == T){
 nthresh = length (thresh_for_corr_fig)
 nthresh_gt_70 = sum(thresh_for_corr_fig >= 70)
 
-# Calculate correlation matrix and remove values that don't make temporal sense 
-# (i.e., the wet season values in water year 2011 would not influence the
-# number of spawners that arrived in fall of 2010)
-
-
+# Calculate correlation matrix 
 corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs",
                            method = "spearman")
 
+# and remove values that don't make temporal sense 
+# (i.e., the wet season values in water year 2011 would not influence the
+# number of spawners that arrived in fall of 2010)
 
+pred_season = substr(x = colnames(metrics_tab[,preds_all]), start = 1, stop = 2)
+names(pred_season) = colnames(metrics_tab[,preds_all])
+for(i in 1:nrow(yvlt)){
+  # possible to do: figure out how the wy1 and wy2 metrics would map out here. 
+  # for which eco responses do they get NA vals?
+  pred = yvlt$y_val[i]
+  season_set = unlist(strsplit(yvlt$influencing_seasons[i], split = ", "))
+  keep_these = c(non_preds, names(pred_season)[pred_season %in% season_set])
+  exclude_these = colnames(metrics_tab)[!(colnames(metrics_tab) %in% keep_these)]
+  corr_tab_all_metrics[pred, exclude_these] = NA
+}
+
+# set up for plot
 metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
                               rep("darkgray",8), # fish outcome metrics
                               rep(fall_col,nthresh), # BY fall recon 
@@ -654,15 +682,31 @@ while(length(collin_preds)>0){
                                      abs(ctl$value) > high_corr_threshold])
   
   # Record the groups of collinear predictors and the ultimate selected one
-  collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
-  if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1) 
-  if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
-  if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-  if(loop==4){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
-  if(loop==5){selected_pred[[loop]] = "w2_Wet_BFL_Dur"} # Dry to wet transition timing (rearing juv)
-  if(loop==6){selected_pred[[loop]] = "d1_DS_Dur_WS"} # Fall pulse magnitude during spawning (diff has higher sample size)
-  if(loop==7){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-  if(loop==8){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+  if(log_transform_eco_metrics == F & zscore_flow_metrics == F){
+    collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
+    if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
+    if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
+    if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
+    if(loop==4){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
+    if(loop==5){selected_pred[[loop]] = "w2_Wet_BFL_Dur"} # Dry to wet transition timing (rearing juv)
+    if(loop==6){selected_pred[[loop]] = "d1_DS_Dur_WS"} # Fall pulse magnitude during spawning (diff has higher sample size)
+    if(loop==7){selected_pred[[loop]] = "f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    if(loop==8){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+  }
+  
+  if(log_transform_eco_metrics == T & zscore_flow_metrics == T){
+    collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
+    collinear_group[[loop]]
+    loop
+    if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
+    if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
+    if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
+    if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
+    if(loop==5){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the first wet season
+    if(loop==6){selected_pred[[loop]] = "f1_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    if(loop==7){selected_pred[[loop]] = "f2_FA_Dif_num"}#"f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    selected_pred[[loop]]
+  }
   
   # Remove the other collinears 
   keep = selected_pred[[loop]] # Keep this one
@@ -681,14 +725,27 @@ while(length(collin_preds)>0){
 
 # Restructure the groups and eliminated predictors in a table
 elim_pred_tab_col1 = unlist(lapply(X=collinear_group, FUN = function(x){paste(x, collapse = ", ")}))
-elim_pred_tab_col2 = c("How wet the wet season (year 1, as eggs and fry)",
-                       "How wet the wet season (year 2, as rearing juv.)",
-                       "How dry the dry season (pre-spawning)",
-                       "Dry to wet transition timing (year 1, as eggs and fry)",
-                       "Dry to wet transition timing (year 2, as rearing juv.)",
-                       "How long the wet season (year 1, as eggs and fry)",
+if(log_transform_eco_metrics == F & zscore_flow_metrics == F){
+  elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
+                       "How wet was the wet season? (year 2, as rearing juv.)",
+                       "How dry was the dry season? (pre-spawning)",
+                       "How long was the wet season? (year 1, as eggs and fry)",
+                       "How long was the wet season? (year 2, as rearing juv.)",
+                       "How long was the dry season? (pre-spawning)",
                        "Fall pulse magnitude (year 1, during parents' spawning)",
                        "Fall pulse magnitude (year 2, as rearing juv.)")
+}
+if(log_transform_eco_metrics == T & zscore_flow_metrics == T){
+     elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
+        "How wet was the wet season? (year 2, as rearing juv.)",
+        "How dry was the dry season? (pre-spawning",
+        "Dry to wet season transition timing (as rearing juv.)",
+        "How long was the wet season (as eggs and fry)",
+        "Fall pulse magnitude (parents' spawning)",
+        "Fall pulse magnitude (rearing juv.)")
+}
+
+
 elim_pred_tab_col3 = unlist(selected_pred)
 
 elim_pred_tab = data.frame(collin_group=elim_pred_tab_col1,
@@ -736,7 +793,7 @@ metrics_before_chinook_outmigrate =
 keepers_ch = intersect(x = keepers_co, colnames(metrics_tab_screened)[metrics_before_chinook_outmigrate])
 
 # Run correlations for all metrics in coho table (which includes all metrics in chinook table)
-corr_matrix_pearson = calc_corr_matrix(metrics_tab_screened, corr_method = "pearson")
+corr_matrix_pearson = calc_corr_matrix(metrics_tab_screened, preds_all = preds_all, corr_method = "pearson")
 
 
 # find prediction subset for figure.
@@ -819,10 +876,10 @@ if(log_transform_eco_metrics == F & zscore_flow_metrics == F) {
 }
 
 if(log_transform_eco_metrics == T & zscore_flow_metrics == T) {
-  if(y_val_coho=="coho_smolt_abun_est") {lam_co = 0.1}
-  if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 0.1}
-  if(y_val_coho=="coho_smolt_per_fem") {lam_co = .2}
-  if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = .1}
+  if(y_val_coho=="coho_smolt_abun_est") {lam_co = 0.2}
+  if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 0.12}
+  if(y_val_coho=="coho_smolt_per_fem") {lam_co = .075}
+  if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = .075}
 }
 
 
@@ -1030,22 +1087,31 @@ coefs_interp_names = names(coefs_co)
 coefs_interp = as.character(coefs_co)
 names(coefs_interp) = coefs_interp_names
 # add interpretation to each non-0 coefficient
-if(y_val_coho == "coho_smolt_per_fem"){
-  
+if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_flow_metrics == F){
   coefs_interp$f1_recon_120 = "Earlier full-system reconnection (120 cfs, fall of parents' spawning)"
-  # # coefs_interp$BY_recon_200 = "Earlier reconnection (200 cfs)"
-  # coefs_interp$RY_discon_200 = "Later disconnection (200 cfs)"
-  # coefs_interp$RY_recon_8 = "Earlier reconnection (8 cfs)"
   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
   # coefs_interp$f2_FA_Mag = "Smaller fall pulse (as juvenile fish)"
-  
-  # coefs_interp$d1_DS_Dur_WS = "Shorter dry season duration (pre-spawning)"
+  coefs_interp$s1_SP_ROC_Max = "Max spring recession rate of change (as juvenile fish)"
+  coefs_interp$d1_DS_Dur_WS = "Shorter dry season duration (pre-spawning)"
   # coefs_interp$w1_Wet_BFL_Mag_10 = "Higher wet season baseflow (as eggs and fry)"
   coefs_interp$w2_Wet_BFL_Mag_50 = "Lower wet season baseflow (as overwintering juvenile fish)"
   # coefs_interp$w1_Wet_Tim = "Earlier wet season onset timing, first wet season (as eggs)"
-  # coefs_interp$s1_SP_ROC = "Slower(?) rate of change, second spring recession (as outmigrating coho smolt)"
-  # coefs_interp$d2_DS_Mag_90 = "Lower dry season flows, second dry season (as juv. coho)"
-  # coefs_interp$s2_SP_ROC = "Faster(?) rate of change, second spring recession (as outmigrating coho smolt)"
+  coefs_interp$s1_SP_ROC = "Slower rate of change, second spring recession (as juvenile fish)"
+  coefs_interp$s2_SP_ROC = "Faster rate of change, second spring recession (as outmigrating coho smolt)"
+}
+
+if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+    coefs_interp$d1_DS_Mag_50 = "Higher dry season flow (before parents' spawning)"
+    coefs_interp$w1_Wet_BFL_Dur = "Higher wet season baseflow (as eggs and fry)"
+    coefs_interp$s1_SP_ROC = "Slower spring recession rate of change (as juvenile fish)"
+    coefs_interp$w2_Wet_BFL_Dur = "Shorter wet season baseflow duration (as overwintering juveniles)"
+    coefs_interp$s2_SP_ROC = "Faster spring recession rate of change (as juvenile fish)"
+    coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+    coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
+    coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+}
+if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+    coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
 }
 
 coefs_co_vals = c(round(intercept_co, 1),round(coefs_co[coefs_co!="0"],3))
@@ -1076,22 +1142,24 @@ intercept_ch = lasso_mod_ch$a0[lasso_index_ch]
 
 non0s_ch = names(coefs_ch[abs(coefs_ch)>0])
 
-
-coefs_interp_names = names(coefs_ch)
-coefs_interp = as.character(coefs_ch)
-names(coefs_interp) = coefs_interp_names
+coefs_ch_interp_names = names(coefs_ch)
+coefs_ch_interp = as.character(coefs_ch)
+names(coefs_ch_interp) = coefs_ch_interp_names
 # add interpretation to each coefficient
 if(y_val_chinook == "chinook_juv_per_adult"){
-  
-  # coefs_interp$log_BY_tot_flow_sepdec = "Lower brooding period total flow (log-transformed)"
-  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
-  coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
-  # coefs_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
+  coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+  coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
+  coefs_ch_interp$s1_SP_ROC_Max = "Slower max. spring recession rate (as outmigrating smolt)"
+}
+if(y_val_chinook == "chinook_juvenile_abundance"){
+  coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+  coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
+  # coefs_ch_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
 }
 
 
 coefs_ch_vals = c(round(intercept_ch, 1),round(coefs_ch[coefs_ch!="0"],3))
-coefs_ch_interp = c("Intercept", unlist(coefs_interp[coefs_ch!="0"]))
+coefs_ch_interp = c("Intercept", unlist(coefs_ch_interp[coefs_ch!="0"]))
 coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
                          Value = as.vector(coefs_ch_vals),
                          Description = coefs_ch_interp)
@@ -1126,7 +1194,8 @@ metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
   thresholds = thresh_for_corr_fig, 
   reduce_to_eco_data_years_only = F) 
 
-metrics_tab_long = metrics_tab_long[,colnames(metrics_tab_screened)]
+metrics_tab_long = metrics_tab_long[,intersect(colnames(metrics_tab_screened), 
+                                               colnames(metrics_tab_long))]
 
 if(log_transform_eco_metrics == T){
   metrics_tab_long[,yvlt$y_val] = log10(metrics_tab_long[,yvlt$y_val])
@@ -1148,6 +1217,13 @@ hbf_coho = get_hbf_tab(mt = metrics_tab_long,
 hbf_chinook = get_hbf_tab(mt = metrics_tab_long, 
                           coefs = coefs_ch, int = intercept_ch)
 
+# convert to absolute ecological observation numbers
+if(log_transform_eco_metrics == T){
+  hbf_coho$hbf_total_log = hbf_coho$hbf_total
+  hbf_coho$hbf_total = 10^(hbf_coho$hbf_total_log)
+  hbf_chinook$hbf_total_log = hbf_chinook$hbf_total
+  hbf_chinook$hbf_total = 10^(hbf_chinook$hbf_total_log)
+}
 # calculate lowest hbf value
 lowest_coho_spf_pred=min(hbf_coho$hbf_total)
 
@@ -1168,6 +1244,14 @@ Conversely, for Chinook, because such an inflexible model was selected, no trend
 
 # Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.
 
+# convert to absolute ecological observation numbers
+if(log_transform_eco_metrics == T){
+  metrics_tab_screened[,paste0(y_val_coho,"_log")] = metrics_tab_screened[,y_val_coho]
+  metrics_tab_screened[,y_val_coho] = 10^metrics_tab_screened[,paste0(y_val_coho,"_log")]
+  metrics_tab_screened[,paste0(y_val_chinook,"_log")] = metrics_tab_screened[,y_val_chinook]
+  metrics_tab_screened[,y_val_chinook] = 10^metrics_tab_screened[,paste0(y_val_chinook,"_log")]
+}
+
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
@@ -1193,35 +1277,37 @@ if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
 ```
-```{r hbfPredVObs, echo = F, warning = F, fig.height = 8, fig.cap = "PredVObs. \\label{fig:predVObs}"}
 
-# Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.
+<!-- ```{r hbfPredVObs, echo = F, warning = F, fig.height = 8, fig.cap = "PredVObs. \\label{fig:predVObs}"} -->
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){
-  png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
-  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
-  par(mfrow=c(2,1))
-  # Panel 1. Coho
-  hbf_over_time_fig(mt = metrics_tab_screened,
-                    hbf_tab = hbf_coho, y_val = y_val_coho,
-                    y_val_axis = y_axis_label)
-  
-  # Panel 2. Chinook
-  hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
-  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook] 
-  hbf_over_time_fig(mt = metrics_tab_screened,
-                    hbf_tab = hbf_chinook, 
-                    y_val = y_val_chinook,
-                    y_val_axis = y_axis_label) 
-  
-  
-  dev.off()
-}
-if(include_figs==T){knitr::include_graphics(fig_path)}
-fig_i = fig_i +1
+<!-- # Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size. -->
 
-```
+<!-- fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png")) -->
+<!-- if(save_imgs == TRUE){ -->
+<!--   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi) -->
+<!--   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho] -->
+<!--   par(mfrow=c(2,1)) -->
+<!--   # Panel 1. Coho -->
+<!--   hbf_over_time_fig(mt = metrics_tab_screened, -->
+<!--                     hbf_tab = hbf_coho, y_val = y_val_coho, -->
+<!--                     y_val_axis = y_axis_label) -->
+
+<!--   # Panel 2. Chinook -->
+<!--   hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA -->
+<!--   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook]  -->
+<!--   hbf_over_time_fig(mt = metrics_tab_screened, -->
+<!--                     hbf_tab = hbf_chinook,  -->
+<!--                     y_val = y_val_chinook, -->
+<!--                     y_val_axis = y_axis_label)  -->
+
+
+<!--   dev.off() -->
+<!-- } -->
+<!-- if(include_figs==T){knitr::include_graphics(fig_path)} -->
+<!-- fig_i = fig_i +1 -->
+
+<!-- ``` -->
+
 
 ### Hydrologic Benefit function component contributions
 
@@ -1234,6 +1320,7 @@ The predicted HB values can be broken out into the value contributed by each pre
 # only plot if there are at least 1 non-0 coefficient
 
 hbf_coho$hbf_total = NULL # remove this column for this figure
+hbf_coho$hbf_total_log = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_coho, MARGIN = 2, FUN = mean, na.rm=T)
 keep_cols = colnames(hbf_coho[abs(is_it_0)>0])
 comp_names_co = keep_cols[keep_cols != "brood_year"]
@@ -1250,6 +1337,7 @@ if(length(comp_names_co)>0){
 
 # Arrange data - chinook
 hbf_chinook$hbf_total = NULL # remove this column for this figure
+hbf_chinook$hbf_total_log = NULL # remove this column for this figure
 is_it_0 = apply(X=hbf_chinook, MARGIN = 2, FUN = mean, na.rm=T)
 keep_cols = colnames(hbf_chinook)[abs(is_it_0)>0]
 comp_names_ch = keep_cols[keep_cols != "brood_year"]
@@ -1271,8 +1359,8 @@ if(save_imgs==T){
     y_text = colnames(bd_melt_co)[3]
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
-                            # y = `Contrib. to HB value (Coho smolt per fem. spawner)`,
-                            y = `Contrib. to HB value (Est. num. coho smolt)`,
+                            y = `Contrib. to HB value (Coho smolt per fem. spawner)`,
+                            # y = `Contrib. to HB value (Est. num. coho smolt)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
       scale_fill_brewer(palette = "Spectral") +
@@ -1331,20 +1419,20 @@ fig_i = fig_i +1
 # mod.fit = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab, method = "BFGS")
 # plot(mod.fit)
 
-y_obs_tab_co = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-                                   y_val_names = y_val_coho)
-y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-                                   y_val_names = y_val_chinook)
-mod_co = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_co, method = "BFGS")
-plot(mod_co)
-mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
-plot(mod_ch)
-
-# coef(mod_co)
-
-ggplot2::autoplot(mod_co)
-
-ggplot2::autoplot(mod_ch)
+# y_obs_tab_co = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+#                                    y_val_names = y_val_coho)
+# y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+#                                    y_val_names = y_val_chinook)
+# mod_co = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_co, method = "BFGS")
+# plot(mod_co)
+# mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
+# plot(mod_ch)
+# 
+# # coef(mod_co)
+# 
+# ggplot2::autoplot(mod_co)
+# 
+# ggplot2::autoplot(mod_ch)
 
 # x = metrics_atb
 #   dev.off()
