@@ -94,6 +94,13 @@ Robustness of the results indicate that this method for empirically deriving hyd
 
 \newpage
 
+# Practitioner points {-}
+
+1. Eco metrics correlation
+2. Hydrology could explain a greater degree of variance in relative coho reproduction than in Chinook. 
+3. The hydrologic metrics that explain the greatest variance in coho reproduction values occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
+
+\newpage
 
 # Introduction
 
@@ -104,7 +111,7 @@ Reconciliation ecology posits that some human-impacted ecosystems should be cons
 
 In practice, these questions are often asked and answered locally [@TarlockLocal1993]. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; CDFW -@CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
 
-One method for estimating ecological water needs is the functional flows framework [@PoffEtAlNatural1997; @PoffEtAlEcological2010]. Functional flow metrics (hydrologic metrics) are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics specific to California hydrology and made the metric-calculating algorithms publicly available [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020].
+One method for estimating ecological water needs is the functional flows framework [@YarnellEtAlFunctional2015; @GranthamEtAl2020Making] [@PoffEtAlNatural1997; @PoffEtAlEcological2010]. Functional flow metrics (hydrologic metrics) are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics specific to California hydrology [@SteinEtAl2021California] and made the metric-calculating algorithms publicly available [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020].
 
 In this study we examine correlations between several dozen hydrologic metrics and local salmon observations to determine the potential to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed). Using lasso regression, hydrologic metrics (predictors) were selected that best explain variation in salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
 

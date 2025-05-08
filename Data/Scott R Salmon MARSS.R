@@ -4,11 +4,13 @@
 library(MARSS)
 library(here)
 
-# set WD ----------
+# Directory ----------
 
-setwd()
+data_dir = file.path(here(), "Data")
+cfs_to_m3day = 1 / 35.3147 * 60*60*24 # 1 cfs / cubic ft per cubic m * seconds per day
 
-# read in data -------
+
+# Subfunctions ------
 
 tabulate_hydro_by_affected_brood_year = function(smolt_years = smolt_per_fem$Smolt_Year,
                                                  brood_years = smolt_per_fem$Adult_Year_Brood_Year){
@@ -318,17 +320,46 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   return(output_tab)
 }
 
+calc_recon_days_since_aug_31 = function(dates, flow, recon_threshold){
+  dates_since_aug_31 = as.numeric(dates - as.Date(paste0(year(min(dates)), "-08-31")))
+  recon_day = min(dates_since_aug_31[ flow > recon_threshold], na.rm=T)
+  return(recon_day)
+}
+
+calc_discon_days_since_aug_31 = function(dates, flow, discon_threshold){
+  dates_since_aug_31 = as.numeric(dates - as.Date(paste0(year(min(dates))-1, "-08-31")))
+  if(sum(flow < discon_threshold) > 0){ #if it does disconnect, calculate discon day
+    discon_day = min(dates_since_aug_31[ flow < discon_threshold], na.rm=T)
+  }
+
+  if(sum(flow < discon_threshold) < 1){ # if it does not disconnect, return the end of the analysis period
+    return(max(dates_since_aug_31))
+  } else {
+    return(discon_day)
+  }
+}
 
 
-# retrieve hydrology tabulated by STP
+
+# read in data -------
+
+# or just read in Flow Metrics by Brood Year Table 2A?
+
+fj_flow = read.csv(file.path(data_dir, "fj flow 2024.05.06.csv"))
+spawners = read.csv(file.path(data_dir,"cdfw_2023a_tab4_Klamath and Scott Chinook Natural Spawner escapment.csv"))
+smolt_per_fem = read.csv(file.path(data_dir, "cdfw_2023a_tab6_Coho_smolt_production_per_female_2008-2020.csv"))
+chinook_abun = read.csv(file.path(data_dir,"cdfw_2023a_tab3_Chinook abundance estimates 2008-2022.csv"))
+chinook_spawn_and_juv = read.csv(file.path(data_dir,"massie_2020_Scott River Chinook Adult_juv_data_BY_1999_2020.csv"))
+coho_abun = read.csv(file.path(data_dir,"cdfw_2023a_fig18_Coho abundance estimates 2007-2022.csv"))
+outmigs = read.csv(file.path(data_dir,"cdfw_2023a_tab5_Coho smolt outmigrant survival 2004-2019.csv"))
+outmigs$conditions_year = (outmigs$Brood.Year + outmigs$Smolt.Year)/2 # take middle year
+outmigs$Percent.smolt.survival = as.numeric(outmigs$Percent.smolt.survival)
+redds = read.csv(file.path(data_dir, "rcd_2020_coho_spawning_surveys.csv")) # not updated in 2024
+
+
+# Align data in metrics_tab -----
 brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
                                                              smolt_years = 2001:2024)
-# brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1978:2022,
-#                                                              smolt_years = 1980:2024)
-
-# thresh_for_corr_fig = c(8, 10, 15, 20, 40,
-#                         70, 100, 150, 200, 300,
-#                         400, 500, 750, 1000)
 thresh_for_corr_fig = c(20,40,120)
 
 metrics_tab = calc_metrics_hydro_by_affected_brood_year(
@@ -341,56 +372,71 @@ metrics_tab$wy1_WY_Cat = as.numeric(factor(metrics_tab$wy1_WY_Cat,
                                            levels = c("dry year", "mod year", "wet year")))
 metrics_tab$wy2_WY_Cat = as.numeric(factor(metrics_tab$wy2_WY_Cat,
                                            levels = c("dry year", "mod year", "wet year")))
-# 2) remove outlier FA_Diff
 
-write.csv(x = metrics_tab, quote = F, row.names = F,
-          file = file.path(graphics_dir,
-                           "Supplemental Table 2. Flow Metrics by Brood Year.csv"))
+# Eco response obs. info table -----
 
-# calculate number of predictors for text below
+# # calculate number of predictors for text below
+#
+# all_szns = paste(c("d1", "f1", "w1", "s1", "d2", "f2", "w2", "s2"), collapse =", ")
+# y1_szns = paste(c("d1", "f1", "w1", "s1"), collapse = ", ")
+# spawn_szns = paste(c("d1", "f1", "w1"), collapse = ", ")
+# # spawn_szns = paste(c("d1", "f1"), collapse = ", ")
+#
+# y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
+#                                        "chinook_juv_per_adult",
+#                                        "coho_spawner_abundance",
+#                                        "coho_redds_in_brood",
+#                                        "coho_smolt_abun_est",
+#                                        "chinook_spawner_abundance",
+#                                        "chinook_juvenile_abundance"
+# ),
+# y_val_title = c("coho spf","Chinook jpa",
+#                 "coho escapement",
+#                 "coho redd abundace",
+#                 "est. coho smolt abundance",
+#                 "Chinook escapement",
+#                 "Chinook juv. abundance"
+# ),
+# y_val_label = c("Coho smolt per fem. spawner",
+#                 "Chinook juv. per adult",
+#                 "Num. coho spawners (escapement)",
+#                 "Num. obs. coho redds",
+#                 "Est. num. coho smolt",
+#                 "Num. Chinook spawners (escapement)",
+#                 "Num. Chinook juveniles"),
+# influencing_seasons = c(all_szns,
+#                         y1_szns,
+#                         spawn_szns,
+#                         y1_szns,
+#                         all_szns,
+#                         spawn_szns,
+#                         y1_szns))
+# yvlt = y_val_label_tab
+# non_preds = c("brood_year", "smolt_year", yvlt$y_val)
+#
+#
+# num_predictors = length(colnames(metrics_tab))- length(non_preds)
+# preds_all = colnames(metrics_tab[,!colnames(metrics_tab) %in% non_preds])
 
-all_szns = paste(c("d1", "f1", "w1", "s1", "d2", "f2", "w2", "s2"), collapse =", ")
-y1_szns = paste(c("d1", "f1", "w1", "s1"), collapse = ", ")
-spawn_szns = paste(c("d1", "f1", "w1"), collapse = ", ")
-# spawn_szns = paste(c("d1", "f1"), collapse = ", ")
 
-y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
-                                       "chinook_juv_per_adult",
-                                       "coho_spawner_abundance",
-                                       "coho_redds_in_brood",
-                                       "coho_smolt_abun_est",
-                                       "chinook_spawner_abundance",
-                                       "chinook_juvenile_abundance"
-),
-y_val_title = c("coho spf","Chinook jpa",
-                "coho escapement",
-                "coho redd abundace",
-                "est. coho smolt abundance",
-                "Chinook escapement",
-                "Chinook juv. abundance"
-),
-y_val_label = c("Coho smolt per fem. spawner",
-                "Chinook juv. per adult",
-                "Num. coho spawners (escapement)",
-                "Num. obs. coho redds",
-                "Est. num. coho smolt",
-                "Num. Chinook spawners (escapement)",
-                "Num. Chinook juveniles"),
-influencing_seasons = c(all_szns,
-                        y1_szns,
-                        spawn_szns,
-                        y1_szns,
-                        all_szns,
-                        spawn_szns,
-                        y1_szns))
-yvlt = y_val_label_tab
-non_preds = c("brood_year", "smolt_year", yvlt$y_val)
-
-
-num_predictors = length(colnames(metrics_tab))- length(non_preds)
-preds_all = colnames(metrics_tab[,!colnames(metrics_tab) %in% non_preds])
 
 # transform data -------
+
+metrics_tab[,yvlt$y_val] = log10(metrics_tab[,yvlt$y_val])
+
+zscore_column_na_rm = function(x){
+  mean_x = mean(x, na.rm=T)
+  sd_x = sd(x, na.rm=T)
+  return((x - mean_x) / sd_x)
+}
+
+if(zscore_flow_metrics == T){
+  zscore_these = !(colnames(metrics_tab) %in% non_preds)
+  metrics_mean = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = mean, na.rm=T)
+  metrics_sd = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = sd, na.rm=T)
+  metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
+                                     MARGIN = 2, FUN = zscore_column_na_rm)
+}
 
 
 # Specify MARSS model ------------------------------------------------------------------
@@ -489,6 +535,14 @@ get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
 
 # View results ----
 
+y_obs_tab_co = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                   y_val_names = y_val_coho)
+y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                   y_val_names = y_val_chinook)
+mod_co = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_co, method = "BFGS")
+plot(mod_co)
+mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
+plot(mod_ch)
 
 # Interpret results -----
 # which predictors are important for each species? How much variation in fish outcomes can be explained by flow?
