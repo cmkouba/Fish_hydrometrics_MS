@@ -1008,7 +1008,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                       "coho_redds_in_brood",
                       "coho_smolt_abun_est",
                       "chinook_spawner_abundance",
-                      "chinook_spawner_abundance_long",
+                      # "chinook_spawner_abundance_long",
                       "chinook_juvenile_abundance",
                       # "percent_coho_smolt_survival",
                       # more advanced outcomes?
@@ -1053,7 +1053,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   #2. Assign output metrics
   output_tab$chinook_spawner_abundance = chinook_spawn_and_juv$Spawning_Adult_Chinook_est[match(output_tab$brood_year,
                                                                                                 chinook_spawn_and_juv$Brood_Year)] #chinook_abun$Total_Basin_estimate[match(output_tab$brood_year, chinook_abun$Year)]
-  output_tab$chinook_spawner_abundance_long = spawners$chinook_scott[match(output_tab$brood_year, spawners$year)]
+  # output_tab$chinook_spawner_abundance_long = spawners$chinook_scott[match(output_tab$brood_year, spawners$year)]
   output_tab$chinook_juvenile_abundance = chinook_spawn_and_juv$Juvenile_Chinook_produced_BY_plus_1[match(output_tab$brood_year,
                                                                                                           chinook_spawn_and_juv$Brood_Year)]
   output_tab$chinook_juv_per_adult = chinook_spawn_and_juv$Chinook_juv_per_adult[match(output_tab$brood_year,
@@ -1265,6 +1265,7 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
 
 
 calc_corr_matrix=function(metrics_tab,
+                          preds_all,
                           corr_method = "pearson",
                           min_pairs = 10,
                           fish_outcome_cols = NA){
@@ -1281,16 +1282,17 @@ calc_corr_matrix=function(metrics_tab,
     fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "chinook", x = colnames(metrics_tab))]
   }
 
-  predictor_cols = colnames(metrics_tab)[grepl(pattern = "d1", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "f1", x = colnames(metrics_tab))|
-                                           grepl(pattern = "w1", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "s1", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "d2", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "f2", x = colnames(metrics_tab))|
-                                           grepl(pattern = "w2", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "s2", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "wy1", x = colnames(metrics_tab)) |
-                                           grepl(pattern = "wy2", x = colnames(metrics_tab)) ]
+  predictor_cols = colnames(metrics_tab)[colnames(metrics_tab) %in% preds_all]
+  # predictor_cols = colnames(metrics_tab)[grepl(pattern = "d1", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "f1", x = colnames(metrics_tab))|
+  #                                          grepl(pattern = "w1", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "s1", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "d2", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "f2", x = colnames(metrics_tab))|
+  #                                          grepl(pattern = "w2", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "s2", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "wy1", x = colnames(metrics_tab)) |
+  #                                          grepl(pattern = "wy2", x = colnames(metrics_tab)) ]
 
   #Initialize output matrix
   output_tab = data.frame(matrix(data=NA, nrow = length(predictor_cols),
@@ -1319,13 +1321,13 @@ calc_corr_matrix=function(metrics_tab,
   d1_f1_rows = grepl(pattern = "d1", x = row.names(output_tab)) |
     grepl(pattern = "f1", x = row.names(output_tab))
   # coho redd observations probably affected by d1 and f1 plus first wet season conditions
-  w1_rows = grepl(pattern = "w1", x = colnames(output_tab))
+  w1_rows = grepl(pattern = "w1", x = row.names(output_tab))
   # outmigrating Chinook smolt not affected by year 2, starting with dry season 2
-  wy2_rows = grepl(pattern = "d2", x = colnames(output_tab)) |
-    grepl(pattern = "f2", x = colnames(output_tab))|
-    grepl(pattern = "w2", x = colnames(output_tab)) |
-    grepl(pattern = "s2", x = colnames(output_tab)) |
-    grepl(pattern = "wy2", x = colnames(output_tab))
+  wy2_rows = grepl(pattern = "d2", x = row.names(output_tab)) |
+    grepl(pattern = "f2", x = row.names(output_tab))|
+    grepl(pattern = "w2", x = row.names(output_tab)) |
+    grepl(pattern = "s2", x = row.names(output_tab)) |
+    grepl(pattern = "wy2", x = row.names(output_tab))
 
   output_tab$chinook_spawner_abundance[!d1_f1_rows] = NA # keep only d1 and f1
   output_tab$chinook_juvenile_abundance[wy2_rows] = NA # exclude wy2
@@ -1903,7 +1905,7 @@ get_hbf_tab = function(mt, coefs, int){
 
   # sum all components for annual HB values
   brood_year_col = which(colnames(output_tab)=="brood_year")
-  output_tab$hbf_total = as.numeric(intercept) + apply(X=output_tab[,-brood_year_col],
+  output_tab$hbf_total = as.numeric(intercept) + apply(X=as.data.frame(output_tab[,-brood_year_col]),
                                                   MARGIN = 1, FUN=sum,na.rm=T)
 
   return(output_tab)
