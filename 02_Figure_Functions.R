@@ -931,6 +931,48 @@ eco_vs_time_figs = function(save_pdf = T, y_val_id = "chinook_spawner_abundance"
 
 # Metrics Calculations -------------------------------------------
 
+
+y_val_label_tab = function(){
+  # calculate number of predictors for text below
+
+  all_szns = paste(c("d1", "f1", "w1", "s1", "d2", "f2", "w2", "s2"), collapse =", ")
+  y1_szns = paste(c("d1", "f1", "w1", "s1"), collapse = ", ")
+  spawn_szns = paste(c("d1", "f1", "w1"), collapse = ", ")
+  # spawn_szns = paste(c("d1", "f1"), collapse = ", ")
+
+  y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
+                                         "chinook_juv_per_adult",
+                                         "coho_spawner_abundance",
+                                         "coho_redds_in_brood",
+                                         "coho_smolt_abun_est",
+                                         "chinook_spawner_abundance",
+                                         "chinook_juvenile_abundance"
+  ),
+  y_val_title = c("coho spf","Chinook jpa",
+                  "coho escapement",
+                  "coho redd abundace",
+                  "est. coho smolt abundance",
+                  "Chinook escapement",
+                  "Chinook juv. abundance"
+  ),
+  y_val_label = c("Coho smolt per fem. spawner",
+                  "Chinook juv. per adult",
+                  "Num. coho spawners (escapement)",
+                  "Num. obs. coho redds",
+                  "Est. num. coho smolt",
+                  "Num. Chinook spawners (escapement)",
+                  "Num. Chinook juveniles"),
+  influencing_seasons = c(all_szns,
+                          y1_szns,
+                          spawn_szns,
+                          y1_szns,
+                          all_szns,
+                          spawn_szns,
+                          y1_szns))
+  return(y_val_label_tab)
+}
+
+
 calc_recon_days_since_aug_31 = function(dates, flow, recon_threshold){
   dates_since_aug_31 = as.numeric(dates - as.Date(paste0(year(min(dates)), "-08-31")))
   recon_day = min(dates_since_aug_31[ flow > recon_threshold], na.rm=T)
@@ -1385,8 +1427,32 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
 }
 
 
-# Lasso Regression -----------------------------------------------
 
+# Lasso and Ridge Regression ----------------------------------------------
+
+kfold_cv = function(metrics_tab, y_val = "coho_smolt_per_fem",
+                    alpha = 0,
+                    return_mod = T, return_cv = T){
+  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab, y_val = y_val)
+  x = x_and_y[[1]]; y = x_and_y[[2]]
+  n_folds_for_groups = floor(nrow(x)/3) # make sure at least 3 in each fold
+  set.seed(1)
+  mod1 = glmnet(x, y, alpha = alpha)
+  cv1 = cv.glmnet(x = x, y = y, nfolds = n_folds_for_groups)
+  if(return_mod == T & return_cv ==T){return(list(mod = mod1, cv = cv1))}
+}
+
+get_pred_coefs = function(mod, cv, coef_digits = 2){
+  pred = as.matrix(predict.glmnet(mod, s = cv$lambda.min,
+                                  type = "coefficients"))
+  coef = data.frame(pred = rownames(pred)[order(abs(pred), decreasing = T)],
+                    coef = round(as.numeric(pred[order(abs(pred), decreasing = T)]), coef_digits))
+  int = coef[coef$pred=="(Intercept)",]
+  coefs_only = coef[coef$pred!="(Intercept)",]
+  return(list(coef = coef, coefs_only = coefs_only, intercept = int))
+}
+
+# Lasso Regression old -----------------------------------------------
 
 generate_pred_appear_tab = function(lasso_mod, best_lam_range){
   coefs = as.data.frame((as.matrix(coef(lasso_mod))))

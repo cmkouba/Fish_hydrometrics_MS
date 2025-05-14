@@ -1,5 +1,5 @@
 ---
-title: A watershed-specific formula to predict coho salmon reproduction using functional flow metrics
+title: Supplement to: A watershed-specific formula to predict salmon reproduction using functional flow metrics
 author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
 date: "Feb. 2025"
 output: 

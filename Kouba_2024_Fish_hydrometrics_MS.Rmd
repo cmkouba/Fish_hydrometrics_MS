@@ -1,5 +1,5 @@
 ---
-title: A watershed-specific formula to predict coho salmon reproduction using functional flow metrics
+title: A watershed-specific formula to predict salmon reproduction using functional flow metrics
 author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
 date: "Feb. 2025"
 output: 
@@ -107,7 +107,7 @@ Robustness of the results indicate that this method for empirically deriving hyd
 
 ## Motivation and objectives 
 
-Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014]. However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
+Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014; @YarnellEtAlFunctional2015]. However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010; @BarbourEtAlOptimisation]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
 
 In practice, these questions are often asked and answered locally [@TarlockLocal1993]. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; CDFW -@CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
 
@@ -192,7 +192,7 @@ knitr::include_graphics(file.path(graphics_dir, "Graphics source",
 
 # Methods: Quantitative analysis
 
-We used lasso regression [@JamesEtAlIntroduction2013; @RanstamCookLASSO2018] to assess the feasibility of predicting an ecological response, in this case coho and Chinook reproductive outcomes, using dozens of potential hydrologic predictor metrics. The objectives of the lasso exercise were to 1) perform predictor selection, i.e., empirically estimate which hydrologic metrics were most related to coho and Chinook reproductive outcomes; 2) estimate the degree of variation that could be predicted by the hydrology; and 3), develop a predictive Hydrologic Benefit formula, in which the selected set of hydrologic predictors and their calculated coefficients are used to predict the ecological response. Each step in the analysis is numbered and explained below.
+We used lasso regression [@; EtAlIntroduction2013; @RanstamCookLASSO2018] to assess the feasibility of predicting an ecological response, in this case coho and Chinook reproductive outcomes, using dozens of potential hydrologic predictor metrics. The objectives of the lasso exercise were to 1) perform predictor selection, i.e., empirically estimate which hydrologic metrics were most related to coho and Chinook reproductive outcomes; 2) estimate the degree of variation that could be predicted by the hydrology; and 3), develop a predictive Hydrologic Benefit formula, in which the selected set of hydrologic predictors and their calculated coefficients are used to predict the ecological response. Each step in the analysis is numbered and explained below.
 
 
 **notes from papers** 
@@ -229,11 +229,11 @@ Finally, to identify the presence of scouring flows [i.e., storm events that can
 
 In average-to-dry water years, after portions of the Scott River run dry, the timing of fall river reconnection determines when salmon can access mainstem and tributary spawning habitat (**CITE**). [**sentence about whether salmon can wait?**] To calculate the timing of river connectivity, two discrete thresholds were selected from the continuum of flows to represent a partially and a fully connected stream system. The thresholds correspond to two distinct events: first, 20 cfs (0.57 cms), corresponding to connectivity within mainstem Scott River; and second, 120 cfs (3.4 cms) connectivity of the full stream network, allowing access to tributary habitat. Because these flows are measured at the Fort Jones gauge, they are a proxy for conditions in the full stream network; however, [**evidence for why this works**] [@KoubaHarterSeasonal2024].
 
-The re- and disconnection timing of proximate flow thresholds is somewhat correlated. Lasso regression is an appropriate method for this type of data because it can eliminate some redundancy in predictor information [@JamesEtAlIntroduction2013]. 
+The re- and disconnection timing of proximate flow thresholds is somewhat correlated. Lasso regression is an appropriate method for this type of data because it can eliminate some redundancy in predictor information [@; EtAlIntroduction2013]. 
 
 When calculating the timing of river connectivity, discrete thresholds were selected from the continuum of flows, ranging between a minimum value of 8 cfs and a (conservatively high) maximum value of 1000 cfs. At the lowest value all tributaries are known to be disconnected and significant dry reaches exist along the main stem, while the highest value is associated with winter storm events in a fully-connected river system [@TolleyEtAlSensitivity2019].
 
-The re- and disconnection timing of proximate flow thresholds is somewhat correlated. Lasso regression is an appropriate method for this type of data because it can eliminate some redundancy in predictor information [@JamesEtAlIntroduction2013]. 
+The re- and disconnection timing of proximate flow thresholds is somewhat correlated. Lasso regression is an appropriate method for this type of data because it can eliminate some redundancy in predictor information [@; EtAlIntroduction2013]. 
 
 ### Screen predictors for collinearity
 
@@ -339,41 +339,7 @@ write.csv(x = metrics_tab, quote = F, row.names = F,
 
 # calculate number of predictors for text below
 
-all_szns = paste(c("d1", "f1", "w1", "s1", "d2", "f2", "w2", "s2"), collapse =", ")
-y1_szns = paste(c("d1", "f1", "w1", "s1"), collapse = ", ")
-spawn_szns = paste(c("d1", "f1", "w1"), collapse = ", ")
-# spawn_szns = paste(c("d1", "f1"), collapse = ", ")
-
-y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
-                                                 "chinook_juv_per_adult",
-                                                 "coho_spawner_abundance",
-                                                 "coho_redds_in_brood",
-                                                 "coho_smolt_abun_est",
-                                                 "chinook_spawner_abundance",
-                                              "chinook_juvenile_abundance"
-                                       ),
-                             y_val_title = c("coho spf","Chinook jpa",
-                                             "coho escapement",
-                                             "coho redd abundace",
-                                             "est. coho smolt abundance",
-                                             "Chinook escapement", 
-                                             "Chinook juv. abundance"
-                                             ),
-                             y_val_label = c("Coho smolt per fem. spawner",
-                                             "Chinook juv. per adult",
-                                             "Num. coho spawners (escapement)",
-                                             "Num. obs. coho redds",
-                                             "Est. num. coho smolt",
-                                             "Num. Chinook spawners (escapement)",
-                                             "Num. Chinook juveniles"),
-                             influencing_seasons = c(all_szns,
-                                                     y1_szns,
-                                                     spawn_szns,
-                                                     y1_szns,
-                                                     all_szns,
-                                                     spawn_szns,
-                                                     y1_szns))
-yvlt = y_val_label_tab
+yvlt = y_val_label_tab()
 non_preds = c("brood_year", "smolt_year", yvlt$y_val)
 
 
@@ -425,11 +391,11 @@ To generate predictive models, we make an assumption of independence for each ye
 
 ## Step 6. Generate predictive model with lasso regression 
 
-With hydrologic metrics assigned to each salmon generation, indexed by brood-year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@JamesEtAlIntroduction2013; @RanstamCookLASSO2018] between `r num_predictors` (standardized) hydrologic predictors and the two ecological data types selected in the previous step (one for coho and one for Chinook). 
+With hydrologic metrics assigned to each salmon generation, indexed by brood-year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@; EtAlIntroduction2013; @RanstamCookLASSO2018] between `r num_predictors` (standardized) hydrologic predictors and the two ecological data types selected in the previous step (one for coho and one for Chinook). 
 
 ### General approach
 
-We used the R programming environment [@TheRFoundationProject2025] and the linear modeling function `glmnet()` [@FriedmanEtAlRegularization2010] to perform variable selection using lasso regression. Lasso regression is less flexible than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@JamesEtAlIntroduction2013]. Because the solution can set some coefficients to 0, thereby removing their associated predictors from the final model, lasso regression can also perform predictor selection. Additionally, the `glmnet()` function standardizes the predictor values to have a unit variance before the lasso analysis, and then un-standardizes the resulting coefficients [@FriedmanEtAlRegularization2010].
+We used the R programming environment [@TheRFoundationProject2025] and the linear modeling function `glmnet()` [@FriedmanEtAlRegularization2010] to perform variable selection using lasso regression. Lasso regression is less flexible than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@; EtAlIntroduction2013]. Because the solution can set some coefficients to 0, thereby removing their associated predictors from the final model, lasso regression can also perform predictor selection. Additionally, the `glmnet()` function standardizes the predictor values to have a unit variance before the lasso analysis, and then un-standardizes the resulting coefficients [@FriedmanEtAlRegularization2010].
 
 
 Lasso (Least Absolute Shrinkage and Selection Operator) regression minimizes the following quantity:
@@ -449,7 +415,7 @@ Where:
 * $\lambda$ is a tuning parameter, referred to as a shrinkage penalty.
 
 In this formulation, sufficiently large values of lambda generally shrink the values of all coefficients to 0 (the infinite-lambda case). The infinite-lambda case produces a model consisting solely of the $\beta_0$ intercept term, which takes on a value that is the average of all the observed $y$ values. Conversely, sufficiently small values of $\lambda$ will produce linear models incorporating information from many predictors. 
-The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@JamesEtAlIntroduction2013]. In this analysis a range of $\lambda$ values was explored for each species.
+The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@; EtAlIntroduction2013]. In this analysis a range of $\lambda$ values was explored for each species.
 
 ### Predictor restriction based on sample size
 
@@ -459,11 +425,11 @@ Some ecological records have gaps (e.g., when funding was not available in one y
 
 ### Modified lambda selection method
 
-In parameterizing lasso regression, the goal is to select a lambda value (referred to as the "shrinkage penalty" or "tuning parameter") that uses available predictor data to explain the largest possible amount of variability observed in the response while avoiding overfitting. With high-dimensional data, it is typically possible to perfectly fit the observations (explaining 100% of variability) by incorporating data from as many or more predictors as there are observations [@JamesEtAlIntroduction2013]. The predictive models that result from this type of overfitting typically perform poorly when applied to new data, since they tend to incorporate random noise to achieve a perfect fit [@JamesEtAlIntroduction2013].
+In parameterizing lasso regression, the goal is to select a lambda value (referred to as the "shrinkage penalty" or "tuning parameter") that uses available predictor data to explain the largest possible amount of variability observed in the response while avoiding overfitting. With high-dimensional data, it is typically possible to perfectly fit the observations (explaining 100% of variability) by incorporating data from as many or more predictors as there are observations [@; EtAlIntroduction2013]. The predictive models that result from this type of overfitting typically perform poorly when applied to new data, since they tend to incorporate random noise to achieve a perfect fit [@; EtAlIntroduction2013].
 
 #### Standard method to select lambda value
 
-The standard method to pick the optimal value of lambda is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models based on a range of lambda values. In one popular textbook example, the range of lambdas used to produce models consists of 100 values from 0.01 to 10,000 (i.e., 100 equidistant numbers ranging from -2 to 5, and then used as an exponent of 10) [@JamesEtAlIntroduction2013]. These 100 models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error value (RMSE). The lambda value that produces the regression model with the minimum test error is selected as optimal; using this optimal value, a final regression model is generated based on the full data set [@JamesEtAlIntroduction2013]. 
+The standard method to pick the optimal value of lambda is to divide a dataset into a "training" and a "test" set, and use the training set to generate a series of regression models based on a range of lambda values. In one popular textbook example, the range of lambdas used to produce models consists of 100 values from 0.01 to 10,000 (i.e., 100 equidistant numbers ranging from -2 to 5, and then used as an exponent of 10) [@; EtAlIntroduction2013]. These 100 models are then used to predict the values of the test set, and the total difference between predicted and observed quantities is known as the test error. This is often summarized as the root mean squared error value (RMSE). The lambda value that produces the regression model with the minimum test error is selected as optimal; using this optimal value, a final regression model is generated based on the full data set [@; EtAlIntroduction2013]. 
 
 #### Modified method: resampling to identify range of possible optimal lambda values using hundreds of test-train dataset splits
 
@@ -833,190 +799,57 @@ Lasso regression findings included results from the 50% test-train subsets and f
 
 Finally, we used the final lambda value and the full dataset to generate a regression model to be used as a predictive tool (the Hydrologic Benefit function). As mentioned in Methods, we selected normalized values of reproductive success for both species as the ecological response variable: coho smolts per female spawner (coho spf) and Chinook juveniles per adult spawner (Chinook jpa). These metrics isolate the effects of the freshwater environment on a given salmon cohort and minimize the importance of ocean conditions or cohort strength. 
 
-### Test error and selection of final lambda value
-
-```{r numpred_testsets_final_lam, echo = FALSE}
-
-# fname_co = paste( y_val_coho,"- lambdas_and_rmse")
-# fname_ch = paste( y_val_chinook,"- lambdas_and_rmse")
-
-  if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){
-    fname_co = paste( y_val_coho,"- lambdas_and_rmse, no transform fmet or ecomet" )
-    fname_ch = paste( y_val_chinook,"- lambdas_and_rmse, no transform fmet or ecomet" )
-  }
-  if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){
-    fname_co = paste( y_val_coho,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )
-    fname_ch = paste( y_val_chinook,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )
-  }
+### Attempt at K-fold lambda method
 
 
-if(file.exists( file.path(data_dir,paste0(fname_co,".csv" )))){
-  l_and_r_co = read.csv(file.path(data_dir,paste0(fname_co,".csv")))
-  
-  frac_co_1_pred = sum(l_and_r_co$bestlam_numpred == 1)/nrow(l_and_r_co)
-  frac_co_0_pred = sum(l_and_r_co$bestlam_numpred == 0)/nrow(l_and_r_co)
-  frac_co_other_pred = sum(l_and_r_co$bestlam_numpred>1)/nrow(l_and_r_co)
-  
-}
-if(file.exists( file.path(data_dir,paste0(fname_ch,".csv" )))){
-  l_and_r_ch = read.csv(file.path(data_dir,paste0(fname_ch,".csv")))
-  
-  frac_ch_1_pred = sum(l_and_r_ch$bestlam_numpred == 1)/nrow(l_and_r_ch)
-  frac_ch_0_pred = sum(l_and_r_ch$bestlam_numpred == 0)/nrow(l_and_r_ch)
-  frac_ch_other_pred = sum(l_and_r_ch$bestlam_numpred>1)/nrow(l_and_r_ch)
-}
+```{r kfold_lambda_finding, echo = FALSE}
+
+# further reduce metrics tabs for chinook (based on seasons affecting each cohort)
+metrics_tab_screened_chinook = metrics_tab_screened[,keepers_ch]
+
+mod_obj_co = kfold_cv(metrics_tab = metrics_tab_screened, y_val = y_val_coho, alpha = 1)
+mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
 
 
-# par(mfrow = c(1,2))
-# breaks_stan = seq(from=0, to = 16, by = 2)
-# hist(l_and_r_co$bestlam_numpred, freq=F, ylim = c(0, 0.7),breaks=12)#, breaks = breaks_stan)
-# hist(l_and_r_ch$bestlam_numpred, freq=F, ylim = c(0,0.7),breaks=12)#, breaks = breaks_stan)
+mod_obj_ch = kfold_cv(metrics_tab = metrics_tab_screened_chinook, y_val = y_val_chinook, alpha = 1)
+mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
 
 
-# final lambda vals
+coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3)
+coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch)
 
-if(log_transform_eco_metrics == F & zscore_flow_metrics == F) {
-  if(y_val_coho=="coho_smolt_per_fem") {lam_co = 5}#10}
-  if(y_val_coho=="coho_smolt_abun_est") {lam_co = 2500}
-  if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = 36}#50}
-  if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 25000}#50}
-}
+# Plot cross validation for lasso regression
+par(#mfrow = c(2,1), 
+  mar = c(5,4,6,2))
+plot(cv_co, main = paste0("Cross-validation, ",
+                          yvlt$y_val_label[yvlt$y_val=="coho_smolt_per_fem"],
+                          "; best lambda: ", round(cv_co$lambda.min, 3)))
+par(#mfrow = c(2,1), 
+  mar = c(5,4,6,2))
+plot(cv_ch, main = paste0("Cross-validation, ",
+                          yvlt$y_val_label[yvlt$y_val=="chinook_juvenile_abundance"],
+                          "; best lambda: ", round(cv_ch$lambda.min, 3)))
 
-if(log_transform_eco_metrics == T & zscore_flow_metrics == T) {
-  if(y_val_coho=="coho_smolt_abun_est") {lam_co = 0.2}
-  if(y_val_chinook == "chinook_juvenile_abundance"){lam_ch = 0.12}
-  if(y_val_coho=="coho_smolt_per_fem") {lam_co = .075}
-  if(y_val_chinook == "chinook_juv_per_adult"){lam_ch = .075}
-}
+flextable(data = coefs_co$coef)
+flextable(data = coefs_ch$coef)
+
+
 
 
 ```
 
-In the 50% test-train subset analysis, increasing optimal lambda values produced monotonically decreasing average test errors across the range of optimal lambda values (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), top panels). This means that for both species, the lowest average test error was associated with the highest optimal lambda value. And indeed, for both species, a non-negligible fraction of the test sets produced optimal regression models with 0 degrees of freedom (`r round(frac_co_0_pred,2)*100` and `r round(frac_ch_0_pred,2)*100` percent for coho and Chinook, respectively) (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), middle panels). This suggests that there are some observation subsets for which the mean is the best possible prediction and hydrologic metrics provide no additional useful information. However, the majority of the test sets produced optimal lambda values with 1 (`r round(frac_co_1_pred,2)*100` and `r round(frac_ch_1_pred,2)*100` percent for coho and Chinook, respectively) or more predictors (`r round(frac_co_other_pred,2)*100` and `r round(frac_ch_other_pred,2)*100` percent for coho and Chinook, respectively).
+### Test error and selection of final lambda value
+
+
+**revise: cross-validation in glmnet. number of folds to allow for grouping.**
+
+<!-- In the 50% test-train subset analysis, increasing optimal lambda values produced monotonically decreasing average test errors across the range of optimal lambda values (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), top panels). This means that for both species, the lowest average test error was associated with the highest optimal lambda value. And indeed, for both species, a non-negligible fraction of the test sets produced optimal regression models with 0 degrees of freedom (`r round(frac_co_0_pred,2)*100` and `r round(frac_ch_0_pred,2)*100` percent for coho and Chinook, respectively) (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), middle panels). This suggests that there are some observation subsets for which the mean is the best possible prediction and hydrologic metrics provide no additional useful information. However, the majority of the test sets produced optimal lambda values with 1 (`r round(frac_co_1_pred,2)*100` and `r round(frac_ch_1_pred,2)*100` percent for coho and Chinook, respectively) or more predictors (`r round(frac_co_other_pred,2)*100` and `r round(frac_ch_other_pred,2)*100` percent for coho and Chinook, respectively). -->
 
 Applying a strict interpretation of the standard lasso methodology would result in using the upper bounds as the final lambda values (approximately 37 for coho and 110 for Chinook), producing regression models with zeros for all coefficient values which explained 0% of deviation. This would not match the existing understanding that ecological outcomes depend in part on hydrologic conditions and does not reflect that, in the majority of the test sets, the optimal regression models contained at least one non-zero coefficient. 
 
-We therefore assumed the monotonic lambda-test error relationship was an artefact of the small ecological sample size, and adopted a secondary process whereby final lambda values were selected based on a somewhat arbitrary relative test error threshold of 1.0. The lambda value that explained the maximum deviation without producing an average test error that exceeded 100% of the mean observation value was selected for both species: `r lam_co` for coho spf and `r lam_ch` for Chinook jpa. 
-
-```{r lassoResultsCoho, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict coho outcomes with hydrologic metrics. Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsCoho}"}
-
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
-
-lasso_results_co = lasso_regression_plots_and_tabs(
-  metrics_tab = metrics_tab_screened,
-  y_val = y_val_coho,
-  yvlt=yvlt, selected_lam = lam_co,
-  #if you just need the tables, and are not saving the images, don't show the plot
-  show_plot = save_imgs,
-  log_transform_eco_metrics = log_transform_eco_metrics, 
-  zscore_flow_metrics = zscore_flow_metrics) 
-pred_tab_co = lasso_results_co$pred_appear_tab
-pred_rank_co = lasso_results_co$pred_rank_tab
-lasso_mod_co = lasso_results_co$lasso_mod_range
-
-if(save_imgs == TRUE){
-  dev.off()
-  # save predictor appearance tab
-  pred_tab_filename = "Supplemental Table 3. Coho Salmon Lasso Coefficients.csv"
-  write.csv(x=pred_tab_co, file=file.path(graphics_dir,pred_tab_filename),
-            quote=F, row.names = F)
-}
-if(include_figs==T){knitr::include_graphics(fig_path)}
-fig_i = fig_i +1
-
-
-```
-
-
-```{r lassoResultsChinook, echo = F, warning = F,  fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook outcomes with hydrologic metrics. Models with more coefficients explain a greater degree of variation in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (lower panel).\\label{fig:lassoResultsChinook}"}
-
-metrics_tab_screened_chinook = 
-  metrics_tab_screened[, keepers_ch]
-
-
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
-
-lasso_results_ch = lasso_regression_plots_and_tabs(
-  metrics_tab = metrics_tab_screened_chinook,
-  y_val = y_val_chinook,
-  yvlt = yvlt,
-  selected_lam = lam_ch,
-  show_plot = save_imgs, 
-  log_transform_eco_metrics = log_transform_eco_metrics, 
-  zscore_flow_metrics = zscore_flow_metrics)
-
-
-pred_tab_ch = lasso_results_ch$pred_appear_tab
-pred_rank_ch = lasso_results_ch$pred_rank_tab
-lasso_mod_ch = lasso_results_ch$lasso_mod_range
-
-if(save_imgs == TRUE){dev.off()
-    # save predictor appearance tab
-  pred_tab_filename = "Supplemental Table 4. Chinook Salmon Lasso Coefficients.csv"
-  write.csv(x=pred_tab_ch, file=file.path(graphics_dir,pred_tab_filename),
-            quote=F, row.names = F)
-
-}
-if(include_figs==T){knitr::include_graphics(fig_path)}
-fig_i = fig_i +1
-
-
-
-
-```
+<!-- We therefore assumed the monotonic lambda-test error relationship was an artefact of the small ecological sample size, and adopted a secondary process whereby final lambda values were selected based on a somewhat arbitrary relative test error threshold of 1.0. The lambda value that explained the maximum deviation without producing an average test error that exceeded 100% of the mean observation value was selected for both species: `r lam_co` for coho spf and `r lam_ch` for Chinook jpa.  -->
 
 ### Predictor rank stability
-
-```{r predRankStability, echo = F, include = F}
-
-n_kept_preds = 5
-
-# Coho
-ranked_preds = sort(unique(as.vector(unlist(pred_rank_co[,paste0("pred",1:5)]))))
-  # sort(table(pred_rank_co$pred1), decreasing = T)
-overall_freq = sort(table(as.vector(unlist(pred_rank_co[,paste0("pred",1:5)]))), decreasing=T)
-
-pred_points = as.data.frame(matrix(data=0,nrow=nrow(pred_rank_co), ncol = length(ranked_preds)))
-colnames(pred_points)=ranked_preds
-num_points = rev(1:n_kept_preds)
-for(i in 1:n_kept_preds){
-  for(j in 1:nrow(pred_points)){
-    pred_points[j, match(x=pred_rank_co[j,paste0("pred",i)],
-                         table = colnames(pred_points))] = num_points[i]
-  }
-}
-
-pred_points_sum = sort(apply(X=pred_points, MARGIN = 2, FUN = sum), decreasing = T)
-
-overall_freq[1:20]
-pred_points_sum[1:20]
-keep_preds_co = names(pred_points_sum[1:n_kept_preds])
-
-
-# Chinook
-ranked_preds = sort(unique(as.vector(unlist(pred_rank_ch[,paste0("pred",1:5)]))))
-overall_freq = sort(table(as.vector(unlist(pred_rank_ch[,paste0("pred",1:5)]))), decreasing=T)
-
-pred_points = as.data.frame(matrix(data=0,nrow=nrow(pred_rank_ch), ncol = length(ranked_preds)))
-colnames(pred_points)=ranked_preds
-num_points = rev(1:n_kept_preds)
-for(i in 1:n_kept_preds){
-  for(j in 1:nrow(pred_points)){
-    pred_points[j, match(x=pred_rank_ch[j,paste0("pred",i)],
-                         table = colnames(pred_points))] = num_points[i]
-  }
-}
-
-pred_points_sum = sort(apply(X=pred_points, MARGIN = 2, FUN = sum), decreasing = T)
-
-overall_freq[1:20]
-pred_points_sum[1:20]
-keep_preds_ch = names(pred_points_sum[1:n_kept_preds])
-
-```
-
 
 In the test-train step, each of the regression models produced from a (random) training subset was associated with an order of appearance of predictors (similar to the results for the full dataset in Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook) [lower panel], and listed in Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)).
 
@@ -1028,51 +861,19 @@ In the 10,000 data subsets analyzed for Chinook, the metrics that appeared most 
 
 ```{r predAppearTabCoho, echo = FALSE, results = 'asis'}
 
-pred_tab_co$lambda_non0_val_appears =
-  round(pred_tab_co$lambda_non0_val_appears, 2)
-pred_tab_co = pred_tab_co[!is.na(pred_tab_co$lambda_non0_val_appears),]
-pred_tab_co$rank= 1:nrow(pred_tab_co)
-pred_tab_co = pred_tab_co[,c("rank","predictor","lambda_non0_val_appears")]
+# maybe coefficient table instead. Maybe that's all you need.
 
-#Create caption and column labels
-caption_text = paste0("Predictors informing the lasso regression for the full dataset of ",
-                      yvlt$y_val_title[yvlt$y_val==y_val_coho],
-                      " observations, at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
-column_labels = c("Order of appearance","Predictor","Non-zero lambda value")
-colnames(pred_tab_co) = column_labels
-
-ptch_ft = flextable(data = pred_tab_co)
-ptch_ft = set_caption(ptch_ft, caption = caption_text)
-ptch_ft = autofit(ptch_ft)
-ptch_ft
 ```
 
 ```{r predAppearTabChinook, echo = FALSE, results = 'asis'}
 
-pred_tab_ch$lambda_non0_val_appears =
-  round(pred_tab_ch$lambda_non0_val_appears, 2)
-pred_tab_ch = pred_tab_ch[!is.na(pred_tab_ch$lambda_non0_val_appears),]
-pred_tab_ch$rank = 1:nrow(pred_tab_ch)
-pred_tab_ch = pred_tab_ch[,c("rank","predictor","lambda_non0_val_appears")]
-
-#Create caption and column labels
-caption_text = paste0("Predictors informing the lasso regression for the full dataset of ",
-                      yvlt$y_val_title[yvlt$y_val==y_val_chinook],
-                      " observations, at decreasing lambda values (also referred to as a shrinkage penalty). Lambda values represent the point at which a non-0 coefficient appears for the designated predictor.")
-column_labels = c("Order of appearance","Predictor","Non-zero lambda value")
-colnames(pred_tab_ch) = column_labels
-
-ptc_ft = flextable(data = pred_tab_ch)
-ptc_ft = set_caption(ptc_ft, caption = caption_text)
-ptc_ft = autofit(ptc_ft)
-ptc_ft
 ```
 
 ### Regression coefficients and fraction of deviation (full dataset)
 
 As mentioned in the methods, using the full dataset, 100 equidistant values were used within the potential optimal range (identified in step 6) to generate a series of regression models to predict ecological outcomes for coho and Chinook. As is typical in lasso regression, coefficient values in these models approach 0 as lambda values increase (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), lower panels). Notably, a common interpretation is that the order of disappearance (from left to right) or appearance (from right to left) reflects the order of predictor importance; i.e., the single non-zero coefficient remaining at the highest lambda value is the most important predictor in the dataset (`BY_recon_200` in the case of coho spf).
 
-The fraction of the deviation of the observed values from the mean is a function of the lambda value. For the full dataset, this fraction ranges from 0% of (with all coefficients set to 0) to 100% of deviation. The number of non-0 coefficients explaining 100% of variation is 12 and 20 for coho and Chinook respectively (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), middle panels). This matches the general rule of thumb that with high-dimensional data, it is often possible to explain 100% of deviation by incorporating data from as many or more predictors than the number of observations [@JamesEtAlIntroduction2013]. 
+The fraction of the deviation of the observed values from the mean is a function of the lambda value. For the full dataset, this fraction ranges from 0% of (with all coefficients set to 0) to 100% of deviation. The number of non-0 coefficients explaining 100% of variation is 12 and 20 for coho and Chinook respectively (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), middle panels). This matches the general rule of thumb that with high-dimensional data, it is often possible to explain 100% of deviation by incorporating data from as many or more predictors than the number of observations [@; EtAlIntroduction2013]. 
 
 To explain 20% of Chinook deviation, the regression model needed 5 non-0 coefficients (or degrees of freedom), while for coho only 1 was necessary. Similarly, to explain 50% of variation required 8 and 5 degrees of freedom for Chinook and coho respectively (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook), middle panel). 
 
@@ -1083,57 +884,57 @@ For each species, the predictive model of ecological observations was based on t
 
 ```{r coefTableCoho, echo = F, warning =F, results = 'asis'}
 
-# Retrieve coefficients from lasso model
-lasso_index_co = which.min(abs(lasso_mod_co$lambda-lam_co))
-coefs_co = lasso_mod_co$beta[,lasso_index_co]
-intercept_co = lasso_mod_co$a0[lasso_index_co]
-
-non0s_co = names(coefs_co[abs(coefs_co)>0])
-
-coefs_interp_names = names(coefs_co)
-coefs_interp = as.character(coefs_co)
-names(coefs_interp) = coefs_interp_names
-# add interpretation to each non-0 coefficient
-if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_flow_metrics == F){
-  coefs_interp$f1_recon_120 = "Earlier full-system reconnection (120 cfs, fall of parents' spawning)"
-  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
-  # coefs_interp$f2_FA_Mag = "Smaller fall pulse (as juvenile fish)"
-  coefs_interp$s1_SP_ROC_Max = "Max spring recession rate of change (as juvenile fish)"
-  coefs_interp$d1_DS_Dur_WS = "Shorter dry season duration (pre-spawning)"
-  # coefs_interp$w1_Wet_BFL_Mag_10 = "Higher wet season baseflow (as eggs and fry)"
-  coefs_interp$w2_Wet_BFL_Mag_50 = "Lower wet season baseflow (as overwintering juvenile fish)"
-  # coefs_interp$w1_Wet_Tim = "Earlier wet season onset timing, first wet season (as eggs)"
-  coefs_interp$s1_SP_ROC = "Slower rate of change, second spring recession (as juvenile fish)"
-  coefs_interp$s2_SP_ROC = "Faster rate of change, second spring recession (as outmigrating coho smolt)"
-}
-
-if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
-    coefs_interp$d1_DS_Mag_50 = "Higher dry season flow (before parents' spawning)"
-    coefs_interp$w1_Wet_BFL_Dur = "Higher wet season baseflow (as eggs and fry)"
-    coefs_interp$s1_SP_ROC = "Slower spring recession rate of change (as juvenile fish)"
-    coefs_interp$w2_Wet_BFL_Dur = "Shorter wet season baseflow duration (as overwintering juveniles)"
-    coefs_interp$s2_SP_ROC = "Faster spring recession rate of change (as juvenile fish)"
-    coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
-    coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
-    coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
-}
-if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
-    coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
-}
-
-coefs_co_vals = c(round(intercept_co, 1),round(coefs_co[coefs_co!="0"],3))
-coefs_co_interp = c("Intercept", unlist(coefs_interp[coefs_co!="0"]))
-coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)),
-                         Value = as.vector(coefs_co_vals),
-                         Description = coefs_co_interp)
-
-caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for coho spf, including a description of which phenomena are associated with higher ecological outcome values."
-
-coco_tab_ft = flextable(data=coefs_co_ft)
-coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
-coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 2)
-coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
-coco_tab_ft
+# # Retrieve coefficients from lasso model
+# lasso_index_co = which.min(abs(lasso_mod_co$lambda-lam_co))
+# coefs_co = lasso_mod_co$beta[,lasso_index_co]
+# intercept_co = lasso_mod_co$a0[lasso_index_co]
+# 
+# non0s_co = names(coefs_co[abs(coefs_co)>0])
+# 
+# coefs_interp_names = names(coefs_co)
+# coefs_interp = as.character(coefs_co)
+# names(coefs_interp) = coefs_interp_names
+# # add interpretation to each non-0 coefficient
+# if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_flow_metrics == F){
+#   coefs_interp$f1_recon_120 = "Earlier full-system reconnection (120 cfs, fall of parents' spawning)"
+#   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+#   # coefs_interp$f2_FA_Mag = "Smaller fall pulse (as juvenile fish)"
+#   coefs_interp$s1_SP_ROC_Max = "Max spring recession rate of change (as juvenile fish)"
+#   coefs_interp$d1_DS_Dur_WS = "Shorter dry season duration (pre-spawning)"
+#   # coefs_interp$w1_Wet_BFL_Mag_10 = "Higher wet season baseflow (as eggs and fry)"
+#   coefs_interp$w2_Wet_BFL_Mag_50 = "Lower wet season baseflow (as overwintering juvenile fish)"
+#   # coefs_interp$w1_Wet_Tim = "Earlier wet season onset timing, first wet season (as eggs)"
+#   coefs_interp$s1_SP_ROC = "Slower rate of change, second spring recession (as juvenile fish)"
+#   coefs_interp$s2_SP_ROC = "Faster rate of change, second spring recession (as outmigrating coho smolt)"
+# }
+# 
+# if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+#     coefs_interp$d1_DS_Mag_50 = "Higher dry season flow (before parents' spawning)"
+#     coefs_interp$w1_Wet_BFL_Dur = "Higher wet season baseflow (as eggs and fry)"
+#     coefs_interp$s1_SP_ROC = "Slower spring recession rate of change (as juvenile fish)"
+#     coefs_interp$w2_Wet_BFL_Dur = "Shorter wet season baseflow duration (as overwintering juveniles)"
+#     coefs_interp$s2_SP_ROC = "Faster spring recession rate of change (as juvenile fish)"
+#     coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+#     coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
+#     coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+# }
+# if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+#     coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+# }
+# 
+# coefs_co_vals = c(round(intercept_co, 1),round(coefs_co[coefs_co!="0"],3))
+# coefs_co_interp = c("Intercept", unlist(coefs_interp[coefs_co!="0"]))
+# coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)),
+#                          Value = as.vector(coefs_co_vals),
+#                          Description = coefs_co_interp)
+# 
+# caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for coho spf, including a description of which phenomena are associated with higher ecological outcome values."
+# 
+# coco_tab_ft = flextable(data=coefs_co_ft)
+# coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
+# coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 2)
+# coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
+# coco_tab_ft
 
 
 ```
@@ -1142,43 +943,43 @@ coco_tab_ft
 
 ```{r coefTableChinook, echo = F, warning =F, results = 'asis'}
 
-# Retrieve coefficients from lasso model
-lasso_index_ch = which.min(abs(lasso_mod_ch$lambda-lam_ch))
-coefs_ch = lasso_mod_ch$beta[,lasso_index_ch]
-intercept_ch = lasso_mod_ch$a0[lasso_index_ch]
-
-non0s_ch = names(coefs_ch[abs(coefs_ch)>0])
-
-coefs_ch_interp_names = names(coefs_ch)
-coefs_ch_interp = as.character(coefs_ch)
-names(coefs_ch_interp) = coefs_ch_interp_names
-# add interpretation to each coefficient
-if(y_val_chinook == "chinook_juv_per_adult"){
-  coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
-  coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
-  coefs_ch_interp$s1_SP_ROC_Max = "Slower max. spring recession rate (as outmigrating smolt)"
-}
-if(y_val_chinook == "chinook_juvenile_abundance"){
-  coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
-  coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
-  # coefs_ch_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
-}
-
-
-coefs_ch_vals = c(round(intercept_ch, 1),round(coefs_ch[coefs_ch!="0"],3))
-coefs_ch_interp = c("Intercept", unlist(coefs_ch_interp[coefs_ch!="0"]))
-coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
-                         Value = as.vector(coefs_ch_vals),
-                         Description = coefs_ch_interp)
-
-
-caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for Chinook jpa, including a description of which phenomena are associated with higher ecological outcome values."
-
-coch_tab_ft = flextable(data=coefs_ch_ft)
-coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
-coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 2)
-coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
-coch_tab_ft
+# # Retrieve coefficients from lasso model
+# lasso_index_ch = which.min(abs(lasso_mod_ch$lambda-lam_ch))
+# coefs_ch = lasso_mod_ch$beta[,lasso_index_ch]
+# intercept_ch = lasso_mod_ch$a0[lasso_index_ch]
+# 
+# non0s_ch = names(coefs_ch[abs(coefs_ch)>0])
+# 
+# coefs_ch_interp_names = names(coefs_ch)
+# coefs_ch_interp = as.character(coefs_ch)
+# names(coefs_ch_interp) = coefs_ch_interp_names
+# # add interpretation to each coefficient
+# if(y_val_chinook == "chinook_juv_per_adult"){
+#   coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+#   coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
+#   coefs_ch_interp$s1_SP_ROC_Max = "Slower max. spring recession rate (as outmigrating smolt)"
+# }
+# if(y_val_chinook == "chinook_juvenile_abundance"){
+#   coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+#   coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
+#   # coefs_ch_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
+# }
+# 
+# 
+# coefs_ch_vals = c(round(intercept_ch, 1),round(coefs_ch[coefs_ch!="0"],3))
+# coefs_ch_interp = c("Intercept", unlist(coefs_ch_interp[coefs_ch!="0"]))
+# coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
+#                          Value = as.vector(coefs_ch_vals),
+#                          Description = coefs_ch_interp)
+# 
+# 
+# caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for Chinook jpa, including a description of which phenomena are associated with higher ecological outcome values."
+# 
+# coch_tab_ft = flextable(data=coefs_ch_ft)
+# coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
+# coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 2)
+# coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
+# coch_tab_ft
 ```
 
 
