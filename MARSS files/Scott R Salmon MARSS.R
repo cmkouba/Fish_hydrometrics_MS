@@ -4,6 +4,7 @@
 library(MARSS)
 library(lubridate)
 library(here)
+library(funtimes)
 
 # Directory ----------
 
@@ -374,7 +375,7 @@ y_val_label_tab = function(){
   influencing_seasons = c(all_szns,
                           y1_szns,
                           spawn_szns,
-                          y1_szns,
+                          spawn_szns,
                           all_szns,
                           spawn_szns,
                           y1_szns))
@@ -476,7 +477,191 @@ get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
   #   R = "diagonal and equal"))
 }
 
+get_single_cov_model_fit_for_MARSS = function(y_obs_tab, pred, method = "kem"){
+  species = rownames(y_obs_tab)
+  nspp = length(species)
 
+  ## Data structure: the "site" for each species is the entire watershed
+  ## (as monitored at the counting weir for adults and the rotary screw trap
+  ## for juveniles).
+  ##
+  ## So, we need a x-column Z matrix. One col per species, one row per species-site
+  ## combination. We have x species all at the same site.
+
+  n_sites = 1 # scott River
+  Z = matrix(1, nspp * n_sites, 1)
+  # diag(Z) = 1
+  # B2024: R matrix: species-specific observation error -> rep each species name for number of observation streams
+  # R=matrix(list(0),nspp,nspp)
+  # diag(R) = species
+
+  mod = list()
+
+  mod$Q = "diagonal and equal" #matrix("q") # single process error across species and replicates
+  mod$U = matrix(0) # No drift - 0 intercept for hidden state series
+  mod$B = matrix(1) # No B - no coefficients for hidden state series
+  mod$Z = Z
+  mod$R = matrix("r") # One obs error (i.e., for the selected ecological obs. series)
+  mod$A = matrix(0) # 0 intercept for observation data series
+
+  # mod_ct.fit = MARSS(y = y_obs, model=mod, #method = method,
+  #                    control=list(maxit=10000), method="BFGS")
+
+  # basically: https://atsa-es.github.io/atsa-labs/sec-uss-fitting-a-state-space-model-with-marss.html
+
+  #### DS_Dur_WS
+
+  flow_metric_ct = pred
+  covar_ct = t(metrics_tab[,flow_metric_ct])
+  rownames(covar_ct) = flow_metric_ct
+  colnames(covar_ct) = metrics_tab$brood_year
+  ncov = nrow(covar_ct)
+
+  # # reduce observation data to years with observations in the selected metrics
+  # how_many_na = apply(X = y_obs_tab, MARGIN = 2, function(x){sum(is.na(x))})
+  # # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  # y_obs = y_obs_tab[ , how_many_na < nspp]
+
+  # reduce observation data to years with observations in the selected metrics
+  how_many_vals_y = apply(X = y_obs_tab, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  how_many_vals_cov = apply(X = covar_ct, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  first_i_y = min(which(how_many_vals_y > 0)); last_i_y = max(which(how_many_vals_y > 0)) # cover any data for all species
+  first_i_cov = min(which(how_many_vals_cov == ncov)); last_i_cov = max(which(how_many_vals_cov == ncov))# can't have missing covariates.
+  # assumes continuous covariance coverage between min and max
+
+  keep_cols = max(c(first_i_y, first_i_cov)):  min(c(last_i_y, last_i_cov))
+  # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  y_obs = y_obs_tab[ , keep_cols]
+  cov_ct = matrix(covar_ct[,keep_cols], nrow = 1)
+
+
+
+  #Create C matrix: 1 column b/c one covariate, specify if species abundance or normalized
+  C_ct <- matrix("ScottR")#matrix(c("abundance","abundance","normalized","normalized"), ncol = 1, nrow = nspp)
+
+  ## Now fit a MARSS model
+  mod_ct = mod
+  mod_ct$C = C_ct # Abundance and normalized data be affected by the covariate differently
+  mod_ct$c = cov_ct # Covariate data
+
+
+  #### U = zero, B = identity, Q = equal
+  # Fit the MARSS model
+  # control$trace = 1
+  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, #method = method,
+                     control=list(maxit=10000))#, method="BFGS")
+
+  return(mod_ct.fit)
+  # mod_ct.CI <- MARSSparamCIs(mod_ct.fit)
+  #
+  # # what if we just start with the basics?
+  #
+  # kemfit2 = MARSS(y_obs, model = list(
+  #   Z = matrix(1, 4, 1),
+  #   R = "diagonal and equal"))
+}
+
+get_flow_and_spawn_cov_model_fit_for_MARSS = function(y_obs_tab, pred, y_spawn_colname, method = "kem"){
+
+  species = rownames(y_obs_tab)
+
+  nspp = length(species)
+
+  ## Data structure: the "site" for each species is the entire watershed
+  ## (as monitored at the counting weir for adults and the rotary screw trap
+  ## for juveniles).
+  ##
+  ## So, we need a x-column Z matrix. One col per species, one row per species-site
+  ## combination. We have x species all at the same site.
+
+  n_sites = 1 # scott River
+  Z = matrix(1, nspp * n_sites, 1)
+  # diag(Z) = 1
+  # B2024: R matrix: species-specific observation error -> rep each species name for number of observation streams
+  # R=matrix(list(0),nspp,nspp)
+  # diag(R) = species
+
+  mod = list()
+
+  mod$Q = "diagonal and equal" #matrix("q") # single process error across species and replicates
+  mod$U = matrix(0) # No drift - 0 intercept for hidden state series
+  mod$B = matrix(1) # No B - no coefficients for hidden state series
+  mod$Z = Z
+  mod$R = matrix("r") # One obs error (i.e., for the selected ecological obs. series)
+  mod$A = matrix(0) # 0 intercept for observation data series
+
+  # basically: https://atsa-es.github.io/atsa-labs/sec-uss-fitting-a-state-space-model-with-marss.html
+
+  #### DS_Dur_WS
+
+  flow_metric_ct = pred
+  covar_ct = t(metrics_tab[, c(flow_metric_ct, y_spawn_colname)])
+  ncov = 2
+
+  # reduce observation data to years with observations in the selected metrics
+  how_many_vals_y = apply(X = y_obs_tab, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  how_many_vals_cov = apply(X = covar_ct, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  first_i_y = min(which(how_many_vals_y > 0)); last_i_y = max(which(how_many_vals_y > 0))
+  first_i_cov = min(which(how_many_vals_cov == ncov)); last_i_cov = max(which(how_many_vals_cov == ncov))# can't have missing covariates
+  # assumes continuous coverage between min and max for covariate data
+
+  keep_cols = max(c(first_i_y, first_i_cov)):  min(c(last_i_y, last_i_cov))
+  # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  y_obs = y_obs_tab[ , keep_cols]
+  cov_ct = covar_ct[,keep_cols]
+
+
+  #Create C matrix: 1 column b/c one variable, specify if species abundance or normalized
+  C_ct <- matrix(c("ScottR","Spawners"), ncol = 1)#matrix(c("abundance","abundance","normalized","normalized"), ncol = 1, nrow = nspp)
+  # C_ct <- matrix(rep("ScottR"), ncol = 1, nrow = nspp)
+
+  ## Now fit a MARSS model
+  mod_ct = mod
+  mod_ct$C = C_ct # Abundance and normalized data be affected by the covariate differently
+  mod_ct$c = cov_ct # Covariate data
+
+
+  #### U = zero, B = identity, Q = equal
+  # Fit the MARSS model
+  # control$trace = 1
+  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, #method = method,
+                     control=list(maxit=10000))#, method="BFGS")
+
+  return(mod_ct.fit)
+  # mod_ct.CI <- MARSSparamCIs(mod_ct.fit)
+  #
+  # # what if we just start with the basics?
+  #
+  # kemfit2 = MARSS(y_obs, model = list(
+  #   Z = matrix(1, 4, 1),
+  #   R = "diagonal and equal"))
+}
+
+
+get_max_continuous_ts = function(x_raw, years){
+  n = length(x_raw)
+  missing = is.na(x_raw)
+  change_missing_to_present = missing[1:(n-1)] & !(missing[2:n])
+  change_present_to_missing = !missing[1:(n-1)] & (missing[2:n])
+  mtp_i = which(change_missing_to_present)
+  ptm_i = which(change_present_to_missing)
+  both_0 = (length(ptm_i)==0 & length(mtp_i)==0)
+  # if(length(ptm_i) < length(mtp_i) | both_0 ){ptm_i = c(ptm_i,n)}
+  # if(length(mtp_i) < length(ptm_i) | both_0){mtp_i = c(0,mtp_i)}
+  if(!is.na(x_raw[n])){ptm_i = c(ptm_i,n)}
+  if(!is.na(x_raw[1])){mtp_i = c(0,mtp_i)}
+  cont_tab = data.frame(miss_to_pres_i = mtp_i,
+                        pres_to_miss_i = ptm_i,
+                        length_cont = NA)
+  cont_tab$length_cont = cont_tab$pres_to_miss_i - cont_tab$miss_to_pres_i
+
+  max_length_i = which.max(cont_tab$length_cont)
+  max_cont_start = cont_tab$miss_to_pres_i[max_length_i] + 1
+  max_cont_end = cont_tab$pres_to_miss_i[max_length_i]
+
+  return(list(x_cont = x_raw[max_cont_start:max_cont_end],
+              cont_yrs = years[max_cont_start:max_cont_end]))
+}
 
 # Read in data ------------------------------------------------------------
 
@@ -526,7 +711,22 @@ preds_all = colnames(metrics_tab[,!colnames(metrics_tab) %in% non_preds])
 # Transform data ---------------------------------------------------------------
 
 # log-transform ecological observations
-metrics_tab[,yvlt$y_val] = log10(metrics_tab[,yvlt$y_val])
+log_transform_eco_metrics = T # Log and then z-score??
+if(log_transform_eco_metrics ==T){
+  metrics_tab[,yvlt$y_val] = log10(metrics_tab[,yvlt$y_val])
+}
+
+# zscore ecological observations
+zscore_eco_metrics = F # Log and then z-score??
+if(zscore_eco_metrics ==T){
+  zscore_these = yvlt$y_val
+
+  metrics_mean = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = mean, na.rm=T)
+  metrics_sd = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = sd, na.rm=T)
+  metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
+                                     MARGIN = 2, FUN = zscore_column_na_rm)
+}
+
 
 # Zscore flow metrics
 zscore_flow_metrics = T
@@ -539,24 +739,204 @@ if(zscore_flow_metrics == T){
 }
 
 
+
+# Autoregression ----------------------------------------------------------
+
+# # How autocorrelated are each ecological metric?
+# par(mfrow = c(3,2))
+# for(y_val in yvlt$y_val){
+#   max_cont = get_max_continuous_ts(x_raw = metrics_tab[,y_val],
+#                         years = metrics_tab$brood_year)
+#   x_all = max_cont$x_cont
+#
+#   ## Plot x vs lagged x
+#   # par(mfrow = c(3,2))
+#   # for(p in 1:6){
+#   #   x_t = x_all[(1+p):length(x_all)]
+#   #   x_t_1 = x_all[1:(length(x_all)-p)]
+#   #
+#   #   R_p = cor(x_t, x_t_1)
+#   #
+#   #   plot(x_t, x_t_1, main = paste0(y_val, ", Lag ",p, ", R ", round(R_p, 2)))
+#   #
+#   # }
+#
+#   acf(x = x_all, main = y_val)
+# }
+
+# How autocorrelated are hydro metrics?
+
+# brood_year_hydro_tab_long = tabulate_hydro_by_affected_brood_year(brood_years = 1942:2022,
+#                                                              smolt_years = 1944:2024)
+# thresh_for_corr_fig = c(20,40,120)
+#
+# metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
+#   hydro_by_brood_year = brood_year_hydro_tab,
+#   thresholds = thresh_for_corr_fig)
+#
+# par(mfrow = c(3,2))
+#
+# for(pred in preds_all){
+#   if(sum(is.na(metrics_tab_long[,pred])) != nrow(metrics_tab_long)){
+#     max_cont = get_max_continuous_ts(x_raw = metrics_tab_long[,pred],
+#                                      years = metrics_tab_long$brood_year)
+#     x_all = max_cont$x_cont
+#     acf(x = x_all, main = pred)
+#
+#   }
+# }
+
+
+
 # Specify MARSS model ------------------------------------------------------------------
+
 
 ## The code in the functions called below follows the R script
 ## Baruch_2023_Putah_Creek_MARSS.R, published in support of:
 ## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
 ## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
 
+# for z-scored x metrics, for non-transformed y metrics, on 5/19/2025
+screened_cols = c("brood_year","smolt_year",
+                  "coho_smolt_per_fem", "chinook_juv_per_adult",
+                  "coho_spawner_abundance", "coho_redds_in_brood",
+                  "coho_smolt_abun_est", "chinook_spawner_abundance",
+                  "chinook_juvenile_abundance", "f2_recon_120",
+                  "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
+                  "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
+                  "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
+                  "f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
+                  "w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
+                  "s2_SP_Tim", "f1_recon_120")
+preds_screened = screened_cols[!(screened_cols %in% non_preds)]
+metrics_tab_screened = metrics_tab[,screened_cols]
+
+preds_season_list = strsplit(x = preds_screened, split = "_")
+preds_season = unlist(lapply(X = preds_season_list, function(x){x[1]}))
+
+aicc_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+coef_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+
+colnames(aicc_tab)=yvlt$y_val; rownames(aicc_tab)=preds_screened
+colnames(coef_tab)=yvlt$y_val; rownames(coef_tab)=preds_screened
+list_of_mods = list()
+
+
+calc_models_single_covar=function(){
+  for(i in 1:nrow(yvlt)){
+    y_val_i = yvlt$y_val[i]
+    y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
+    preds_for_y = preds_screened[preds_season %in% y_seasons]
+
+    for(j in 1:length(preds_for_y)){ # CHANGE TO PREDS_SCREENED. TAKES A LONG TIME.
+      pred_j = preds_for_y[j]
+      if(sum(is.na(metrics_tab[,pred_j]))<1){
+        print(paste(y_val_i, "on", pred_j))
+        y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                           y_val_names = y_val_i)
+        marss_mod = get_single_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
+                                                       pred = pred_j
+                                                       #, method = "BFGS"
+        )
+        list_of_mods[[length(list_of_mods)+1]] = marss_mod
+        names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+        print("")
+      }
+      # par(mfrow = c(4,2))
+      # plot(marss_mod)
+      aicc_tab[pred_j, y_val_i] = marss_mod$AICc
+      coef_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
+
+    }
+  }
+
+  if(log_transform_eco_metrics == T & zscore_flow_metrics == T){aic_tab_file = "AIC tab_log eco_zscore flow.csv"}
+  if(log_transform_eco_metrics == F & zscore_flow_metrics == T){aic_tab_file = "AIC tab_straight eco_zscore flow.csv"}
+  # saveRDS(object = list_of_mods, file = "MARSS model objects.RDS")
+
+  aicc_tab$pred = row.names(aicc_tab)
+  coef_tab$pred = row.names(coef_tab)
+  for(y_val in yvlt$y_val){
+    # view predictors in order of AICc value (smallest first)
+    results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+    results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+    results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+
+    # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
+    # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
+    # coef_y[,y_val] = round(coef_y[,y_val], 3)
+    print(y_val)
+    print(head(results_y))
+
+    print("")
+  }
+}
+
+
+calc_models_flow_and_spawn=function(){
+
+  smolts_is = which(yvlt$y_val %in% c("coho_smolt_abun_est", "chinook_juvenile_abundance"))
+  spawn_is =  which(yvlt$y_val %in% c("coho_spawner_abundance", "chinook_spawner_abundance"))
+  for(i in 1:2){
+    smolts_i = smolts_is[i]
+    spawn_i = spawn_is[i]
+    y_val_i = yvlt$y_val[smolts_i]
+    y_val_spawn = yvlt$y_val[spawn_i]
+    y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
+    preds_for_y = preds_screened[preds_season %in% y_seasons]
+
+    for(j in 1:length(preds_for_y)){
+      pred_j = preds_for_y[j]
+      if(sum(is.na(metrics_tab[,pred_j]))<1){
+        y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                           y_val_names = y_val_i)
+        marss_mod = get_flow_and_spawn_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
+                                                               y_spawn_colname = y_val_spawn,
+                                                               pred = pred_j)
+        list_of_mods[[length(list_of_mods)+1]] = marss_mod
+        names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+      }
+      print(paste(y_val_i, "on", pred_j))
+      par(mfrow = c(4,2))
+      # plot(marss_mod)
+      aicc_tab[pred_j, y_val_i] = marss_mod$AICc
+      coef_tab_flow[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
+      coef_tab_spawn[pred_j, y_val_i] = marss_mod$coef["C.Spawners"]
+
+    }
+  }
+
+  if(log_transform_eco_metrics == T & zscore_flow_metrics == T){aic_tab_file = "AIC tab_log eco_zscore flow.csv"}
+  if(log_transform_eco_metrics == F & zscore_flow_metrics == T){aic_tab_file = "AIC tab_straight eco_zscore flow.csv"}
+  # saveRDS(object = list_of_mods, file = "MARSS model objects.RDS")
+
+  aicc_tab$pred = row.names(aicc_tab)
+  coef_tab_flow$pred = row.names(coef_tab_flow)  # CURRENTLY HERE
+  coef_tab_spawn$pred = row.names(coef_tab_spawn)
+
+  for(i in 1:2){
+    y_val = yvlt$y_val[smolts_is[i]]
+    # view predictors in order of AICc value (smallest first)
+    results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+    results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+    results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+
+    # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
+    # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
+    # coef_y[,y_val] = round(coef_y[,y_val], 3)
+    print(y_val)
+    print(head(results_y))
+
+    print("")
+  }
+}
+
+
 #Select ecological response variable
-y_val_coho = "coho_smolt_per_fem"
-y_val_chinook = "chinook_juvenile_abundance"
-
-y_obs_tab_co = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-                                   y_val_names = y_val_coho)
-y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-                                   y_val_names = y_val_chinook)
-
-mod_co = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_co, method = "BFGS")
-mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
+# y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+#                                    y_val_names = y_val_chinook)
+#
+# mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
 
 # View results -----------------------------------------------------------------
 pdf(file = file.path(data_dir, paste0("MARSS ", y_val_coho,".pdf")),

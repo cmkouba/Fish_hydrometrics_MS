@@ -965,7 +965,7 @@ y_val_label_tab = function(){
   influencing_seasons = c(all_szns,
                           y1_szns,
                           spawn_szns,
-                          y1_szns,
+                          spawn_szns,
                           all_szns,
                           spawn_szns,
                           y1_szns))
@@ -1435,7 +1435,9 @@ kfold_cv = function(metrics_tab, y_val = "coho_smolt_per_fem",
                     return_mod = T, return_cv = T){
   x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab, y_val = y_val)
   x = x_and_y[[1]]; y = x_and_y[[2]]
-  n_folds_for_groups = floor(nrow(x)/3) # make sure at least 3 in each fold
+  # n_folds_for_groups = floor(nrow(x)/3) # make sure at least 3 in each fold
+  n_folds_for_groups = nrow(x) # leave one out cross validation
+  # n_folds_for_groups = 10
   set.seed(1)
   mod1 = glmnet(x, y, alpha = alpha)
   cv1 = cv.glmnet(x = x, y = y, nfolds = n_folds_for_groups)
@@ -1445,11 +1447,17 @@ kfold_cv = function(metrics_tab, y_val = "coho_smolt_per_fem",
 get_pred_coefs = function(mod, cv, coef_digits = 2){
   pred = as.matrix(predict.glmnet(mod, s = cv$lambda.min,
                                   type = "coefficients"))
-  coef = data.frame(pred = rownames(pred)[order(abs(pred), decreasing = T)],
+  coef_all = data.frame(pred = rownames(pred)[order(abs(pred), decreasing = T)],
                     coef = round(as.numeric(pred[order(abs(pred), decreasing = T)]), coef_digits))
-  int = coef[coef$pred=="(Intercept)",]
-  coefs_only = coef[coef$pred!="(Intercept)",]
-  return(list(coef = coef, coefs_only = coefs_only, intercept = int))
+  int = coef_all$coef[coef_all$pred=="(Intercept)"]
+  int_and_non0 = coef_all[abs(coef_all$coef)>0,]
+  coef_non0_only = int_and_non0$coef[int_and_non0$pred !="(Intercept)"]
+  names(coef_non0_only) = int_and_non0$pred[abs(int_and_non0$coef)>0  &
+                                              int_and_non0$pred !="(Intercept)"]
+  return(list(coef_all = coef_all,
+              coef_non0_only = coef_non0_only,
+              intercept = int,
+              int_and_coefs = int_and_non0))
 }
 
 # Lasso Regression old -----------------------------------------------
@@ -1866,11 +1874,10 @@ get_obs_data_for_MARSS = function(metrics_tab,
 }
 
 
-### B2024: USE Z MATRIX THAT SUBSETS FISH: ONLY INCLUDE FISH AT A SITE IF PRESENT IN > 25% OF YEARS
 
-
-get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
+get_single_cov_model_fit_for_MARSS = function(y_obs_tab, pred, method = "kem"){
   species = rownames(y_obs_tab)
+
   nspp = length(species)
 
   # reduce observation data to years with observations in the selected metrics
@@ -1894,24 +1901,28 @@ get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
 
   mod = list()
 
-  mod$Q = "diagonal and equal" # single process error across species and replicates
-  mod$U = "zero" # No drift
-  mod$B = "identity" # No B
+  mod$Q = "diagonal and equal" #matrix("q") # single process error across species and replicates
+  mod$U = matrix(0) # No drift - 0 intercept for hidden state series
+  mod$B = matrix(1) # No B - no coefficients for hidden state series
   mod$Z = Z
-  mod$R = "diagonal and equal"
-  mod$A = "zero"
+  mod$R = matrix("r") # One obs error (i.e., for the selected ecological obs. series)
+  mod$A = matrix(0) # 0 intercept for observation data series
+
+  # mod_ct.fit = MARSS(y = y_obs, model=mod, #method = method,
+  #                    control=list(maxit=10000), method="BFGS")
+
+  # basically: https://atsa-es.github.io/atsa-labs/sec-uss-fitting-a-state-space-model-with-marss.html
 
   #### DS_Dur_WS
 
-  flow_metric_ct = "w1_Wet_BFL_Mag_50"
-  covar_ct_raw = t(metrics_tab[how_many_na < nspp,
-                                           flow_metric_ct])
-  rownames(covar_ct_raw) = flow_metric_ct
+  flow_metric_ct = pred
+  covar_ct = t(metrics_tab[how_many_na < nspp,
+                           flow_metric_ct])
+  rownames(covar_ct) = flow_metric_ct
   # <- PuFF_Obs %>%
   #   filter(Year > 1992) %>% #Include flow data spanning first to last year
   #   select(DS_Dur_WS) %>%
   #   t() #Transpose
-  covar_ct <- zscore(covar_ct_raw) # z-score to standardize
 
   #Create C matrix: 1 column b/c one variable, specify if species abundance or normalized
   C_ct <- matrix("ScottR")#matrix(c("abundance","abundance","normalized","normalized"), ncol = 1, nrow = nspp)
@@ -1926,7 +1937,7 @@ get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
   #### U = zero, B = identity, Q = equal
   # Fit the MARSS model
   # control$trace = 1
-  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, method = method)#, method="BFGS")
+  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, method = method, control=list(maxit=10000))#, method="BFGS")
 
   return(mod_ct.fit)
   # mod_ct.CI <- MARSSparamCIs(mod_ct.fit)
@@ -1937,7 +1948,6 @@ get_model_fit_for_MARSS = function(y_obs_tab, method = "kem"){
   #   Z = matrix(1, 4, 1),
   #   R = "diagonal and equal"))
 }
-
 
 
 # Hydrologic Benefit Function Results -------------------------------------

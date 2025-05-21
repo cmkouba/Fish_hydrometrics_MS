@@ -217,4 +217,228 @@ These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). Alt
 
 # Statistical Method Details
 
+## Ridge Regression
+
+```{r kfold_lambda_finding, echo = FALSE}
+
+# y_vals
+
+# metrics_tab_screened and _chinook
+
+# calculate lasso regression model and cross-validation objects
+# (lasso: alpha = 1; ridge: alpha = 0)
+mod_obj_co = kfold_cv(metrics_tab = metrics_tab_screened, y_val = y_val_coho, alpha = 0)
+mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
+
+mod_obj_ch = kfold_cv(metrics_tab = metrics_tab_screened_chinook, alpha = 0,
+                      y_val = y_val_chinook)
+                      # y_val = "chinook_juv_per_adult")
+mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
+
+# extract coefficients from the model using the optimal lambda value found in cross-validation
+coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 1)
+coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch)
+
+# Plot cross validation for lasso regression
+par(#mfrow = c(2,1),
+  mar = c(5,4,6,2))
+plot(cv_co, main = paste0("Cross-validation, ",
+                          yvlt$y_val_label[yvlt$y_val==y_val_coho],
+                          "; best lambda: ", round(cv_co$lambda.min, 3)))
+par(#mfrow = c(2,1),
+  mar = c(5,4,6,2))
+plot(cv_ch, main = paste0("Cross-validation, ",
+                          yvlt$y_val_label[yvlt$y_val==y_val_chinook],
+                          # yvlt$y_val_label[yvlt$y_val=="chinook_juv_per_adult"],
+                          "; best lambda: ", round(cv_ch$lambda.min, 3)))
+
+
+
+```
+
+
+## MARSS Models
+
+Multi-variate autoregressive state-space (MARSS) models are 
+
+
+```{r MARSS_models_single_covar, echo = F}
+
+
+# Specify MARSS model ------------------------------------------------------------------
+
+
+## The code in the functions called below follows the R script
+## Baruch_2023_Putah_Creek_MARSS.R, published in support of:
+## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
+## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
+
+# for z-scored x metrics, for non-transformed y metrics, on 5/19/2025
+# screened_cols = c("brood_year","smolt_year",
+#                   "coho_smolt_per_fem", "chinook_juv_per_adult",
+#                   "coho_spawner_abundance", "coho_redds_in_brood",
+#                   "coho_smolt_abun_est", "chinook_spawner_abundance",
+#                   "chinook_juvenile_abundance", "f2_recon_120",
+#                   "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
+#                   "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
+#                   "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
+#                   "f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
+#                   "w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
+#                   "s2_SP_Tim", "f1_recon_120")
+
+# preds_screened = screened_cols[!(screened_cols %in% non_preds)]
+# metrics_tab_screened = metrics_tab[,screened_cols]
+
+# run main .Rmd script through metrics_tab_screened
+
+# extract season abbreviations from predictors
+preds_season_list = strsplit(x = preds_screened, split = "_")
+preds_season = unlist(lapply(X = preds_season_list, function(x){x[1]}))
+# initialize results storage: AICc and coefficient tables and list of models
+aicc_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+coef_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+colnames(aicc_tab)=yvlt$y_val; rownames(aicc_tab)=preds_screened
+colnames(coef_tab)=yvlt$y_val; rownames(coef_tab)=preds_screened
+list_of_mods = list()
+
+for(i in 1:nrow(yvlt)){ # for each ecological time series,
+  y_val_i = yvlt$y_val[i]
+  # only run models for seasons that effect the selected ecological (y) value
+  y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
+  preds_for_y = preds_screened[preds_season %in% y_seasons]
+
+  # for each predictor in metrics_screened tab,
+  for(j in 1:length(preds_for_y)){ 
+    pred_j = preds_for_y[j]
+    if(sum(is.na(metrics_tab[,pred_j]))<1){ # if the predictor effects the y-value,
+      # pull y-value table from metrics_tab
+      y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                         y_val_names = y_val_i)
+      # fit a MARSS model (with the predictor as a single covariate) 
+      marss_mod = get_single_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
+                                                     pred = pred_j)
+      # add to list of models
+      list_of_mods[[length(list_of_mods)+1]] = marss_mod
+      names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+    }
+    print(paste(y_val_i, "on", pred_j)) # track progress
+    aicc_tab[pred_j, y_val_i] = marss_mod$AICc
+    coef_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
+
+  }
+}
+
+if(log_transform_eco_metrics == T & zscore_flow_metrics == T){aic_tab_file = "AIC tab_log eco_zscore flow.csv"}
+if(log_transform_eco_metrics == F & zscore_flow_metrics == T){aic_tab_file = "AIC tab_straight eco_zscore flow.csv"}
+# saveRDS(object = list_of_mods, file = "MARSS model objects.RDS")
+
+aicc_tab$pred = row.names(aicc_tab)
+coef_tab$pred = row.names(coef_tab)
+for(y_val in yvlt$y_val){
+  # view predictors in order of AICc value (smallest first)
+  results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+  results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+  results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+
+  # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
+  # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
+  # coef_y[,y_val] = round(coef_y[,y_val], 3)
+  print(y_val)
+  print(head(results_y))
+
+  print("")
+}
+
+```
+
+```{r MARSS_models_flow_and_spawn_covar, echo = F}
+
+
+# Specify MARSS model ------------------------------------------------------------------
+
+
+## The code in the functions called below follows the R script
+## Baruch_2023_Putah_Creek_MARSS.R, published in support of:
+## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
+## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
+
+# for z-scored x metrics, for non-transformed y metrics, on 5/19/2025
+# screened_cols = c("brood_year","smolt_year",
+#                   "coho_smolt_per_fem", "chinook_juv_per_adult",
+#                   "coho_spawner_abundance", "coho_redds_in_brood",
+#                   "coho_smolt_abun_est", "chinook_spawner_abundance",
+#                   "chinook_juvenile_abundance", "f2_recon_120",
+#                   "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
+#                   "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
+#                   "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
+#                   "f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
+#                   "w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
+#                   "s2_SP_Tim", "f1_recon_120")
+
+# preds_screened = screened_cols[!(screened_cols %in% non_preds)]
+# metrics_tab_screened = metrics_tab[,screened_cols]
+
+# run main .Rmd script through metrics_tab_screened
+
+# extract season abbreviations from predictors
+preds_season_list = strsplit(x = preds_screened, split = "_")
+preds_season = unlist(lapply(X = preds_season_list, function(x){x[1]}))
+# initialize results storage: AICc and coefficient tables and list of models
+aicc_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+coef_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+colnames(aicc_tab)=yvlt$y_val; rownames(aicc_tab)=preds_screened
+colnames(coef_tab)=yvlt$y_val; rownames(coef_tab)=preds_screened
+list_of_mods = list()
+
+for(i in 1:nrow(yvlt)){ # for each ecological time series,
+  y_val_i = yvlt$y_val[i]
+  # only run models for seasons that effect the selected ecological (y) value
+  y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
+  preds_for_y = preds_screened[preds_season %in% y_seasons]
+
+  # for each predictor in metrics_screened tab,
+  for(j in 1:length(preds_for_y)){ 
+    pred_j = preds_for_y[j]
+    if(sum(is.na(metrics_tab[,pred_j]))<1){ # if the predictor effects the y-value,
+      # pull y-value table from metrics_tab
+      y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                         y_val_names = y_val_i)
+      # fit a MARSS model (with the predictor as a single covariate) 
+      marss_mod = get_single_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
+                                                     pred = pred_j)
+      # add to list of models
+      list_of_mods[[length(list_of_mods)+1]] = marss_mod
+      names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+    }
+    print(paste(y_val_i, "on", pred_j)) # track progress
+    aicc_tab[pred_j, y_val_i] = marss_mod$AICc
+    coef_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
+
+  }
+}
+
+if(log_transform_eco_metrics == T & zscore_flow_metrics == T){aic_tab_file = "AIC tab_log eco_zscore flow.csv"}
+if(log_transform_eco_metrics == F & zscore_flow_metrics == T){aic_tab_file = "AIC tab_straight eco_zscore flow.csv"}
+# saveRDS(object = list_of_mods, file = "MARSS model objects.RDS")
+
+aicc_tab$pred = row.names(aicc_tab)
+coef_tab$pred = row.names(coef_tab)
+for(y_val in yvlt$y_val){
+  # view predictors in order of AICc value (smallest first)
+  results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+  results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+  results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+
+  # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
+  # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
+  # coef_y[,y_val] = round(coef_y[,y_val], 3)
+  print(y_val)
+  print(head(results_y))
+
+  print("")
+}
+
+```
+
+
 # References
