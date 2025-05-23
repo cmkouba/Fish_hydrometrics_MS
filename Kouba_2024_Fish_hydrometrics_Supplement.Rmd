@@ -1,5 +1,5 @@
 ---
-title: Supplement to: A watershed-specific formula to predict salmon reproduction using functional flow metrics
+title: Supplement to "A watershed-specific formula to predict salmon reproduction using functional flow metrics"
 author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
 date: "Feb. 2025"
 output: 
@@ -10,61 +10,144 @@ output:
 bibliography: draft_library.bib
 ---
 
-```{r setup_dirs_load_data, include = FALSE}
+```{r supp_setup_dirs_load_data, include = FALSE}
 
 
 knitr::opts_chunk$set(echo = TRUE)
 
+# dev_mode = run by itself; dev_mode = F if you are calling it from the main .Rmd
+dev_mode = T
 
-library(lubridate)
-library(httr)
-library(ggplot2) # for barplots 
-library(gridExtra)
-library(corrplot)  # for data exploration/correlation plots
-library(dataRetrieval) # for usgs data
-library(data.table) #month function
-library(zoo) # rolling means
-library(sf)
-library(terra)
-library(tmap)
-library(grid) # for inset maps
-library(cowplot) # for inset maps
-library(ggthemes) # for colorblind palette
-library(flextable)
-library(glmnet) # lasso regression
-library(here)
-
-# Directories
-ms_dir = here::here()
-scratch_dir = file.path(ms_dir, "scratch_work")
-data_dir = file.path(ms_dir, "Data")
-graphics_dir = file.path(ms_dir, "Graphics and Supplements")
-
-# Load spatial and tabular data
-
-# If the data files don't exist locally,
-# pull data from internet and local files
-if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
-  source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) 
+if(dev_mode){
+  # libraries
+  library(lubridate)
+  library(httr)
+  library(ggplot2) # for barplots 
+  library(gridExtra)
+  library(corrplot)  # for data exploration/correlation plots
+  library(dataRetrieval) # for usgs data
+  library(data.table) #month function
+  library(zoo) # rolling means
+  library(sf)
+  library(terra)
+  library(tmap)
+  library(grid) # for inset maps
+  library(cowplot) # for inset maps
+  library(ggthemes) # for colorblind palette
+  library(flextable)
+  library(glmnet) # lasso regression
+  library(MARSS)
+  library(here)
+  
+  # Directories
+  ms_dir = here::here()
+  scratch_dir = file.path(ms_dir, "scratch_work")
+  data_dir = file.path(ms_dir, "Data")
+  graphics_dir = file.path(ms_dir, "Graphics and Supplements")
+  
+  # Load spatial and tabular data
+  
+  # If the data files don't exist locally,
+  # pull data from internet and local files
+  if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
+    source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) 
+  }
+  
+  load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
+  source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table functions
+  
+  # Save figures as images, yes or no?
+  save_figs_here = graphics_dir
+  save_imgs=T # generate the figures in the folder
+  include_figs = T
+  replace_setting_fig = F # setting to F can save time if no need to re-render map
+  fig_i = 100
+  
+  # pick last water year for the HB function to calculate a value for
+  last_wy = 2023
 }
-load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
-source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table functions
 
-# Save figures as images, yes or no?
-save_figs_here = graphics_dir
-save_imgs=T # generate the figures in the folder
-include_figs = T
-replace_setting_fig = F # setting to F can save time if no need to re-render map
-fig_i = 1
-
-# pick last water year for the HB function to calculate a value for
-last_wy = 2023
 ```
 
-```{r load_FF_metrics, include = FALSE}
-fflows = read_fflows_FJ(calculator = "Flashy")
+
+```{r supp_load_FF_metrics, include = FALSE}
+
+if(dev_mode){
+  log_transform_eco_metrics = T
+  zscore_flow_metrics = T
+  
+  fflows = read_fflows_FJ(calculator = "Flashy")
 # fflows = read_fflows_FJ(calculator = "Regular")
 
+  # produce metrics_tab
+
+brood_year_hydro_tab = tabulate_hydro_by_affected_brood_year(brood_years = 1999:2022,
+                                                             smolt_years = 2001:2024)
+thresh_for_corr_fig = c(20,40,120)
+
+metrics_tab = calc_metrics_hydro_by_affected_brood_year(
+  hydro_by_brood_year = brood_year_hydro_tab,
+  thresholds = thresh_for_corr_fig) 
+
+# Clean metrics tab:
+# 1) factorize water year category
+metrics_tab$wy1_WY_Cat = as.numeric(factor(metrics_tab$wy1_WY_Cat,
+                                   levels = c("dry year", "mod year", "wet year")))
+metrics_tab$wy2_WY_Cat = as.numeric(factor(metrics_tab$wy2_WY_Cat,
+                                   levels = c("dry year", "mod year", "wet year")))
+
+
+yvlt = y_val_label_tab()
+non_preds = c("brood_year", "smolt_year", yvlt$y_val)
+
+# transform data
+if(log_transform_eco_metrics == T){
+  metrics_tab[,yvlt$y_val] = log10(metrics_tab[,yvlt$y_val])
+}
+
+if(zscore_flow_metrics == T){
+  zscore_these = !(colnames(metrics_tab) %in% non_preds)
+  metrics_mean = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = mean, na.rm=T)
+  metrics_sd = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = sd, na.rm=T)
+  metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
+                                     MARGIN = 2, FUN = zscore_column_na_rm)
+}
+
+# for z-scored x metrics, on 5/19/2025
+screened_cols = c("brood_year","smolt_year",
+                  "coho_smolt_per_fem", "chinook_juv_per_adult",
+                  "coho_spawner_abundance", "coho_redds_in_brood",
+                  "coho_smolt_abun_est", "chinook_spawner_abundance",
+                  "chinook_juvenile_abundance", "f2_recon_120",
+                  "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
+                  "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
+                  "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
+                  "f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
+                  "w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
+                  "s2_SP_Tim", "f1_recon_120")
+screened_cols_ch = c("brood_year","smolt_year",
+                  "coho_smolt_per_fem", "chinook_juv_per_adult",
+                  "coho_spawner_abundance", "coho_redds_in_brood",
+                  "coho_smolt_abun_est", "chinook_spawner_abundance",
+                  "chinook_juvenile_abundance", #"f2_recon_120",
+                  "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
+                  "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
+                  "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
+                  #"f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
+                  #"w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
+                  #"s2_SP_Tim", 
+                  "f1_recon_120")
+
+preds_screened = screened_cols[!(screened_cols %in% non_preds)]
+metrics_tab_screened = metrics_tab[,screened_cols]
+metrics_tab_screened_chinook = metrics_tab[,screened_cols_ch]
+
+
+
+
+y_val_coho = "coho_smolt_abun_est"
+y_val_chinook = "chinook_juvenile_abundance"
+}
 ```
 
 
@@ -219,39 +302,300 @@ These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). Alt
 
 ## Ridge Regression
 
-```{r kfold_lambda_finding, echo = FALSE}
 
-# y_vals
-
-# metrics_tab_screened and _chinook
+```{r kfold_lambda_finding_ridge, echo = FALSE}
 
 # calculate lasso regression model and cross-validation objects
 # (lasso: alpha = 1; ridge: alpha = 0)
-mod_obj_co = kfold_cv(metrics_tab = metrics_tab_screened, y_val = y_val_coho, alpha = 0)
+mod_obj_co = kfold_cv(mt = metrics_tab_screened, y_val = y_val_coho,
+                      alpha = 0)
 mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
 
-mod_obj_ch = kfold_cv(metrics_tab = metrics_tab_screened_chinook, alpha = 0,
+mod_obj_ch = kfold_cv(mt = metrics_tab_screened_chinook, alpha = 0, 
                       y_val = y_val_chinook)
-                      # y_val = "chinook_juv_per_adult")
 mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
 
 # extract coefficients from the model using the optimal lambda value found in cross-validation
-coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 1)
-coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch)
+alt_lambda_co = .135
+coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3
+                          , alt_lambda = alt_lambda_co
+                          )
+coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
 
-# Plot cross validation for lasso regression
-par(#mfrow = c(2,1),
-  mar = c(5,4,6,2))
-plot(cv_co, main = paste0("Cross-validation, ",
-                          yvlt$y_val_label[yvlt$y_val==y_val_coho],
-                          "; best lambda: ", round(cv_co$lambda.min, 3)))
-par(#mfrow = c(2,1),
-  mar = c(5,4,6,2))
-plot(cv_ch, main = paste0("Cross-validation, ",
-                          yvlt$y_val_label[yvlt$y_val==y_val_chinook],
-                          # yvlt$y_val_label[yvlt$y_val=="chinook_juv_per_adult"],
-                          "; best lambda: ", round(cv_ch$lambda.min, 3)))
 
+```
+
+
+```{r ridgeResultsCohoChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Results of lasso regression to predict log-transformed coho and Chinook outcomes with Z-scored hydrologic metrics. Models with more coefficients explain a greater fraction of deviance in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsChinook}"}
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
+
+lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch, 
+              alt_lambda_co = alt_lambda_co)
+
+if(save_imgs == TRUE){
+  dev.off()
+  pred_tab_filename = "Supplemental Table 3. Coho Salmon Lasso Coefficients.csv"
+  write.csv(x=coefs_co$coef_all, file=file.path(graphics_dir,pred_tab_filename),
+            quote=F, row.names = F)
+}
+if(include_figs==T){knitr::include_graphics(fig_path)}
+fig_i = fig_i +1
+
+```
+
+
+```{r ridgeCoefTableCoho, echo = F, warning =F, results = 'asis'}
+
+# Retrieve coefficients from lasso model
+
+coefs_interp_names = names(coefs_co$coef_non0_only)
+coefs_interp = as.character(coefs_co$coef_non0_only)
+names(coefs_interp) = coefs_interp_names
+# add interpretation to each non-0 coefficient
+# if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_flow_metrics == T){
+#   coefs_interp$f1_recon_120 = "Earlier full-system reconnection (120 cfs, fall of parents' spawning)"
+#   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+#   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+# }
+# if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+#     coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+#     coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and hatchlings)"
+#     coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)"
+#     coefs_interp$s2_SP_ROC = "Faster rate of change (as outmigrating smolt)"
+# }
+# if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == F & zscore_flow_metrics == T){
+#   coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+#   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+# }
+if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+  coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+  coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+  coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
+  coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)"
+  coefs_interp$w2_Wet_BFL_Mag_50 = "Higher wet season baseflows (as overwintering juveniles)"
+  coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"
+  coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (as eggs and hatchlings)"
+  coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as recent hatchlings)"
+  coefs_interp$d1_DS_Mag_50 = "Higher dry season median flows (before parents' spawning)"
+  coefs_interp$s2_SP_Tim = "Earlier spring recession onset (as outmigrating smolt)"
+  coefs_interp$w2_Wet_Tim = "Later wet season onset (as overwintering juveniles)"
+  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)"
+  coefs_interp$f2_recon_120 = "Earlier fall reconnection (as juvenile fish)"
+  coefs_interp$d1_DS_Mag_90 = "Higher dry season high flows (before parents' spawning)"
+  coefs_interp$s2_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
+}
+
+coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 3))
+coefs_co_interp = c("(Intercept)", unlist(coefs_interp[coefs_co!="0"]))
+coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)),
+                         Value = as.vector(coefs_co_vals),
+                         Description = coefs_co_interp)
+
+caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated coho juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values."
+
+coco_tab_ft = flextable(data=coefs_co_ft)
+coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
+coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
+coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
+coco_tab_ft
+
+
+```
+
+
+```{r ridgeCoefTableChinook, echo = F, warning =F, results = 'asis'}
+
+# Retrieve coefficients from ridge model
+
+coefs_interp_names = names(coefs_ch$coef_non0_only)
+coefs_interp = as.character(coefs_ch$coef_non0_only)
+names(coefs_interp) = coefs_interp_names
+# add interpretation to each non-0 coefficient
+if(y_val_chinook == "chinook_juvenile_abundance" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+  coefs_interp$f1_FA_Dif_num = "Smaller fall flow increase (during parents' spawning)"
+  coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as outmigrating smolt)"
+  coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (as eggs and hatchlings)"
+  coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
+  coefs_interp$d1_DS_Mag_50 = "Higher dry season median flows (before parents' spawning)"
+  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)"
+  coefs_interp$d1_DS_Mag_90 = "Lower dry season high flows (before parents' spawning)"
+  coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+}
+
+coefs_ch_vals = c(round(coefs_ch$int_and_coefs$coef, 3))
+coefs_ch_interp = c("(Intercept)", unlist(coefs_interp[coefs_ch!="0"]))
+coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
+                         Value = as.vector(coefs_ch_vals),
+                         Description = coefs_ch_interp)
+
+caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated Chinook juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values."
+
+coch_tab_ft = flextable(data=coefs_ch_ft)
+coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
+coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
+coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
+coch_tab_ft
+
+
+```
+
+## Lasso Regression, Juv Abundances (plus spawners as predictor?)
+
+```{r kfold_lambda_finding_juv_on_hydro_plus_spawn, echo = FALSE}
+
+# calculate lasso regression model and cross-validation objects
+# (lasso: alpha = 1; ridge: alpha = 0)
+mod_obj_co = kfold_cv_plus_spawn(mt = metrics_tab_screened, 
+                                 y_val = y_val_coho,
+                                 alpha = 1)
+mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
+
+mod_obj_ch = kfold_cv_plus_spawn(mt = metrics_tab_screened_chinook, alpha =1, 
+                      y_val = y_val_chinook)
+mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
+
+# extract coefficients from the model using the optimal lambda value found in cross-validation
+alt_lambda_co = .135
+coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3
+                          , alt_lambda = alt_lambda_co
+                          )
+coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
+
+
+```
+
+
+```{r HydroPlusSpawnResultsCohoChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Results of lasso regression to predict log-transformed coho and Chinook outcomes with Z-scored hydrologic metrics. Models with more coefficients explain a greater fraction of deviance in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsChinook}"}
+
+fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
+
+lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch
+              # , alt_lambda_co = alt_lambda_co
+              )
+
+if(save_imgs == TRUE){
+  dev.off()
+  pred_tab_filename = "Supplemental Table 3. Coho Salmon Lasso Coefficients.csv"
+  write.csv(x=coefs_co$coef_all, file=file.path(graphics_dir,pred_tab_filename),
+            quote=F, row.names = F)
+}
+if(include_figs==T){knitr::include_graphics(fig_path)}
+fig_i = fig_i +1
+
+```
+
+
+```{r hydroPlusSpawnCoefTableCoho, echo = F, warning =F, results = 'asis'}
+
+# Retrieve coefficients from lasso model
+
+coefs_interp_names = names(coefs_co$coef_non0_only)
+coefs_interp = as.character(coefs_co$coef_non0_only)
+names(coefs_interp) = coefs_interp_names
+# add interpretation to each non-0 coefficient
+# if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_flow_metrics == T){
+#   coefs_interp$f1_recon_120 = "Earlier full-system reconnection (120 cfs, fall of parents' spawning)"
+#   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+#   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+# }
+# if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+#     coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+#     coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and hatchlings)"
+#     coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)"
+#     coefs_interp$s2_SP_ROC = "Faster rate of change (as outmigrating smolt)"
+# }
+# if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == F & zscore_flow_metrics == T){
+#   coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+#   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+# }
+if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+  coefs_interp$coho_spawner_abundance = "Abundance of spawners (parents of designated cohort)"
+  coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+  coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+  coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
+  # coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)"
+  # coefs_interp$w2_Wet_BFL_Mag_50 = "Higher wet season baseflows (as overwintering juveniles)"
+  coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"
+}
+
+coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 3))
+coefs_co_interp = c("(Intercept)", unlist(coefs_interp[coefs_co!="0"]))
+coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)),
+                         Value = as.vector(coefs_co_vals),
+                         Description = coefs_co_interp)
+
+caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated coho juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values."
+
+coco_tab_ft = flextable(data=coefs_co_ft)
+coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
+coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
+coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
+coco_tab_ft
+
+
+```
+
+
+```{r hydroPlusSpawnCoefTableChinook, echo = F, warning =F, results = 'asis'}
+
+# Retrieve coefficients from ridge model
+
+coefs_interp_names = names(coefs_ch$coef_non0_only)
+coefs_interp = as.character(coefs_ch$coef_non0_only)
+names(coefs_interp) = coefs_interp_names
+# add interpretation to each non-0 coefficient
+if(y_val_chinook == "chinook_juvenile_abundance" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+  coefs_interp$chinook_spawner_abundance = "Abundance of spawners (parents of designated cohort)"
+  # coefs_interp$f1_FA_Dif_num = "Smaller fall flow increase (during parents' spawning)"
+  # coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as outmigrating smolt)"
+  coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (as eggs and hatchlings)"
+  coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
+  # coefs_interp$d1_DS_Mag_50 = "Higher dry season median flows (before parents' spawning)"
+  coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)"
+  # coefs_interp$d1_DS_Mag_90 = "Lower dry season high flows (before parents' spawning)"
+  # coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+}
+
+coefs_ch_vals = c(round(coefs_ch$int_and_coefs$coef, 3))
+coefs_ch_interp = c("(Intercept)", unlist(coefs_interp[coefs_ch!="0"]))
+coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
+                         Value = as.vector(coefs_ch_vals),
+                         Description = coefs_ch_interp)
+
+caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated Chinook juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values."
+
+coch_tab_ft = flextable(data=coefs_ch_ft)
+coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
+coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
+coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
+coch_tab_ft
 
 
 ```
@@ -273,172 +617,276 @@ Multi-variate autoregressive state-space (MARSS) models are
 ## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
 ## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
 
-# for z-scored x metrics, for non-transformed y metrics, on 5/19/2025
-# screened_cols = c("brood_year","smolt_year",
-#                   "coho_smolt_per_fem", "chinook_juv_per_adult",
-#                   "coho_spawner_abundance", "coho_redds_in_brood",
-#                   "coho_smolt_abun_est", "chinook_spawner_abundance",
-#                   "chinook_juvenile_abundance", "f2_recon_120",
-#                   "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
-#                   "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
-#                   "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
-#                   "f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
-#                   "w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
-#                   "s2_SP_Tim", "f1_recon_120")
-
-# preds_screened = screened_cols[!(screened_cols %in% non_preds)]
-# metrics_tab_screened = metrics_tab[,screened_cols]
-
-# run main .Rmd script through metrics_tab_screened
+model_list_file = "single cov MARSS models.rds"
+coef_tab_file = "single cov marss coefs.csv"
+aicc_tab_file = "single cov MARSS AICc tab.csv"
 
 # extract season abbreviations from predictors
 preds_season_list = strsplit(x = preds_screened, split = "_")
 preds_season = unlist(lapply(X = preds_season_list, function(x){x[1]}))
-# initialize results storage: AICc and coefficient tables and list of models
-aicc_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
-coef_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
-colnames(aicc_tab)=yvlt$y_val; rownames(aicc_tab)=preds_screened
-colnames(coef_tab)=yvlt$y_val; rownames(coef_tab)=preds_screened
-list_of_mods = list()
 
-for(i in 1:nrow(yvlt)){ # for each ecological time series,
-  y_val_i = yvlt$y_val[i]
-  # only run models for seasons that effect the selected ecological (y) value
-  y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
-  preds_for_y = preds_screened[preds_season %in% y_seasons]
+if((file.exists(file.path(data_dir, model_list_file)))){
+  list_of_mods = readRDS(file.path(data_dir, model_list_file))
+  aicc_tab = read.csv(file.path(data_dir, aicc_tab_file))
+  coef_tab = read.csv(file.path(data_dir, coef_tab_file))
 
-  # for each predictor in metrics_screened tab,
-  for(j in 1:length(preds_for_y)){ 
-    pred_j = preds_for_y[j]
-    if(sum(is.na(metrics_tab[,pred_j]))<1){ # if the predictor effects the y-value,
-      # pull y-value table from metrics_tab
-      y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-                                         y_val_names = y_val_i)
-      # fit a MARSS model (with the predictor as a single covariate) 
-      marss_mod = get_single_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
-                                                     pred = pred_j)
-      # add to list of models
-      list_of_mods[[length(list_of_mods)+1]] = marss_mod
-      names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+} else {
+  # initialize results storage: AICc and coefficient tables and list of models
+  aicc_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+  coef_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+  colnames(aicc_tab)=yvlt$y_val; rownames(aicc_tab)=preds_screened
+  colnames(coef_tab)=yvlt$y_val; rownames(coef_tab)=preds_screened
+  
+  list_of_mods = list()
+  
+  for(i in c(1,2,3,5,6,7)){ #for coho and chinook juvs and juv/adult ratios #1:nrow(yvlt)){ # for each ecological time series,
+    y_val_i = yvlt$y_val[i]
+    # only run models for seasons that effect the selected ecological (y) value
+    y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
+    preds_for_y = preds_screened[preds_season %in% y_seasons]
+    
+    # for each predictor in metrics_screened tab,
+    for(j in 1:length(preds_for_y)){ 
+      pred_j = preds_for_y[j]
+      if(sum(is.na(metrics_tab[,pred_j]))<1){ # if the predictor effects the y-value,
+        # pull y-value table from metrics_tab
+        y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                           y_val_names = y_val_i)
+        # fit a MARSS model (with the predictor as a single covariate) 
+        marss_mod = get_single_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
+                                                       pred = pred_j)
+        # add to list of models
+        list_of_mods[[length(list_of_mods)+1]] = marss_mod
+        names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+      }
+      # print(paste(y_val_i, "on", pred_j)) # track progress
+      aicc_tab[pred_j, y_val_i] = marss_mod$AICc
+      coef_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
+      
     }
-    print(paste(y_val_i, "on", pred_j)) # track progress
-    aicc_tab[pred_j, y_val_i] = marss_mod$AICc
-    coef_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
-
   }
+  saveRDS(object = list_of_mods, 
+          file = file.path(data_dir,model_list_file))
+
+  aicc_tab$pred = row.names(aicc_tab)
+  coef_tab$pred = row.names(coef_tab)
+  
+  write.csv(aicc_tab, file.path(data_dir, aicc_tab_file), row.names = F)
+  write.csv(coef_tab, file.path(data_dir, coef_tab_file), row.names = F)
 }
 
-if(log_transform_eco_metrics == T & zscore_flow_metrics == T){aic_tab_file = "AIC tab_log eco_zscore flow.csv"}
-if(log_transform_eco_metrics == F & zscore_flow_metrics == T){aic_tab_file = "AIC tab_straight eco_zscore flow.csv"}
-# saveRDS(object = list_of_mods, file = "MARSS model objects.RDS")
+# for(y_val in yvlt$y_val){
+#   # view predictors in order of AICc value (smallest first)
+#   results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+#   results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+#   results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+# 
+#   # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
+#   # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
+#   # coef_y[,y_val] = round(coef_y[,y_val], 3)
+#   print(y_val)
+#   print(head(results_y))
+# 
+#   print("")
+# }
 
-aicc_tab$pred = row.names(aicc_tab)
-coef_tab$pred = row.names(coef_tab)
-for(y_val in yvlt$y_val){
-  # view predictors in order of AICc value (smallest first)
-  results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
-  results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
-  results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+```
 
-  # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
-  # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
-  # coef_y[,y_val] = round(coef_y[,y_val], 3)
-  print(y_val)
-  print(head(results_y))
+```{r MARSS_single_covar_table_co, echo = F, warning =F, results = 'asis'}
 
-  print("")
-}
+# Retrieve coefficients from ridge model
+y_val = "coho_smolt_per_fem"
+# view predictors in order of AICc value (smallest first)
+results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+colnames(results_y) = c("Covariate", "AICc", "Coefficient")
+
+caption_text = paste0("Characteristics of MARSS models of", yvlt$y_val_title[yvlt$y_val==y_val], "using one hydrologic metric as the single covariate in each model.")
+
+coco_tab_ft = flextable(data=results_y)
+coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
+coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
+coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
+coco_tab_ft
+
+
+```
+
+
+
+```{r MARSS_single_covar_table_ch, echo = F, results = 'asis'}
+
+y_val = "chinook_juv_per_adult"
+# view predictors in order of AICc value (smallest first)
+results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
+colnames(results_y) = c("Covariate", "AICc", "Coefficient")
+
+caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated Chinook juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values."
+
+coch_tab_ft = flextable(data=results_y)
+coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
+coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
+coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
+coch_tab_ft
+
+
 
 ```
 
 ```{r MARSS_models_flow_and_spawn_covar, echo = F}
 
+model_list_file = "flow and spawn MARSS models.rds"
+flow_tab_file = "flow and spawn marss coefs_flow.csv"
+spawn_tab_file = "flow and spawn marss coefs_spawn.csv"
+aicc_tab_file = "flow and spawn AICc tab.csv"
 
-# Specify MARSS model ------------------------------------------------------------------
+if((file.exists(file.path(data_dir, model_list_file)))){
+  list_of_mods = readRDS(file.path(data_dir, model_list_file))
+  aicc_tab = read.csv(file.path(data_dir, aicc_tab_file))
+  flow_tab = read.csv(file.path(data_dir, flow_tab_file))
+  spawn_tab = read.csv(file.path(data_dir, spawn_tab_file))
 
+} else {
 
-## The code in the functions called below follows the R script
-## Baruch_2023_Putah_Creek_MARSS.R, published in support of:
-## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
-## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
-
-# for z-scored x metrics, for non-transformed y metrics, on 5/19/2025
-# screened_cols = c("brood_year","smolt_year",
-#                   "coho_smolt_per_fem", "chinook_juv_per_adult",
-#                   "coho_spawner_abundance", "coho_redds_in_brood",
-#                   "coho_smolt_abun_est", "chinook_spawner_abundance",
-#                   "chinook_juvenile_abundance", "f2_recon_120",
-#                   "d1_DS_Mag_50", "d1_DS_Mag_90", "f1_FA_Dur",
-#                   "f1_FA_Tim", "f1_FA_Dif_num", "w1_Wet_BFL_Dur",
-#                   "w1_Wet_BFL_Mag_50", "s1_SP_ROC", "s1_SP_ROC_Max",
-#                   "f2_FA_Dur", "f2_FA_Dif_num", "w2_Wet_BFL_Mag_50",
-#                   "w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
-#                   "s2_SP_Tim", "f1_recon_120")
-
-# preds_screened = screened_cols[!(screened_cols %in% non_preds)]
-# metrics_tab_screened = metrics_tab[,screened_cols]
-
-# run main .Rmd script through metrics_tab_screened
-
-# extract season abbreviations from predictors
-preds_season_list = strsplit(x = preds_screened, split = "_")
-preds_season = unlist(lapply(X = preds_season_list, function(x){x[1]}))
-# initialize results storage: AICc and coefficient tables and list of models
 aicc_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
-coef_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+flow_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
+spawn_tab = data.frame(matrix(data=NA, nrow=length(preds_screened), ncol = length(yvlt$y_val)))
 colnames(aicc_tab)=yvlt$y_val; rownames(aicc_tab)=preds_screened
-colnames(coef_tab)=yvlt$y_val; rownames(coef_tab)=preds_screened
-list_of_mods = list()
+colnames(flow_tab)=yvlt$y_val; rownames(flow_tab)=preds_screened
+colnames(spawn_tab)=yvlt$y_val; rownames(spawn_tab)=preds_screened
 
-for(i in 1:nrow(yvlt)){ # for each ecological time series,
-  y_val_i = yvlt$y_val[i]
-  # only run models for seasons that effect the selected ecological (y) value
-  y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
-  preds_for_y = preds_screened[preds_season %in% y_seasons]
 
-  # for each predictor in metrics_screened tab,
-  for(j in 1:length(preds_for_y)){ 
-    pred_j = preds_for_y[j]
-    if(sum(is.na(metrics_tab[,pred_j]))<1){ # if the predictor effects the y-value,
-      # pull y-value table from metrics_tab
-      y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-                                         y_val_names = y_val_i)
-      # fit a MARSS model (with the predictor as a single covariate) 
-      marss_mod = get_single_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
-                                                     pred = pred_j)
-      # add to list of models
-      list_of_mods[[length(list_of_mods)+1]] = marss_mod
-      names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+  smolts_is = which(yvlt$y_val %in% c("coho_smolt_abun_est", "chinook_juvenile_abundance"))
+  spawn_is =  which(yvlt$y_val %in% c("coho_spawner_abundance", "chinook_spawner_abundance"))
+  for(i in 1:2){
+    smolts_i = smolts_is[i]
+    spawn_i = spawn_is[i]
+    y_val_i = yvlt$y_val[smolts_i]
+    y_val_spawn = yvlt$y_val[spawn_i]
+    y_seasons = unlist(strsplit(yvlt$influencing_seasons[i],", "))
+    preds_for_y = preds_screened[preds_season %in% y_seasons]
+
+    for(j in 1:length(preds_for_y)){
+      pred_j = preds_for_y[j]
+      if(sum(is.na(metrics_tab[,pred_j]))<1){
+        y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
+                                           y_val_names = y_val_i)
+        marss_mod = get_flow_and_spawn_cov_model_fit_for_MARSS(y_obs_tab = y_obs_tab,
+                                                               y_spawn_colname = y_val_spawn,
+                                                               pred = pred_j)
+        list_of_mods[[length(list_of_mods)+1]] = marss_mod
+        names(list_of_mods)[length(list_of_mods)] = paste0(y_val_i, "__", pred_j)
+      }
+      # print(paste(y_val_i, "on", pred_j))
+      # par(mfrow = c(4,2))
+      # plot(marss_mod)
+      aicc_tab[pred_j, y_val_i] = marss_mod$AICc
+      flow_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
+      spawn_tab[pred_j, y_val_i] = marss_mod$coef["C.Spawners"]
+
     }
-    print(paste(y_val_i, "on", pred_j)) # track progress
-    aicc_tab[pred_j, y_val_i] = marss_mod$AICc
-    coef_tab[pred_j, y_val_i] = marss_mod$coef["C.ScottR"]
-
   }
+  
+  aicc_tab$pred = row.names(aicc_tab)
+  flow_tab$pred = row.names(flow_tab)  
+  spawn_tab$pred = row.names(spawn_tab)
+  
+  saveRDS(object = list_of_mods, 
+          file = file.path(data_dir,model_list_file))
+
+  write.csv(aicc_tab, file.path(data_dir, aicc_tab_file), row.names = F)
+  write.csv(flow_tab, file.path(data_dir, flow_tab_file), row.names = F)
+  write.csv(spawn_tab, file.path(data_dir, spawn_tab_file), row.names = F)
 }
 
-if(log_transform_eco_metrics == T & zscore_flow_metrics == T){aic_tab_file = "AIC tab_log eco_zscore flow.csv"}
-if(log_transform_eco_metrics == F & zscore_flow_metrics == T){aic_tab_file = "AIC tab_straight eco_zscore flow.csv"}
-# saveRDS(object = list_of_mods, file = "MARSS model objects.RDS")
-
-aicc_tab$pred = row.names(aicc_tab)
-coef_tab$pred = row.names(coef_tab)
-for(y_val in yvlt$y_val){
-  # view predictors in order of AICc value (smallest first)
-  results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
-  results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
-  results_y$coef = round(coef_tab[order(aicc_tab[,y_val]), y_val], 3)
-
-  # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
-  # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
-  # coef_y[,y_val] = round(coef_y[,y_val], 3)
-  print(y_val)
-  print(head(results_y))
-
-  print("")
-}
+# 
+#   for(i in 1:2){
+#     y_val = yvlt$y_val[smolts_is[i]]
+#     # view predictors in order of AICc value (smallest first)
+#     results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+#     results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+#     results_y$flow = round(flow_tab[order(aicc_tab[,y_val]), y_val], 3)
+#     results_y$spawn = round(spawn_tab[order(aicc_tab[,y_val]), y_val], 3)
+# 
+#     # aicc_y[,y_val] = round(aicc_y[,y_val], 2)
+#     # coef_y = coef_tab[order(aicc_tab[,y_val]),c("pred",y_val)]
+#     # coef_y[,y_val] = round(coef_y[,y_val], 3)
+#     print(y_val)
+#     print(head(results_y))
+# 
+#     print("")
+#   }
 
 ```
+
+
+```{r MARSS_flow_and_spawn_covar_table_co, include = F}
+
+y_val = "coho_smolt_abun_est"
+# view predictors in order of AICc value (smallest first)
+results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+results_y$flow = round(flow_tab[order(aicc_tab[,y_val]), y_val], 3)
+results_y$spawn = round(spawn_tab[order(aicc_tab[,y_val]), y_val], 3)
+
+
+afs_co_tab_ft = flextable(data=results_y)
+caption_text = paste0("Characteristics of MARSS models of", yvlt$y_val_title[yvlt$y_val==y_val], "using one hydrologic metric as the single covariate in each model.")
+
+afs_co_tab_ft = flextable::width(afs_co_tab_ft,j=3,  width = 1)
+afs_co_tab_ft = flextable::width(afs_co_tab_ft,j=4,  width = 1)
+# afs_co_tab_ft = flextable::set_header_labels(afs_co_tab_ft,
+#                                            values = list(
+# pred = Hydrologic Covariate,
+#                                              aicc = "AICc",
+#                                              flow ="Hydro Coef.",
+#                                              spawn = "Spawner Coef."))
+afs_co_tab_ft
+```
+
+
+```{r MARSS_flow_and_spawn_covar_table_ch, include = F}
+y_val = "chinook_juvenile_abundance"
+# view predictors in order of AICc value (smallest first)
+results_y = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
+results_y$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
+results_y$flow = round(flow_tab[order(aicc_tab[,y_val]), y_val], 3)
+results_y$spawn = round(spawn_tab[order(aicc_tab[,y_val]), y_val], 4)
+
+
+afs_ch_tab_ft = flextable(data=results_y)
+caption_text = paste0("Characteristics of MARSS models of", yvlt$y_val_title[yvlt$y_val==y_val], "using one hydrologic metric as the single covariate in each model.")
+
+afs_ch_tab_ft = flextable::width(afs_ch_tab_ft,j=3,  width = 1)
+afs_ch_tab_ft = flextable::width(afs_ch_tab_ft,j=4,  width = 1)
+afs_ch_tab_ft = flextable::set_header_labels(afs_ch_tab_ft,
+                                           values = list(
+                                             pred = "Hydrologic Covariate",
+                                             aicc = "AICc",
+                                             flow ="Hydro Coef.",
+                                             spawn = "Spawner Coef."))
+```
+
+```{r MARSS_flow_and_spawn_covar_table_ch_display, include = F}
+afs_ch_tab_ft
+```
+
+
 
 
 # References

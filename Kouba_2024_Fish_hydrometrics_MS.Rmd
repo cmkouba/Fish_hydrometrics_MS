@@ -51,6 +51,8 @@ if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
 load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
 source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table functions
 
+#Append supplement?
+INCLUDE_SUPP = F
 # Save figures as images, yes or no?
 save_figs_here = graphics_dir
 save_imgs=T # generate the figures in the folder
@@ -66,7 +68,7 @@ last_wy = 2023
 fflows = read_fflows_FJ(calculator = "Flashy")
 # fflows = read_fflows_FJ(calculator = "Regular")
 # data transformations
-log_transform_eco_metrics = F
+log_transform_eco_metrics = T
 zscore_flow_metrics = T
 
 ```
@@ -76,9 +78,9 @@ zscore_flow_metrics = T
 
   # Based on the need for a normalized metric, going to select the juvenile per adult metric.
   # y_val_chinook = "chinook_juv_per_adult"
-  y_val_coho = "coho_smolt_per_fem"
+  # y_val_coho = "coho_smolt_per_fem"
 y_val_chinook = "chinook_juvenile_abundance"
-# y_val_coho = "coho_smolt_abun_est"
+y_val_coho = "coho_smolt_abun_est"
 
 # MAKE SURE y-axis label matches y-value name in plotting script on line ~1203
 
@@ -331,7 +333,7 @@ metrics_tab$wy1_WY_Cat = as.numeric(factor(metrics_tab$wy1_WY_Cat,
                                    levels = c("dry year", "mod year", "wet year")))
 metrics_tab$wy2_WY_Cat = as.numeric(factor(metrics_tab$wy2_WY_Cat,
                                    levels = c("dry year", "mod year", "wet year")))
-# 2) remove outlier FA_Diff
+# 2) remove outlier FA_Diff?
 
 write.csv(x = metrics_tab, quote = F, row.names = F,
   file = file.path(graphics_dir,
@@ -358,11 +360,11 @@ if(log_transform_eco_metrics == T){
   metrics_tab[,yvlt$y_val] = log10(metrics_tab[,yvlt$y_val])
 }
 
-zscore_column_na_rm = function(x){
-  mean_x = mean(x, na.rm=T)
-  sd_x = sd(x, na.rm=T)
-  return((x - mean_x) / sd_x)
-}
+# zscore_column_na_rm = function(x){
+#   mean_x = mean(x, na.rm=T)
+#   sd_x = sd(x, na.rm=T)
+#   return((x - mean_x) / sd_x)
+# }
 
 if(zscore_flow_metrics == T){
   zscore_these = !(colnames(metrics_tab) %in% non_preds)
@@ -752,6 +754,8 @@ The correlation coefficients do not show uniform effects of hydrology on both sp
 
 ```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 7 ecological monitoring metrics: the two normalized metrics (left two columns), three additional metrics for coho (center), and two additional metrics for Chinook (right). Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier date is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
 
+# CURRENTLY HERE: add spawners to corr. matrix
+
 # identify which columns we should keep in our correlation analysis
 keepers_co = c(non_preds, as.character(unique(ctl$Var1)))
 metrics_tab_screened = metrics_tab[,keepers_co]
@@ -777,14 +781,16 @@ inclusion_threshold = 0.45
 greater_than_thresh_finder = apply(X= corr_matrix_pearson, MARGIN = 1,
                                 function(x){sum(abs(x) >= inclusion_threshold,
                                                 na.rm=T) > 0})
-pred_subset = row.names(corr_matrix_pearson)[greater_than_thresh_finder] 
+# pred_subset = row.names(corr_matrix_pearson)[greater_than_thresh_finder]
+pred_subset = row.names(corr_matrix_pearson)
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   
 corr_matrix_fig_2(corr_matrix = corr_matrix_pearson, 
-                  pred_subset = pred_subset)
+                  pred_subset = pred_subset,
+                  preds_in_order = preds_all)
   
   dev.off()
 }
@@ -808,66 +814,102 @@ Finally, we used the final lambda value and the full dataset to generate a regre
 
 ```{r kfold_lambda_finding, echo = FALSE}
 
-# calculate lasso regression model and cross-validation objects
-# (lasso: alpha = 1; ridge: alpha = 0)
-mod_obj_co = kfold_cv(metrics_tab = metrics_tab_screened, y_val = y_val_coho, alpha = 1)
+# without spawners
+
+# # calculate lasso regression model and cross-validation objects
+# # (lasso: alpha = 1; ridge: alpha = 0)
+# mod_obj_co = kfold_cv(mt = metrics_tab_screened, y_val = y_val_coho, alpha = 1)
+# mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
+# 
+# mod_obj_ch = kfold_cv(mt = metrics_tab_screened_chinook, alpha = 1, 
+#                       y_val = y_val_chinook)
+#                       # y_val = "chinook_juv_per_adult")
+# mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
+# 
+# # extract coefficients from the model using the optimal lambda value found in cross-validation
+# alt_lambda_co = .135
+# coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3, alt_lambda = alt_lambda_co)
+# coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
+
+
+### With spawners
+mod_obj_co = kfold_cv_plus_spawn(mt = metrics_tab_screened, 
+                                 y_val = y_val_coho,
+                                 alpha = 1)
 mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
 
-mod_obj_ch = kfold_cv(metrics_tab = metrics_tab_screened_chinook, alpha = 1, 
+mod_obj_ch = kfold_cv_plus_spawn(mt = metrics_tab_screened_chinook, alpha =1, 
                       y_val = y_val_chinook)
-                      # y_val = "chinook_juv_per_adult")
 mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
-
-# extract coefficients from the model using the optimal lambda value found in cross-validation
-coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 1)
-coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch)
-
-# Plot cross validation for lasso regression
-par(#mfrow = c(2,1), 
-  mar = c(5,4,6,2))
-plot(cv_co, main = paste0("Cross-validation, ",
-                          yvlt$y_val_label[yvlt$y_val==y_val_coho],
-                          "; best lambda: ", round(cv_co$lambda.min, 3)))
-par(#mfrow = c(2,1), 
-  mar = c(5,4,6,2))
-plot(cv_ch, main = paste0("Cross-validation, ",
-                          yvlt$y_val_label[yvlt$y_val==y_val_chinook],
-                          # yvlt$y_val_label[yvlt$y_val=="chinook_juv_per_adult"],
-                          "; best lambda: ", round(cv_ch$lambda.min, 3)))
-
+coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3)
+coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
 ```
 
 
-```{r lassoResultsChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Results of lasso regression to predict Chinook outcomes with hydrologic metrics. Models with more coefficients explain a greater fraction of deviance in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsChinook}"}
+```{r lassoResultsCohoChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Results of lasso regression to predict log-transformed coho and Chinook outcomes with Z-scored hydrologic metrics. Models with more coefficients explain a greater fraction of deviance in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsChinook}"}
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
-par(mfrow = c(3,1))
-plot(cv_ch)
-plot(log(mod_ch$lambda), deviance(mod_ch) / mod_ch$nulldev, type = "l",
-     xlab = "Log Lambda", ylab = "Fraction of null deviance explained")
-abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
-plot(mod_ch, xvar = "lambda")
-abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch
+              # ,alt_lambda_co = alt_lambda_co
+              )
+# par(mfrow = c(3,2))
+# # Row 1: CV error and min lambda
+# plot(cv_co); grid()
+# title(main = yvlt$y_val_label[yvlt$y_val==y_val_coho], line = 3)
+# abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
+# abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+# legend(x = "topright", legend = "A", bty = "n") # panel label
+# 
+# plot(cv_ch); grid()
+# title(main = yvlt$y_val_label[yvlt$y_val==y_val_chinook], line = 3)
+# abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+# legend(x = "topright", legend = "B", bty = "n") # panel label
+# 
+# 
+# #Row 2: variance explained
+# plot(log(mod_co$lambda), mod_co$dev.ratio, type = "l",
+#      xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
+# grid()
+# abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
+# abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+# legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"), 
+#        legend = c(expression(Min.~err.~lambda~from~CV), expression(Alternative~lambda)))
+# legend(x = "topright", legend = "C", bty = "n") # panel label
+# 
+# plot(log(mod_ch$lambda), mod_ch$dev.ratio, type = "l", ylim = c(0,1),
+#      xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
+# grid()
+# abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+# legend(x = "topright", legend = "D", bty = "n") # panel label
+# 
+# 
+# #Row 3: coefficients
+# plot(mod_co, xvar = "lambda", xlab = expression(Log(lambda))); grid()
+# abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
+# abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+# legend(x = "topright", legend = "E", bty = "n") # panel label
+# 
+# plot(mod_ch, xvar = "lambda", xlab = expression(Log(lambda))); grid()
+# abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+# legend(x = "topright", legend = "F", bty = "n") # panel label
 
 if(save_imgs == TRUE){
   dev.off()
   # save predictor appearance tab
   pred_tab_filename = "Supplemental Table 3. Coho Salmon Lasso Coefficients.csv"
-  write.csv(x=coefs_ch$coef_all, file=file.path(graphics_dir,pred_tab_filename),
+  write.csv(x=coefs_co$coef_all, file=file.path(graphics_dir,pred_tab_filename),
             quote=F, row.names = F)
 }
 if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
-
 ```
 
+
+
 ### Test error and selection of final lambda value
-
-
-### Predictor rank stability
 
 
 ### Regression coefficients and fraction of deviation (full dataset)
@@ -896,16 +938,24 @@ if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_
   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
 }
-
+if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+    coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+    coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and hatchlings)"
+    coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)"
+    coefs_interp$s2_SP_ROC = "Faster rate of change (as outmigrating smolt)"
+}
 if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == F & zscore_flow_metrics == T){
   coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
 }
-if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
-    coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == T & zscore_flow_metrics == T){
+  # coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+  coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+  coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
+  coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)"
 }
 
-coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 1))
+coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 3))
 coefs_co_interp = c("(Intercept)", unlist(coefs_interp[coefs_co!="0"]))
 coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)),
                          Value = as.vector(coefs_co_vals),
@@ -918,6 +968,11 @@ coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
 coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
 coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
 coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
+coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
+                                           values = list(
+                                             Predictor ="Predictor", 
+                                             Value = "Value",
+                                             Description = "Greater Hydrologic Benefit value associated with"))
 coco_tab_ft
 
 
@@ -939,7 +994,7 @@ if(y_val_chinook == "chinook_juv_per_adult"){
   coefs_ch_interp$s1_SP_ROC_Max = "Slower max. spring recession rate (as outmigrating smolt)"
 }
 if(y_val_chinook == "chinook_juvenile_abundance"){
-  coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
+  # coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
   coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
   # coefs_ch_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
 }
@@ -948,7 +1003,7 @@ if(y_val_chinook == "chinook_juvenile_abundance"){
 coefs_ch_vals = coefs_ch$int_and_coefs$coef
 coefs_ch_interp = c("Intercept", unlist(coefs_ch_interp[coefs_ch!="0"]))
 coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
-                         Value = as.vector(round(coefs_ch_vals,0)),
+                         Value = as.vector(round(coefs_ch_vals,3)),
                          Description = coefs_ch_interp)
 
 
@@ -959,6 +1014,12 @@ coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
 coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
 coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
 coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
+coch_tab_ft = flextable::set_header_labels(
+  coch_tab_ft,
+  values = list(
+    Predictor ="Predictor", 
+    Value = "Value",
+    Description = "Greater Hydrologic Benefit value associated with"))
 coch_tab_ft
 ```
 
@@ -1065,6 +1126,7 @@ if(save_imgs == TRUE){
 if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 
+
 ```
 
 <!-- ```{r hbfPredVObs, echo = F, warning = F, fig.height = 8, fig.cap = "PredVObs. \\label{fig:predVObs}"} -->
@@ -1148,8 +1210,8 @@ if(save_imgs==T){
     y_text = colnames(bd_melt_co)[3]
     hbf_bar_co = ggplot(data = bd_melt_co, 
                         aes(x = `Brood Year`, 
-                            y = `Contrib. to HB value (Coho smolt per fem. spawner)`,
-                            # y = `Contrib. to HB value (Est. num. coho smolt)`,
+                            # y = `Contrib. to HB value (Coho smolt per fem. spawner)`,
+                            y = `Contrib. to HB value (Est. num. coho smolt)`,
                             fill = variable)) + 
       geom_bar(stat = "identity") + 
       scale_fill_brewer(palette = "Spectral") +
@@ -1298,3 +1360,9 @@ With continuing trends of a narrowing wet season in the Scott River watershed (e
 
 
 # References
+
+<div id="refs"></div>
+
+```{r, child=if (INCLUDE_SUPP) 'Kouba_2024_Fish_hydrometrics_Supplement.Rmd'}
+```
+

@@ -1302,6 +1302,12 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
   return(output_tab)
 }
 
+zscore_column_na_rm = function(x){
+  mean_x = mean(x, na.rm=T)
+  sd_x = sd(x, na.rm=T)
+  return((x - mean_x) / sd_x)
+}
+
 
 # Correlations ------------------------------------------------------------
 
@@ -1380,8 +1386,12 @@ calc_corr_matrix=function(metrics_tab,
   return(output_tab)
 }
 
-corr_matrix_fig_2 = function(corr_matrix, pred_subset){
 
+
+corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
+
+  pred_subset_fac = factor(pred_subset, levels = preds_in_order)
+  pred_subset_in_order = sort(pred_subset_fac)
   ## Prepare for plotting
   #Prettify column names
   colname_matching_df = data.frame(data_name = c("coho_smolt_per_fem",
@@ -1402,21 +1412,39 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
                "Num. Ch. Juveniles"
                # "% Co. Smolt Survival"
   ))
-  colnames(corr_matrix) = colname_matching_df$fig_name[match(colnames(corr_matrix),
+
+  # corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset_in_order, ]
+  corr_matrix1 = corr_matrix[match(pred_subset_in_order, rownames(corr_matrix)),]
+  colnames(corr_matrix1) = colname_matching_df$fig_name[match(colnames(corr_matrix1),
                                                              colname_matching_df$data_name)]
 
-  corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset,]
 
+  if(length(pred_subset)>10){
+    corrplot(as.matrix(corr_matrix1), addCoef.col = "black",
+             tl.offset = .8, cl.offset = 3, cl.ratio = .3,
+             number.cex = .8, tl.cex = .8, cl.cex = 1, number.font = .8,
+             xlab = "", ylab = "", main = "", na.label = "--",
+             # axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
+             # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+             col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+                     # rep("white",2),
+                     rep("lightcyan",2),
+                     rep("lightskyblue",2),rep("deepskyblue4")),
+             cl.pos = "r")
+  } else {
+    if(length(pred_subset)>10){
+      corrplot(as.matrix(corr_matrix1), addCoef.col = "black",
+               xlab = "", ylab = "", main = "", na.label = "--",
+               axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
+               # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+               col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+                       # rep("white",2),
+                       rep("lightcyan",2),
+                       rep("lightskyblue",2),rep("deepskyblue4")),
+               cl.pos = "b")
+    }
+  }
 
-  corrplot(as.matrix(corr_matrix1), addCoef.col = "black",#cex.axis = .5,
-           xlab = "", ylab = "", main = "", na.label = "--",
-           axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
-           # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
-           col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
-                   # rep("white",2),
-                   rep("lightcyan",2),
-                   rep("lightskyblue",2),rep("deepskyblue4")),
-           cl.pos = "b")
   vert_line_y1 = length(pred_subset)+0.5
   # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
   # separate two normalized metrics from other metrics
@@ -1430,10 +1458,10 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset){
 
 # Lasso and Ridge Regression ----------------------------------------------
 
-kfold_cv = function(metrics_tab, y_val = "coho_smolt_per_fem",
+kfold_cv = function(mt, y_val = "coho_smolt_per_fem",
                     alpha = 0,
                     return_mod = T, return_cv = T){
-  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab, y_val = y_val)
+  x_and_y = get_refined_x_and_y_for_lasso_mod(mt = mt, y_val = y_val)
   x = x_and_y[[1]]; y = x_and_y[[2]]
   # n_folds_for_groups = floor(nrow(x)/3) # make sure at least 3 in each fold
   n_folds_for_groups = nrow(x) # leave one out cross validation
@@ -1444,8 +1472,25 @@ kfold_cv = function(metrics_tab, y_val = "coho_smolt_per_fem",
   if(return_mod == T & return_cv ==T){return(list(mod = mod1, cv = cv1))}
 }
 
-get_pred_coefs = function(mod, cv, coef_digits = 2){
-  pred = as.matrix(predict.glmnet(mod, s = cv$lambda.min,
+
+kfold_cv_plus_spawn = function(mt,
+                               y_val = "coho_smolt_per_fem",
+                               alpha = 0,
+                               return_mod = T, return_cv = T){
+  x_and_y = get_refined_x_and_y_for_lasso_mod_plus_spawn(mt = mt, y_val = y_val)
+  x = x_and_y[[1]]; y = x_and_y[[2]]
+  # n_folds_for_groups = floor(nrow(x)/3) # make sure at least 3 in each fold
+  n_folds_for_groups = nrow(x) # leave one out cross validation
+  # n_folds_for_groups = 10
+  set.seed(1)
+  mod1 = glmnet(x, y, alpha = alpha)
+  cv1 = cv.glmnet(x = x, y = y, nfolds = n_folds_for_groups)
+  if(return_mod == T & return_cv ==T){return(list(mod = mod1, cv = cv1))}
+}
+
+get_pred_coefs = function(mod, cv, coef_digits = 2, alt_lambda = NA){
+  if(is.na(alt_lambda)){s_for_coef = cv$lambda.min} else {s_for_coef = alt_lambda}
+  pred = as.matrix(predict.glmnet(mod, s = s_for_coef,
                                   type = "coefficients"))
   coef_all = data.frame(pred = rownames(pred)[order(abs(pred), decreasing = T)],
                     coef = round(as.numeric(pred[order(abs(pred), decreasing = T)]), coef_digits))
@@ -1460,191 +1505,236 @@ get_pred_coefs = function(mod, cv, coef_digits = 2){
               int_and_coefs = int_and_non0))
 }
 
-# Lasso Regression old -----------------------------------------------
 
-generate_pred_appear_tab = function(lasso_mod, best_lam_range){
-  coefs = as.data.frame((as.matrix(coef(lasso_mod))))
-  non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, function(x){min(which(abs(x)>0))})
-  coefs$lambda_val_coef_appears = best_lam_range[non0_coef_lambda_index]
-  coef_lambda_non0_vals = as.data.frame(cbind(rownames(coefs), coefs$lambda_val_coef_appears))
-  colnames(coef_lambda_non0_vals) = c("predictor","lambda_non0_val_appears")
-  coef_lambda_non0_vals$lambda_non0_val_appears = as.numeric(coef_lambda_non0_vals$lambda_non0_val_appears)
-  # View predictors in order of when they enter the regression by increasing lambda value
-  pred_appear_tab = coef_lambda_non0_vals[order(coef_lambda_non0_vals$lambda_non0_val_appears,
-                                                decreasing=T),]
-  pred_appear_tab = pred_appear_tab[!pred_appear_tab$predictor=="(Intercept)",]
+lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
+  par(mfrow = c(3,2))
+  # Row 1: CV error and min lambda
+  plot(cv_co); grid()
+  title(main = yvlt$y_val_label[yvlt$y_val==y_val_coho], line = 3)
+  abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
+  abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+  legend(x = "topright", legend = "A", bty = "n") # panel label
 
-  # # CURRENTLY HERE.
-  # degfree_diff = diff(lasso_mod$df)
-  # # CASE FOR DIFF = 1
-  # coef_appear_index = which(degfree_diff==1)
-  # lasso_mod$dev.ratio[coef_appear_index]
-  # deg_free_for_tab = lasso_mod$df[c(coef_appear_index[-1], length(lasso_mod$df))]
-  # dev_for_tab = lasso_mod$dev.ratio[c(coef_appear_index[-1], length(lasso_mod$df))]
-  # dev_tab = data.frame(deg_free = deg_free_for_tab, max_dev_expl = dev_for_tab)
-  # dev_tab$incremental_dev = NA
-  # dev_tab$incremental_dev[1] = dev_tab$max_dev_expl[1]
-  # dev_tab$incremental_dev[-1] = dev_tab$max_dev_expl[-1] - dev_tab$max_dev_expl[-nrow(dev_tab)]
-  # dev_tab$max_dev_expl=round(dev_tab$max_dev_expl, 2)
-  # dev_tab$incremental_dev=round(dev_tab$incremental_dev, 2)
-
-  # if(sum(diff(deg_free_for_tab)>1) >0){
-  #   # CASE FOR DIFF = 2 or more (split difference in deviation between 2 predictors)
-  #   need_these = setdiff(seq(from=min(dev_tab$deg_free), to = max(dev_tab$deg_free)),
-  #                        dev_tab$deg_free)
-  #   dev_tab_2 = data.frame(deg_free = need_these, max_dev_expl = NA)
-  #   dev_diff = diff()
-  # }
-
-  # lasso_mod$df[which(degfree_diff==2)]
+  plot(cv_ch); grid()
+  title(main = yvlt$y_val_label[yvlt$y_val==y_val_chinook], line = 3)
+  abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+  legend(x = "topright", legend = "B", bty = "n") # panel label
 
 
-  return(pred_appear_tab)
+  #Row 2: variance explained
+  plot(log(mod_co$lambda), mod_co$dev.ratio, type = "l", ylim = c(0,1),
+       xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
+  grid()
+  abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
+  abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+  legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"),
+         legend = c(expression(Min.~err.~lambda~from~CV), expression(Alternative~lambda)))
+  legend(x = "topright", legend = "C", bty = "n") # panel label
+
+  plot(log(mod_ch$lambda), mod_ch$dev.ratio, type = "l", ylim = c(0,1),
+       xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
+  grid()
+  abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+  legend(x = "topright", legend = "D", bty = "n") # panel label
+
+
+  #Row 3: coefficients
+  plot(mod_co, xvar = "lambda", xlab = expression(Log(lambda))); grid()
+  abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
+  abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+  legend(x = "topright", legend = "E", bty = "n") # panel label
+
+  plot(mod_ch, xvar = "lambda", xlab = expression(Log(lambda))); grid()
+  abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+  legend(x = "topright", legend = "F", bty = "n") # panel label
 }
 
-find_all_best_lambda_vals = function(com_tab, x, y,
-                                     lam_vals = 10^seq(-2, 5,length=100),
-                                     output = "lambda_and_rmse_tab",
-                                     outer_best_lam_range = NA){
-  #Initialize output tab
-  output_tab = as.data.frame(com_tab)
-  if(output == "lambda_and_rmse_tab"){output_tab$bestlam = NA; output_tab$rmse = NA; output_tab$bestlam_numpred = NA}
-  # columns for top predictors
-  if(output == "predictor_rank"){
-    output_tab$pred1=NA; output_tab$pred2=NA;output_tab$pred3=NA; output_tab$pred4=NA; output_tab$pred5=NA
-  }
 
-  #Iterate through test-train sets
-  for(i in 1:nrow(com_tab)){
-    test = com_tab[i,]
-    train = -com_tab[i,]
-    y.test = y[test]
-
-    if(output == "lambda_and_rmse_tab"){
-      lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
-      set.seed(1)
-      cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
-      output_tab$bestlam[i] = cv.out$lambda.min
-      # calculate an RMSE for this test set
-      lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x[test,])
-      output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
-      # ID number of non0 coefs for this optimal lambda val:
-      # calculate regression model for the single optimal lambda value
-      lasso_i_opt = glmnet(x[train,], y[train], alpha = 1, lambda = cv.out$lambda.min)
-      output_tab$bestlam_numpred[i] = lasso_i_opt$df # assign degrees of freedom
-    }
-
-    if(output == "predictor_rank"){
-      lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = outer_best_lam_range)
-      pred_appear_tab = generate_pred_appear_tab(lasso_mod = lasso_i, best_lam_range = outer_best_lam_range)
-
-      for(j in 1:5){
-        output_tab[i,paste0("pred",j)] = pred_appear_tab$predictor[j]
-      }
-    }
-  }
-
-  return(output_tab)
-}
-
-plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
-                                  selected_lam, alpha_val=0.05){  # Plot lasso diagnostics.
-  # A) Plot lambda vs test error - setup
-  nbreaks = 25
-  bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
-                    to = max(lambdas_and_rmse$bestlam, na.rm=T),
-                    length.out=nbreaks-1)
-  categs = cut(x = lambdas_and_rmse$bestlam, breaks = length(bin_centers))
-  lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA # remove inf values
-  # avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T) # arithmetic mean
-  avg_by_bin = aggregate(x=lambdas_and_rmse$rmse, by = list(categs),
-                         function(x){exp(mean(log(x)))}) # geometric mean
-  # plot
-  plot(lambdas_and_rmse$bestlam,
-       lambdas_and_rmse$rmse/mean(y),
-       pch = 19, col = rgb(0.5,0.5,0.5,alpha_val*3),
-       main = "Test error in models for 50% test-train subsets",
-       xlab = "Lambda value (shrinkage penalty)",
-       # log="y",
-       ylab = paste("Rel. test error (rel. RMSE) of models made \n from different combinations of data points"))
-  # summarize by binning
-  grid()
-  abline(v=selected_lam, lty = 2, col = lam_color)
-  points(bin_centers, avg_by_bin$x/mean(y), pch=23, cex = 1.2, bg = "firebrick", type = "o")
-  legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
-         pch = c(19,23),
-         legend = c("Model RMSE at opt. lambda", "Binned geom. mean RMSE"))
-
-  #B: deviance and non-0 coefficients
-  lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  # par(mar=c(5,5,3,5))
-  plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
-       ylab = "% of null deviation explained by model",
-       xlab = "Lambda value (shrinkage penalty)",
-       main = "Percent varition (full dataset) and degrees of \n freedom (full dataset and test-train sets)")
-  grid()
-  par(new=T)
-  plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
-       xlab="",ylab="", axes=F, type = "l")
-  num_pred_col = rgb(.3,.3,.7,alpha_val); num_pred_col_leg = rgb(.3,.3,.7,alpha_val*10)
-  points(lambdas_and_rmse$bestlam,
-       lambdas_and_rmse$bestlam_numpred, pch=19, col = num_pred_col)
-  axis(side=4,at=pretty(range(lasso_mod$df)))
-  mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.7)
-  abline(v=selected_lam, lty = 2, col = lam_color)
-  legend(x = "topright", col=c(num_pred_col_leg,"black","dodgerblue",lam_color),
-         lwd = c(NA,1,2,1), lty = c(NA,1,1,2), pch=c(19,NA,NA,NA),
-         legend = c("Deg. of freedom (test sets, opt. lambda)",
-                    "% Deviance (full dataset)", "Deg. of freedom (full dataset)",
-                    "Selected lambda (full dataset)"))
-
-
-  }
-
-plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
-                            y_val_label, mt_nrow,
-                            selected_lam = selected_lam){
-  coefs = as.data.frame((as.matrix(coef(lasso_mod))))
-
-  # Plot lambda vs highlighted coefs
-  # standardize coefficients
-  plot_tab = coefs / apply(X = coefs, MARGIN = 1, FUN = sd)
-  plot_tab = as.data.frame(t(plot_tab))
-  plot_tab[plot_tab==0] = NA # remove 0-values for plotting
-  # add in lambda values for plotting
-  plot_tab$lambda_val = best_lam_range
-
-  # setup for plot
-  tot_preds = sum(!is.na(pred_appear_tab$lambda_non0_val_appears))
-  n_high = 5
-  pred_names = pred_appear_tab$predictor
-  pred_pal = colorblind_pal()(n_high)
-  # Initialize plot
-  plot(x=range(plot_tab$lambda_val), col=NA,
-       # main = "Higher shrinkage penalties produce models with fewer and smaller coefficients",
-       main = paste0("Regression coefficients - predicting ",y_val_label,
-                     "\n with hydrologic metrics (n=",mt_nrow,")"),
-       y = range(plot_tab[,colnames(plot_tab)!="lambda_val"],na.rm=T),# ylim = c(-2,2),
-       xlab = "Lambda value (shrinkage penalty)", ylab = "Standardized predictor coefficients")
-  for(i in tot_preds:1){
-    if(i>n_high){
-      pred_col = "gray70"; pred_width = 1
-    } else {
-      pred_col = pred_pal[i]; pred_width = 2
-    }
-    pred_name = pred_names[i]
-    lines(x=plot_tab$lambda_val, y = plot_tab[,pred_name], lwd=pred_width, col = pred_col)
-  }
-  grid()
-  abline(v=selected_lam, lty = 2, col = lam_color)
-  legend(x = "bottomright", legend = c(pred_names[1:n_high],"Other non-0 coef."),
-         col = c(pred_pal[1:n_high],"gray70"), lwd = c(rep(2,n_high),1),
-         ncol=2)
-}
-
-get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
+# # Lasso Regression old -----------------------------------------------
+#
+#
+# generate_pred_appear_tab = function(lasso_mod, best_lam_range){
+#   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
+#   non0_coef_lambda_index = apply(X = coefs, MARGIN = 1, function(x){min(which(abs(x)>0))})
+#   coefs$lambda_val_coef_appears = best_lam_range[non0_coef_lambda_index]
+#   coef_lambda_non0_vals = as.data.frame(cbind(rownames(coefs), coefs$lambda_val_coef_appears))
+#   colnames(coef_lambda_non0_vals) = c("predictor","lambda_non0_val_appears")
+#   coef_lambda_non0_vals$lambda_non0_val_appears = as.numeric(coef_lambda_non0_vals$lambda_non0_val_appears)
+#   # View predictors in order of when they enter the regression by increasing lambda value
+#   pred_appear_tab = coef_lambda_non0_vals[order(coef_lambda_non0_vals$lambda_non0_val_appears,
+#                                                 decreasing=T),]
+#   pred_appear_tab = pred_appear_tab[!pred_appear_tab$predictor=="(Intercept)",]
+#
+#   # # CURRENTLY HERE.
+#   # degfree_diff = diff(lasso_mod$df)
+#   # # CASE FOR DIFF = 1
+#   # coef_appear_index = which(degfree_diff==1)
+#   # lasso_mod$dev.ratio[coef_appear_index]
+#   # deg_free_for_tab = lasso_mod$df[c(coef_appear_index[-1], length(lasso_mod$df))]
+#   # dev_for_tab = lasso_mod$dev.ratio[c(coef_appear_index[-1], length(lasso_mod$df))]
+#   # dev_tab = data.frame(deg_free = deg_free_for_tab, max_dev_expl = dev_for_tab)
+#   # dev_tab$incremental_dev = NA
+#   # dev_tab$incremental_dev[1] = dev_tab$max_dev_expl[1]
+#   # dev_tab$incremental_dev[-1] = dev_tab$max_dev_expl[-1] - dev_tab$max_dev_expl[-nrow(dev_tab)]
+#   # dev_tab$max_dev_expl=round(dev_tab$max_dev_expl, 2)
+#   # dev_tab$incremental_dev=round(dev_tab$incremental_dev, 2)
+#
+#   # if(sum(diff(deg_free_for_tab)>1) >0){
+#   #   # CASE FOR DIFF = 2 or more (split difference in deviation between 2 predictors)
+#   #   need_these = setdiff(seq(from=min(dev_tab$deg_free), to = max(dev_tab$deg_free)),
+#   #                        dev_tab$deg_free)
+#   #   dev_tab_2 = data.frame(deg_free = need_these, max_dev_expl = NA)
+#   #   dev_diff = diff()
+#   # }
+#
+#   # lasso_mod$df[which(degfree_diff==2)]
+#
+#
+#   return(pred_appear_tab)
+# }
+#
+# find_all_best_lambda_vals = function(com_tab, x, y,
+#                                      lam_vals = 10^seq(-2, 5,length=100),
+#                                      output = "lambda_and_rmse_tab",
+#                                      outer_best_lam_range = NA){
+#   #Initialize output tab
+#   output_tab = as.data.frame(com_tab)
+#   if(output == "lambda_and_rmse_tab"){output_tab$bestlam = NA; output_tab$rmse = NA; output_tab$bestlam_numpred = NA}
+#   # columns for top predictors
+#   if(output == "predictor_rank"){
+#     output_tab$pred1=NA; output_tab$pred2=NA;output_tab$pred3=NA; output_tab$pred4=NA; output_tab$pred5=NA
+#   }
+#
+#   #Iterate through test-train sets
+#   for(i in 1:nrow(com_tab)){
+#     test = com_tab[i,]
+#     train = -com_tab[i,]
+#     y.test = y[test]
+#
+#     if(output == "lambda_and_rmse_tab"){
+#       lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = lam_vals)
+#       set.seed(1)
+#       cv.out=cv.glmnet(x[train,], y[train], alpha = 1)
+#       output_tab$bestlam[i] = cv.out$lambda.min
+#       # calculate an RMSE for this test set
+#       lasso.pred=predict(lasso_i, s=output_tab$bestlam[i], newx=x[test,])
+#       output_tab$rmse[i] = sqrt(mean((lasso.pred-y.test)^2))
+#       # ID number of non0 coefs for this optimal lambda val:
+#       # calculate regression model for the single optimal lambda value
+#       lasso_i_opt = glmnet(x[train,], y[train], alpha = 1, lambda = cv.out$lambda.min)
+#       output_tab$bestlam_numpred[i] = lasso_i_opt$df # assign degrees of freedom
+#     }
+#
+#     if(output == "predictor_rank"){
+#       lasso_i = glmnet(x[train,], y[train], alpha = 1, lambda = outer_best_lam_range)
+#       pred_appear_tab = generate_pred_appear_tab(lasso_mod = lasso_i, best_lam_range = outer_best_lam_range)
+#
+#       for(j in 1:5){
+#         output_tab[i,paste0("pred",j)] = pred_appear_tab$predictor[j]
+#       }
+#     }
+#   }
+#
+#   return(output_tab)
+# }
+#
+# plot_lasso_diagnostics = function(x, y, best_lam_range, lambdas_and_rmse,
+#                                   selected_lam, alpha_val=0.05){  # Plot lasso diagnostics.
+#   # A) Plot lambda vs test error - setup
+#   nbreaks = 25
+#   bin_centers = seq(from=min(lambdas_and_rmse$bestlam, na.rm=T),
+#                     to = max(lambdas_and_rmse$bestlam, na.rm=T),
+#                     length.out=nbreaks-1)
+#   categs = cut(x = lambdas_and_rmse$bestlam, breaks = length(bin_centers))
+#   lambdas_and_rmse$rmse[is.infinite(lambdas_and_rmse$rmse)]= NA # remove inf values
+#   # avg_by_bin = aggregate(lambdas_and_rmse$rmse, by = list(categs), FUN=mean, na.rm=T) # arithmetic mean
+#   avg_by_bin = aggregate(x=lambdas_and_rmse$rmse, by = list(categs),
+#                          function(x){exp(mean(log(x)))}) # geometric mean
+#   # plot
+#   plot(lambdas_and_rmse$bestlam,
+#        lambdas_and_rmse$rmse/mean(y),
+#        pch = 19, col = rgb(0.5,0.5,0.5,alpha_val*3),
+#        main = "Test error in models for 50% test-train subsets",
+#        xlab = "Lambda value (shrinkage penalty)",
+#        # log="y",
+#        ylab = paste("Rel. test error (rel. RMSE) of models made \n from different combinations of data points"))
+#   # summarize by binning
+#   grid()
+#   abline(v=selected_lam, lty = 2, col = lam_color)
+#   points(bin_centers, avg_by_bin$x/mean(y), pch=23, cex = 1.2, bg = "firebrick", type = "o")
+#   legend(x="topright", col = c("gray","black"),pt.bg=c(NA,"firebrick"),
+#          pch = c(19,23),
+#          legend = c("Model RMSE at opt. lambda", "Binned geom. mean RMSE"))
+#
+#   #B: deviance and non-0 coefficients
+#   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+#   # par(mar=c(5,5,3,5))
+#   plot(lasso_mod$lambda, lasso_mod$dev.ratio,  type = "l",
+#        ylab = "% of null deviation explained by model",
+#        xlab = "Lambda value (shrinkage penalty)",
+#        main = "Percent varition (full dataset) and degrees of \n freedom (full dataset and test-train sets)")
+#   grid()
+#   par(new=T)
+#   plot(lasso_mod$lambda, lasso_mod$df, col = "dodgerblue", lwd = 2,
+#        xlab="",ylab="", axes=F, type = "l")
+#   num_pred_col = rgb(.3,.3,.7,alpha_val); num_pred_col_leg = rgb(.3,.3,.7,alpha_val*10)
+#   points(lambdas_and_rmse$bestlam,
+#        lambdas_and_rmse$bestlam_numpred, pch=19, col = num_pred_col)
+#   axis(side=4,at=pretty(range(lasso_mod$df)))
+#   mtext("Degrees of freedom (number of non-0 coef.)", side = 4, line = 3, cex=0.7)
+#   abline(v=selected_lam, lty = 2, col = lam_color)
+#   legend(x = "topright", col=c(num_pred_col_leg,"black","dodgerblue",lam_color),
+#          lwd = c(NA,1,2,1), lty = c(NA,1,1,2), pch=c(19,NA,NA,NA),
+#          legend = c("Deg. of freedom (test sets, opt. lambda)",
+#                     "% Deviance (full dataset)", "Deg. of freedom (full dataset)",
+#                     "Selected lambda (full dataset)"))
+#
+#
+#   }
+#
+# plot_lasso_coefs = function(lasso_mod, pred_appear_tab, best_lam_range,
+#                             y_val_label, mt_nrow,
+#                             selected_lam = selected_lam){
+#   coefs = as.data.frame((as.matrix(coef(lasso_mod))))
+#
+#   # Plot lambda vs highlighted coefs
+#   # standardize coefficients
+#   plot_tab = coefs / apply(X = coefs, MARGIN = 1, FUN = sd)
+#   plot_tab = as.data.frame(t(plot_tab))
+#   plot_tab[plot_tab==0] = NA # remove 0-values for plotting
+#   # add in lambda values for plotting
+#   plot_tab$lambda_val = best_lam_range
+#
+#   # setup for plot
+#   tot_preds = sum(!is.na(pred_appear_tab$lambda_non0_val_appears))
+#   n_high = 5
+#   pred_names = pred_appear_tab$predictor
+#   pred_pal = colorblind_pal()(n_high)
+#   # Initialize plot
+#   plot(x=range(plot_tab$lambda_val), col=NA,
+#        # main = "Higher shrinkage penalties produce models with fewer and smaller coefficients",
+#        main = paste0("Regression coefficients - predicting ",y_val_label,
+#                      "\n with hydrologic metrics (n=",mt_nrow,")"),
+#        y = range(plot_tab[,colnames(plot_tab)!="lambda_val"],na.rm=T),# ylim = c(-2,2),
+#        xlab = "Lambda value (shrinkage penalty)", ylab = "Standardized predictor coefficients")
+#   for(i in tot_preds:1){
+#     if(i>n_high){
+#       pred_col = "gray70"; pred_width = 1
+#     } else {
+#       pred_col = pred_pal[i]; pred_width = 2
+#     }
+#     pred_name = pred_names[i]
+#     lines(x=plot_tab$lambda_val, y = plot_tab[,pred_name], lwd=pred_width, col = pred_col)
+#   }
+#   grid()
+#   abline(v=selected_lam, lty = 2, col = lam_color)
+#   legend(x = "bottomright", legend = c(pred_names[1:n_high],"Other non-0 coef."),
+#          col = c(pred_pal[1:n_high],"gray70"), lwd = c(rep(2,n_high),1),
+#          ncol=2)
+# }
+#
+get_refined_x_and_y_for_lasso_mod = function(mt,
                                              y_val = "coho_smolt_per_fem"){
-  mt = metrics_tab
   #step 1. Prep x matrix and y array
   # (Dev: run manuscript .Rmd through line 395)
   # 1a. remove rows with no response var
@@ -1702,157 +1792,229 @@ get_refined_x_and_y_for_lasso_mod = function(metrics_tab,
   return(list(x=x,y=y))
 }
 
-lasso_regression_plots_and_tabs = function(metrics_tab,
-                                  y_val = "coho_smolt_per_fem",
-                                  remove_extra_recon_thresholds = F,
-                                  # remove_SY_metrics = T,
-                                  # remove_RY_metrics = F,
-                                  return_pred_appear_tab = T,
-                                  yvlt,
-                                  selected_lam,
-                                  show_plot = T,
-                                  log_transform_eco_metrics, zscore_flow_metrics){
-
-  # Lasso regression. Informed by lab from ISLR 7th printing
-  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
-                                              y_val = y_val)
-                                              # remove_RY_metrics = remove_RY_metrics,
-                                              # remove_SY_metrics = remove_SY_metrics)
-  x = x_and_y[[1]]; y = x_and_y[[2]]
-
-  # name rmse file
-  # fname = paste( y_val,"- lambdas_and_rmse")
-  if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname = paste( y_val,"- lambdas_and_rmse, no transform fmet or ecomet" )}
-  if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname = paste( y_val,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )}
-  lambda_tab_path = file.path(data_dir,paste0(fname,".csv" ))
-  if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname2 = paste( y_val,"- predictor rank, no transform fmet or ecomet" )}
-  if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname2 = paste( y_val,"- predictor rank, zscore fmet T, log ecomet T" )}
-  pred_rank_path = file.path(data_dir,paste0(fname2,".csv" ))
-
-  # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
-  if(!file.exists(lambda_tab_path) | !file.exists(pred_rank_path)){
-    save_pred_and_rmse_files(metrics_tab = metrics_tab,
-                             y_val = y_val,
-                             lambda_tab_path = lambda_tab_path, pred_rank_path = pred_rank_path)
-  }
-  lambdas_and_rmse = read.csv(lambda_tab_path)
-  pred_rank_tab = read.csv(pred_rank_path)
-
-  min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
-  max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
-  by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
-  best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
-
-  # Calculate lasso models over range of lambda values
-  lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
-  # find lambda values at which each coefficient becomes non-0
-  pred_appear_tab = generate_pred_appear_tab(lasso_mod, best_lam_range = best_lam_range)
-
-  if(show_plot==T){
-    # Plots
-    par(mfrow=c(3,1), mar=c(5,5,5,2))
-    y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
-    if(grepl(x=y_val,pattern ="coho")){alpha_val=0.05}
-    if(grepl(x=y_val,pattern="chinook")){alpha_val=0.01}
-    #Panel 1 and 2
-    plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
-                           selected_lam = selected_lam, alpha_val=alpha_val)
-    # Panel 3
-    plot_lasso_coefs(lasso_mod = lasso_mod,
-                     pred_appear_tab = pred_appear_tab,
-                     best_lam_range = best_lam_range,
-                     y_val_label = y_val_label,
-                     mt_nrow = nrow(x),
-                     selected_lam = selected_lam)
-
-  }
-  if(return_pred_appear_tab==T){return(list(pred_appear_tab = pred_appear_tab,
-                                            pred_rank_tab = pred_rank_tab,
-                                            lasso_mod_range = lasso_mod))}
-}
-
-
-get_lasso_mod = function(metrics_tab,
-                         y_val = "coho_smolt_per_fem",
-                         lambda_val#,
-                         # remove_extra_recon_thresholds = F,
-                         # remove_RY_metrics = F,
-                         # remove_SY_metrics = T
-){
-
+get_refined_x_and_y_for_lasso_mod_plus_spawn = function(mt,
+                                             y_val = "coho_smolt_per_fem"){
   #step 1. Prep x matrix and y array
-  # Lasso regression. Informed by lab from ISLR 7th printing
-  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
-                                              y_val = y_val)
-  x = x_and_y[[1]]; y = x_and_y[[2]]
+  # (Dev: run manuscript .Rmd through line 395)
+  # 1a. remove rows with no response var
+  non_pred_vals = c("brood_year","smolt_year","coho_smolt_per_fem",
+                    "chinook_juv_per_adult",
+                    # "coho_spawner_abundance",
+                    "coho_redds_in_brood",
+                    "coho_smolt_abun_est",
+                    # "chinook_spawner_abundance",
+                    "chinook_juvenile_abundance"
+                    # "percent_coho_smolt_survival"
+  )
 
-  lasso_mod = glmnet(x, y, alpha = 1, lambda = lambda_val)
 
-  return(lasso_mod)
+
+  if(grepl(pattern="coho",x = y_val) == T){
+    x_spawn = "coho_spawner_abundance"
+    non_pred_vals = c(non_pred_vals, "chinook_spawner_abundance")}
+  if(grepl(pattern="chinook",x = y_val) == T){
+    x_spawn = "chinook_spawner_abundance"
+    non_pred_vals = c(non_pred_vals, "coho_spawner_abundance")
+    }
+
+
+  # if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
+  # if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
+  non_y_vals = non_pred_vals[non_pred_vals != y_val]
+  mt = mt[,!(colnames(mt) %in% non_y_vals)]
+  mt = mt[!(is.na(mt[,y_val]) | is.na(mt[, x_spawn])),]
+  na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
+  mt = mt[,!is.na(na_col_detector) ]
+
+  # 1b. Optional. Remove the other thresholds or Smolt Year metrics
+  # if(remove_extra_recon_thresholds==T){
+  #   remove_these = c("f1_recon_15", "f1_recon_20", "f1_recon_50", "f1_recon_80",
+  #                    "s1_discon_15", "s1_discon_20", "s1_discon_50", "s1_discon_80",
+  #                    "f2_recon_15", "f2_recon_20", "f2_recon_50", "f2_recon_80",
+  #                    "s2_discon_80")
+  #   mt = mt[,!(colnames(mt) %in% remove_these)]
+  # }
+  # if(remove_SY_metrics == T){
+  #   remove_these = grepl(pattern = "SY", x=colnames(mt)) |
+  #     grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
+  #   mt = mt[,!remove_these]
+  # }
+  # if(remove_RY_metrics == T){
+  #   remove_these = grepl(pattern = "RY", x=colnames(mt)) |
+  #     grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
+  #   mt = mt[,!remove_these]
+  # }
+
+  # 2. Lasso Regression
+
+  # Set up x and y, and retrieve table of best lambda and rmse values
+  y = mt[,y_val]
+
+  if(y_val=="chinook_spawner_abundance"){x = model.matrix(object = chinook_spawner_abundance~., data = mt)[,-1]}
+  if(y_val=="chinook_juvenile_abundance"){x = model.matrix(object = chinook_juvenile_abundance~., data = mt)[,-1]}
+  if(y_val=="chinook_juv_per_adult"){x = model.matrix(object = chinook_juv_per_adult~., data = mt)[,-1]}
+  if(y_val=="coho_spawner_abundance"){x = model.matrix(object = coho_spawner_abundance~., data = mt)[,-1]}
+  if(y_val=="coho_smolt_per_fem"){x = model.matrix(object = coho_smolt_per_fem~., data = mt)[,-1]}
+  if(y_val=="coho_smolt_abun_est"){x = model.matrix(object = coho_smolt_abun_est~., data = mt)[,-1]}
+  # if(y_val=="percent_coho_smolt_survival"){x = model.matrix(object = percent_coho_smolt_survival~., data = mt)[,-1]}
+  if(y_val=="coho_redds_in_brood"){x = model.matrix(object = coho_redds_in_brood~., data = mt)[,-1]}
+
+
+  return(list(x=x,y=y))
 }
 
-
-save_multiple_rmse_and_pred_rank_files=function(metrics_tab, yvlt,
-                                                log_transform_eco_metrics, zscore_flow_metrics){
-  # to use: run through outer main script until arrive at lasso function. use
-  # metrics_tab that is the input to the lasso plotting function (i.e.,
-  # metrics_tab = metrics_tab_screened)
-
-  for(y_val in yvlt$y_val){
-
-    if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname = paste( y_val,"- lambdas_and_rmse, no transform fmet or ecomet" )}
-    if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname = paste( y_val,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )}
-    if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname2 = paste( y_val,"- predictor rank, no transform fmet or ecomet" )}
-    if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname2 = paste( y_val,"- predictor rank, zscore fmet T, log ecomet T" )}
-    lambda_tab_path = file.path(data_dir,paste0(fname,".csv" ))
-    pred_rank_path = file.path(data_dir,paste0(fname2,".csv" ))
-
-    save_pred_and_rmse_files(metrics_tab = metrics_tab,
-                             y_val = y_val,
-                             lambda_tab_path = lambda_tab_path,
-                             pred_rank_path = pred_rank_path)
-  }
-
-
-
-
-  # pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
-  #                                           output = "predictor_rank",
-  #                                           outer_best_lam_range = best_lam_range)
-  # write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
-
-}
-
-save_pred_and_rmse_files = function(metrics_tab, y_val, lambda_tab_path, pred_rank_path){
-  x_and_y = get_refined_x_and_y_for_lasso_mod(metrics_tab = metrics_tab,
-                                              y_val = y_val)
-  x = x_and_y[[1]]; y = x_and_y[[2]]
-
-  com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
-  # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
-  # split data set into all possible test and train sets.
-  # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
-  if(nrow(com)>10000){
-    set.seed(1)
-    com = com[sample(x = 1:nrow(com), size = 10000),]
-  }
-
-  lambdas_and_rmse = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
-  write.csv(lambdas_and_rmse, lambda_tab_path, quote=F, row.names = F)
-
-  min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
-  max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
-  by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
-  best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
-
-
-  pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
-                                            output = "predictor_rank",
-                                            outer_best_lam_range = best_lam_range)
-  write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
-}
-
-
+#
+# lasso_regression_plots_and_tabs = function(metrics_tab,
+#                                   y_val = "coho_smolt_per_fem",
+#                                   remove_extra_recon_thresholds = F,
+#                                   # remove_SY_metrics = T,
+#                                   # remove_RY_metrics = F,
+#                                   return_pred_appear_tab = T,
+#                                   yvlt,
+#                                   selected_lam,
+#                                   show_plot = T,
+#                                   log_transform_eco_metrics, zscore_flow_metrics){
+#
+#   # Lasso regression. Informed by lab from ISLR 7th printing
+#   x_and_y = get_refined_x_and_y_for_lasso_mod(mt = metrics_tab,
+#                                               y_val = y_val)
+#                                               # remove_RY_metrics = remove_RY_metrics,
+#                                               # remove_SY_metrics = remove_SY_metrics)
+#   x = x_and_y[[1]]; y = x_and_y[[2]]
+#
+#   # name rmse file
+#   # fname = paste( y_val,"- lambdas_and_rmse")
+#   if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname = paste( y_val,"- lambdas_and_rmse, no transform fmet or ecomet" )}
+#   if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname = paste( y_val,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )}
+#   lambda_tab_path = file.path(data_dir,paste0(fname,".csv" ))
+#   if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname2 = paste( y_val,"- predictor rank, no transform fmet or ecomet" )}
+#   if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname2 = paste( y_val,"- predictor rank, zscore fmet T, log ecomet T" )}
+#   pred_rank_path = file.path(data_dir,paste0(fname2,".csv" ))
+#
+#   # Find the range of "best" lambda values, based on cross-validation, and associated RMSE errors
+#   if(!file.exists(lambda_tab_path) | !file.exists(pred_rank_path)){
+#     save_pred_and_rmse_files(metrics_tab = metrics_tab,
+#                              y_val = y_val,
+#                              lambda_tab_path = lambda_tab_path, pred_rank_path = pred_rank_path)
+#   }
+#   lambdas_and_rmse = read.csv(lambda_tab_path)
+#   pred_rank_tab = read.csv(pred_rank_path)
+#
+#   min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
+#   max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
+#   by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
+#   best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
+#
+#   # Calculate lasso models over range of lambda values
+#   lasso_mod = glmnet(x, y, alpha = 1, lambda = best_lam_range)
+#   # find lambda values at which each coefficient becomes non-0
+#   pred_appear_tab = generate_pred_appear_tab(lasso_mod, best_lam_range = best_lam_range)
+#
+#   if(show_plot==T){
+#     # Plots
+#     par(mfrow=c(3,1), mar=c(5,5,5,2))
+#     y_val_label = yvlt$y_val_title[yvlt$y_val==y_val]
+#     if(grepl(x=y_val,pattern ="coho")){alpha_val=0.05}
+#     if(grepl(x=y_val,pattern="chinook")){alpha_val=0.01}
+#     #Panel 1 and 2
+#     plot_lasso_diagnostics(x=x, y=y, best_lam_range, lambdas_and_rmse = lambdas_and_rmse,
+#                            selected_lam = selected_lam, alpha_val=alpha_val)
+#     # Panel 3
+#     plot_lasso_coefs(lasso_mod = lasso_mod,
+#                      pred_appear_tab = pred_appear_tab,
+#                      best_lam_range = best_lam_range,
+#                      y_val_label = y_val_label,
+#                      mt_nrow = nrow(x),
+#                      selected_lam = selected_lam)
+#
+#   }
+#   if(return_pred_appear_tab==T){return(list(pred_appear_tab = pred_appear_tab,
+#                                             pred_rank_tab = pred_rank_tab,
+#                                             lasso_mod_range = lasso_mod))}
+# }
+#
+#
+# get_lasso_mod = function(metrics_tab,
+#                          y_val = "coho_smolt_per_fem",
+#                          lambda_val#,
+#                          # remove_extra_recon_thresholds = F,
+#                          # remove_RY_metrics = F,
+#                          # remove_SY_metrics = T
+# ){
+#
+#   #step 1. Prep x matrix and y array
+#   # Lasso regression. Informed by lab from ISLR 7th printing
+#   x_and_y = get_refined_x_and_y_for_lasso_mod(mt = metrics_tab,
+#                                               y_val = y_val)
+#   x = x_and_y[[1]]; y = x_and_y[[2]]
+#
+#   lasso_mod = glmnet(x, y, alpha = 1, lambda = lambda_val)
+#
+#   return(lasso_mod)
+# }
+#
+#
+# save_multiple_rmse_and_pred_rank_files=function(metrics_tab, yvlt,
+#                                                 log_transform_eco_metrics, zscore_flow_metrics){
+#   # to use: run through outer main script until arrive at lasso function. use
+#   # metrics_tab that is the input to the lasso plotting function (i.e.,
+#   # metrics_tab = metrics_tab_screened)
+#
+#   for(y_val in yvlt$y_val){
+#
+#     if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname = paste( y_val,"- lambdas_and_rmse, no transform fmet or ecomet" )}
+#     if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname = paste( y_val,"- lambdas_and_rmse, zscore fmet T, log ecomet T" )}
+#     if(log_transform_eco_metrics==F & zscore_flow_metrics ==F){fname2 = paste( y_val,"- predictor rank, no transform fmet or ecomet" )}
+#     if(log_transform_eco_metrics==T & zscore_flow_metrics ==T){fname2 = paste( y_val,"- predictor rank, zscore fmet T, log ecomet T" )}
+#     lambda_tab_path = file.path(data_dir,paste0(fname,".csv" ))
+#     pred_rank_path = file.path(data_dir,paste0(fname2,".csv" ))
+#
+#     save_pred_and_rmse_files(metrics_tab = metrics_tab,
+#                              y_val = y_val,
+#                              lambda_tab_path = lambda_tab_path,
+#                              pred_rank_path = pred_rank_path)
+#   }
+#
+#
+#
+#
+#   # pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
+#   #                                           output = "predictor_rank",
+#   #                                           outer_best_lam_range = best_lam_range)
+#   # write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
+#
+# }
+#
+# save_pred_and_rmse_files = function(metrics_tab, y_val, lambda_tab_path, pred_rank_path){
+#   x_and_y = get_refined_x_and_y_for_lasso_mod(mt = metrics_tab,
+#                                               y_val = y_val)
+#   x = x_and_y[[1]]; y = x_and_y[[2]]
+#
+#   com = t(combn(x = 1:length(y), m = floor(length(y)/2)))     # Split dataset into halves
+#   # com = t(combn(x = 1:length(y), m = ceiling(length(y)*.25))) # leave out 25%
+#   # split data set into all possible test and train sets.
+#   # if total number of samples is more than 16, randomly sample only 10k of the possible test-train combos
+#   if(nrow(com)>10000){
+#     set.seed(1)
+#     com = com[sample(x = 1:nrow(com), size = 10000),]
+#   }
+#
+#   lambdas_and_rmse = find_all_best_lambda_vals(com_tab = com, x = x, y = y)
+#   write.csv(lambdas_and_rmse, lambda_tab_path, quote=F, row.names = F)
+#
+#   min_lam = min(lambdas_and_rmse$bestlam, na.rm=T)
+#   max_lam = max(lambdas_and_rmse$bestlam, na.rm=T)
+#   by_val = diff(range(lambdas_and_rmse$bestlam, na.rm=T))/99
+#   best_lam_range = rev(seq(min_lam, max_lam, by_val)) #lambdas in reverse order to match coefs output
+#
+#
+#   pred_rank_tab = find_all_best_lambda_vals(com_tab = com, x = x, y = y,
+#                                             output = "predictor_rank",
+#                                             outer_best_lam_range = best_lam_range)
+#   write.csv(pred_rank_tab, file = pred_rank_path, quote = F, row.names=F)
+# }
+#
+#
 
 # MARSS  ------------------------------------------------------------------
 
@@ -1877,13 +2039,7 @@ get_obs_data_for_MARSS = function(metrics_tab,
 
 get_single_cov_model_fit_for_MARSS = function(y_obs_tab, pred, method = "kem"){
   species = rownames(y_obs_tab)
-
   nspp = length(species)
-
-  # reduce observation data to years with observations in the selected metrics
-  how_many_na = apply(X = y_obs_tab, MARGIN = 2, function(x){sum(is.na(x))})
-  # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
-  y_obs = y_obs_tab[ , how_many_na < nspp]
 
   ## Data structure: the "site" for each species is the entire watershed
   ## (as monitored at the counting weir for adults and the rotary screw trap
@@ -1916,28 +2072,120 @@ get_single_cov_model_fit_for_MARSS = function(y_obs_tab, pred, method = "kem"){
   #### DS_Dur_WS
 
   flow_metric_ct = pred
-  covar_ct = t(metrics_tab[how_many_na < nspp,
-                           flow_metric_ct])
+  covar_ct = t(metrics_tab[,flow_metric_ct])
   rownames(covar_ct) = flow_metric_ct
-  # <- PuFF_Obs %>%
-  #   filter(Year > 1992) %>% #Include flow data spanning first to last year
-  #   select(DS_Dur_WS) %>%
-  #   t() #Transpose
+  colnames(covar_ct) = metrics_tab$brood_year
+  ncov = nrow(covar_ct)
 
-  #Create C matrix: 1 column b/c one variable, specify if species abundance or normalized
+  # # reduce observation data to years with observations in the selected metrics
+  # how_many_na = apply(X = y_obs_tab, MARGIN = 2, function(x){sum(is.na(x))})
+  # # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  # y_obs = y_obs_tab[ , how_many_na < nspp]
+
+  # reduce observation data to years with observations in the selected metrics
+  how_many_vals_y = apply(X = y_obs_tab, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  how_many_vals_cov = apply(X = covar_ct, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  first_i_y = min(which(how_many_vals_y > 0)); last_i_y = max(which(how_many_vals_y > 0)) # cover any data for all species
+  first_i_cov = min(which(how_many_vals_cov == ncov)); last_i_cov = max(which(how_many_vals_cov == ncov))# can't have missing covariates.
+  # assumes continuous covariance coverage between min and max
+
+  keep_cols = max(c(first_i_y, first_i_cov)):  min(c(last_i_y, last_i_cov))
+  # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  y_obs = y_obs_tab[ , keep_cols]
+  cov_ct = matrix(covar_ct[,keep_cols], nrow = 1)
+
+
+
+  #Create C matrix: 1 column b/c one covariate, specify if species abundance or normalized
   C_ct <- matrix("ScottR")#matrix(c("abundance","abundance","normalized","normalized"), ncol = 1, nrow = nspp)
-  # C_ct <- matrix(rep("ScottR"), ncol = 1, nrow = nspp)
 
   ## Now fit a MARSS model
   mod_ct = mod
   mod_ct$C = C_ct # Abundance and normalized data be affected by the covariate differently
-  mod_ct$c = covar_ct # Covariate data
+  mod_ct$c = cov_ct # Covariate data
 
 
   #### U = zero, B = identity, Q = equal
   # Fit the MARSS model
   # control$trace = 1
-  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, method = method, control=list(maxit=10000))#, method="BFGS")
+  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, #method = method,
+                     control=list(maxit=10000))#, method="BFGS")
+
+  return(mod_ct.fit)
+  # mod_ct.CI <- MARSSparamCIs(mod_ct.fit)
+  #
+  # # what if we just start with the basics?
+  #
+  # kemfit2 = MARSS(y_obs, model = list(
+  #   Z = matrix(1, 4, 1),
+  #   R = "diagonal and equal"))
+}
+
+get_flow_and_spawn_cov_model_fit_for_MARSS = function(y_obs_tab, pred, y_spawn_colname, method = "kem"){
+
+  species = rownames(y_obs_tab)
+
+  nspp = length(species)
+
+  ## Data structure: the "site" for each species is the entire watershed
+  ## (as monitored at the counting weir for adults and the rotary screw trap
+  ## for juveniles).
+  ##
+  ## So, we need a x-column Z matrix. One col per species, one row per species-site
+  ## combination. We have x species all at the same site.
+
+  n_sites = 1 # scott River
+  Z = matrix(1, nspp * n_sites, 1)
+  # diag(Z) = 1
+  # B2024: R matrix: species-specific observation error -> rep each species name for number of observation streams
+  # R=matrix(list(0),nspp,nspp)
+  # diag(R) = species
+
+  mod = list()
+
+  mod$Q = "diagonal and equal" #matrix("q") # single process error across species and replicates
+  mod$U = matrix(0) # No drift - 0 intercept for hidden state series
+  mod$B = matrix(1) # No B - no coefficients for hidden state series
+  mod$Z = Z
+  mod$R = matrix("r") # One obs error (i.e., for the selected ecological obs. series)
+  mod$A = matrix(0) # 0 intercept for observation data series
+
+  # basically: https://atsa-es.github.io/atsa-labs/sec-uss-fitting-a-state-space-model-with-marss.html
+
+  #### DS_Dur_WS
+
+  flow_metric_ct = pred
+  covar_ct = t(metrics_tab[, c(flow_metric_ct, y_spawn_colname)])
+  ncov = 2
+
+  # reduce observation data to years with observations in the selected metrics
+  how_many_vals_y = apply(X = y_obs_tab, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  how_many_vals_cov = apply(X = covar_ct, MARGIN = 2, function(x){length(x) - sum(is.na(x))})
+  first_i_y = min(which(how_many_vals_y > 0)); last_i_y = max(which(how_many_vals_y > 0))
+  first_i_cov = min(which(how_many_vals_cov == ncov)); last_i_cov = max(which(how_many_vals_cov == ncov))# can't have missing covariates
+  # assumes continuous coverage between min and max for covariate data
+
+  keep_cols = max(c(first_i_y, first_i_cov)):  min(c(last_i_y, last_i_cov))
+  # currently assumes 4 missing values only for end-years outside a continuous string of years with < 4 NAs
+  y_obs = y_obs_tab[ , keep_cols]
+  cov_ct = covar_ct[,keep_cols]
+
+
+  #Create C matrix: 1 column b/c one variable, specify if species abundance or normalized
+  C_ct <- matrix(c("ScottR","Spawners"), ncol = 1)#matrix(c("abundance","abundance","normalized","normalized"), ncol = 1, nrow = nspp)
+  # C_ct <- matrix(rep("ScottR"), ncol = 1, nrow = nspp)
+
+  ## Now fit a MARSS model
+  mod_ct = mod
+  mod_ct$C = C_ct # Abundance and normalized data be affected by the covariate differently
+  mod_ct$c = cov_ct # Covariate data
+
+
+  #### U = zero, B = identity, Q = equal
+  # Fit the MARSS model
+  # control$trace = 1
+  mod_ct.fit = MARSS(y = y_obs, model=mod_ct, #method = method,
+                     control=list(maxit=10000))#, method="BFGS")
 
   return(mod_ct.fit)
   # mod_ct.CI <- MARSSparamCIs(mod_ct.fit)
