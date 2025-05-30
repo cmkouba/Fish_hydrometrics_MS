@@ -951,16 +951,16 @@ y_val_label_tab = function(){
   y_val_title = c("coho spf","Chinook jpa",
                   "coho escapement",
                   "coho redd abundace",
-                  "est. coho smolt abundance",
+                  "coho smolt abundance",
                   "Chinook escapement",
                   "Chinook juv. abundance"
   ),
   y_val_label = c("Coho smolt per fem. spawner",
                   "Chinook juv. per adult",
-                  "Num. coho spawners (escapement)",
+                  "Num. coho spawners",# (escapement)",
                   "Num. obs. coho redds",
                   "Est. num. coho smolt",
-                  "Num. Chinook spawners (escapement)",
+                  "Num. Chinook spawners",# (escapement)",
                   "Num. Chinook juveniles"),
   influencing_seasons = c(all_szns,
                           y1_szns,
@@ -1319,28 +1319,17 @@ calc_corr_matrix=function(metrics_tab,
                           fish_outcome_cols = NA){
 
   if(sum(is.na(fish_outcome_cols)) >0){
-    fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "coho", x = colnames(metrics_tab)) |
-                                                grepl(pattern = "chinook", x = colnames(metrics_tab))]
-  } else if(fish_outcome_cols == "coho" & fish_outcome_cols != "chinook"){
-    # fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "coho", x = colnames(metrics_tab)) &
-    #                                             colnames(metrics_tab) != "percent_coho_smolt_survival"]
-    fish_outcome_cols = c("coho_spawner_abundance", "coho_redds_in_brood",
-                          "coho_smolt_abun_est", "coho_smolt_per_fem")
-  } else if(fish_outcome_cols == "chinook" & fish_outcome_cols != "coho"){
-    fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "chinook", x = colnames(metrics_tab))]
-  }
+    # Reorder fish outcome columns
+    fish_outcome_cols = c("chinook_juvenile_abundance", "chinook_spawner_abundance", "chinook_juv_per_adult",
+                          "coho_smolt_abun_est", "coho_spawner_abundance", "coho_smolt_per_fem", "coho_redds_in_brood")
+  } #else if(fish_outcome_cols == "coho" & fish_outcome_cols != "chinook"){
+  #   fish_outcome_cols = c("coho_spawner_abundance", "coho_redds_in_brood",
+  #                         "coho_smolt_abun_est", "coho_smolt_per_fem")
+  # } else if(fish_outcome_cols == "chinook" & fish_outcome_cols != "coho"){
+  #   fish_outcome_cols = colnames(metrics_tab)[grepl(pattern = "chinook", x = colnames(metrics_tab))]
+  # }
 
   predictor_cols = colnames(metrics_tab)[colnames(metrics_tab) %in% preds_all]
-  # predictor_cols = colnames(metrics_tab)[grepl(pattern = "d1", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "f1", x = colnames(metrics_tab))|
-  #                                          grepl(pattern = "w1", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "s1", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "d2", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "f2", x = colnames(metrics_tab))|
-  #                                          grepl(pattern = "w2", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "s2", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "wy1", x = colnames(metrics_tab)) |
-  #                                          grepl(pattern = "wy2", x = colnames(metrics_tab)) ]
 
   #Initialize output matrix
   output_tab = data.frame(matrix(data=NA, nrow = length(predictor_cols),
@@ -1362,7 +1351,7 @@ calc_corr_matrix=function(metrics_tab,
   rownames(output_tab) = predictor_cols
 
   # remove NA values (currently just peak flood metrics. They have too few obs. to make a corr calculation)
-  output_tab = output_tab[!is.na(output_tab$coho_smolt_per_fem),]
+  output_tab = output_tab[!is.na(output_tab[,1]),]
 
   # clear out metrics in RY and SY that don't affect the number of spawners (in BY)
   # spawning occurs affected by preceding dry season and first fall rewetting
@@ -1377,11 +1366,18 @@ calc_corr_matrix=function(metrics_tab,
     grepl(pattern = "s2", x = row.names(output_tab)) |
     grepl(pattern = "wy2", x = row.names(output_tab))
 
-  output_tab$chinook_spawner_abundance[!d1_f1_rows] = NA # keep only d1 and f1
+
+  # ID rows with spawner abundance. keep all columns of corr. for spawners except for with itself
+  spawn_co = rownames(output_tab) == "coho_spawners_zscored"
+  spawn_ch = rownames(output_tab) == "chinook_spawners_zscored"
+  spawn_rows = spawn_co | spawn_ch
+
+  output_tab$chinook_spawner_abundance[!(d1_f1_rows | spawn_co)] = NA # keep only d1 and f1
   output_tab$chinook_juvenile_abundance[wy2_rows] = NA # exclude wy2
   output_tab$chinook_juv_per_adult[wy2_rows] = NA # exclude wy2
-  output_tab$coho_spawner_abundance[!d1_f1_rows] = NA # keep only d1 and f1
-  output_tab$coho_redds_in_brood[! (d1_f1_rows | w1_rows)] = NA # keep only d1, f1 and w1
+  output_tab$coho_spawner_abundance[!(d1_f1_rows | spawn_ch)] = NA # keep only d1 and f1
+  output_tab$coho_redds_in_brood[
+    ! (d1_f1_rows | w1_rows | spawn_rows)] = NA # keep only d1, f1,  w1, and spawners
 
   return(output_tab)
 }
@@ -1418,11 +1414,17 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
   colnames(corr_matrix1) = colname_matching_df$fig_name[match(colnames(corr_matrix1),
                                                              colname_matching_df$data_name)]
 
+  # if(predict_eco == "juvenile abundance"){
+    rownames(corr_matrix1)[rownames(corr_matrix1) %in% colname_matching_df$data_name] =
+      colname_matching_df$fig_name[match(rownames(corr_matrix1),
+                                         colname_matching_df$data_name)]
+  # }
+
 
   if(length(pred_subset)>10){
     corrplot(as.matrix(corr_matrix1), addCoef.col = "black",
              tl.offset = .8, cl.offset = 3, cl.ratio = .3,
-             number.cex = .8, tl.cex = .8, cl.cex = 1, number.font = .8,
+             number.cex = .7, tl.cex = .8, cl.cex = 1, number.font = .8,
              xlab = "", ylab = "", main = "", na.label = "--",
              # axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
              # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
@@ -1445,16 +1447,84 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
     }
   }
 
-  vert_line_y1 = length(pred_subset)+0.5
-  # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
-  # separate two normalized metrics from other metrics
-  arrows(x0=2.5, x1=2.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
-  #separate chinook from coho metrics
-  arrows(x0=5.5, x1=5.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
+    vert_line_y1 = length(pred_subset)+0.5
+    # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
+    # separate two normalized metrics from other metrics
+    arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
+    #separate chinook from coho metrics
+    # arrows(x0=5.5, x1=5.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
+    # if(predict_eco == "juvenile abundance"){
+    h_y = nrow(corr_matrix)-2+0.5 # horiz. line under the 2 spawner rows
+    x1_preds = ncol(corr_matrix1) + .5
+    arrows(x0 = 0.5, x1 = x1_preds, y0 = h_y, y1 = h_y, length = 0, lwd = 2)
+    # }
 
 }
 
-
+# corr_matrix_fig_spawners_as_x = function(corr_matrix, pred_subset, preds_in_order){
+#   pred_subset_fac = factor(pred_subset, levels = preds_in_order)
+#   pred_subset_in_order = sort(pred_subset_fac)
+#   ## Prepare for plotting
+#   #Prettify column names
+#   colname_matching_df = data.frame(data_name = c("coho_smolt_per_fem",
+#                                                  "chinook_juv_per_adult",
+#                                                  "coho_spawner_abundance",
+#                                                  "coho_redds_in_brood",
+#                                                  "coho_smolt_abun_est",
+#                                                  "chinook_spawner_abundance",
+#                                                  "chinook_juvenile_abundance"
+#                                                  # "percent_coho_smolt_survival",
+#   ),
+#   fig_name = c("Coho spf",
+#                "Chinook jpa",
+#                "Num. Co. Spawners",
+#                "Num. Co. Redds",
+#                "Co. Juv. Abun. Est.",
+#                "Num. Ch. Spawners",
+#                "Num. Ch. Juveniles"
+#                # "% Co. Smolt Survival"
+#   ))
+#
+#   # corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset_in_order, ]
+#   corr_matrix1 = corr_matrix[match(pred_subset_in_order, rownames(corr_matrix)),]
+#   colnames(corr_matrix1) = colname_matching_df$fig_name[match(colnames(corr_matrix1),
+#                                                               colname_matching_df$data_name)]
+#
+#
+#   if(length(pred_subset)>10){
+#     corrplot(as.matrix(corr_matrix1), addCoef.col = "black",
+#              tl.offset = .8, cl.offset = 3, cl.ratio = .3,
+#              number.cex = .8, tl.cex = .8, cl.cex = 1, number.font = .8,
+#              xlab = "", ylab = "", main = "", na.label = "--",
+#              # axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
+#              # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+#              col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+#                      # rep("white",2),
+#                      rep("lightcyan",2),
+#                      rep("lightskyblue",2),rep("deepskyblue4")),
+#              cl.pos = "r")
+#   } else {
+#     if(length(pred_subset)>10){
+#       corrplot(as.matrix(corr_matrix1), addCoef.col = "black",
+#                xlab = "", ylab = "", main = "", na.label = "--",
+#                axis.row = list(side = 2, las = 1), axis.col = list(side = 1, las = 2),
+#                # col = c("orangered3", "lightpink", "lightskyblue","deepskyblue4"),
+#                col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+#                        # rep("white",2),
+#                        rep("lightcyan",2),
+#                        rep("lightskyblue",2),rep("deepskyblue4")),
+#                cl.pos = "b")
+#     }
+#   }
+#
+#   vert_line_y1 = length(pred_subset)+0.5
+#   # arrows(x0=3.5, x1=3.5, y0=0.5, y1=vert_line_y1,
+#   # separate two normalized metrics from other metrics
+#   arrows(x0=2.5, x1=2.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
+#   #separate chinook from coho metrics
+#   arrows(x0=5.5, x1=5.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
+#
+# }
 
 # Lasso and Ridge Regression ----------------------------------------------
 
@@ -1527,8 +1597,14 @@ lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
   grid()
   abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
   abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
-  legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"),
-         legend = c(expression(Min.~err.~lambda~from~CV), expression(Alternative~lambda)))
+  if(!is.na(alt_lambda_co)){
+    legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"),
+           legend = c(expression(Min.~err.~lambda~from~CV), expression(Alternative~lambda)))
+  } else {
+    legend(x="bottomleft", lwd = 2, lty = 2, col= c("brown"),
+           legend = expression(Min.~err.~lambda~from~CV))
+  }
+
   legend(x = "topright", legend = "C", bty = "n") # panel label
 
   plot(log(mod_ch$lambda), mod_ch$dev.ratio, type = "l", ylim = c(0,1),
@@ -1799,10 +1875,10 @@ get_refined_x_and_y_for_lasso_mod_plus_spawn = function(mt,
   # 1a. remove rows with no response var
   non_pred_vals = c("brood_year","smolt_year","coho_smolt_per_fem",
                     "chinook_juv_per_adult",
-                    # "coho_spawner_abundance",
+                    "coho_spawner_abundance",
                     "coho_redds_in_brood",
                     "coho_smolt_abun_est",
-                    # "chinook_spawner_abundance",
+                    "chinook_spawner_abundance",
                     "chinook_juvenile_abundance"
                     # "percent_coho_smolt_survival"
   )
@@ -1810,11 +1886,11 @@ get_refined_x_and_y_for_lasso_mod_plus_spawn = function(mt,
 
 
   if(grepl(pattern="coho",x = y_val) == T){
-    x_spawn = "coho_spawner_abundance"
-    non_pred_vals = c(non_pred_vals, "chinook_spawner_abundance")}
+    x_spawn = "coho_spawners_zscored"
+    non_pred_vals = c(non_pred_vals, "chinook_spawners_zscored")}
   if(grepl(pattern="chinook",x = y_val) == T){
-    x_spawn = "chinook_spawner_abundance"
-    non_pred_vals = c(non_pred_vals, "coho_spawner_abundance")
+    x_spawn = "chinook_spawners_zscored"
+    non_pred_vals = c(non_pred_vals, "coho_spawners_zscored")
     }
 
 
@@ -2023,6 +2099,23 @@ get_refined_x_and_y_for_lasso_mod_plus_spawn = function(mt,
 ## Baruch et al., 2024. "Mimicking Functional Elements of the Natural Flow Regime
 ## Promotes Native Fish Recovery in a Regulated River." https://doi.org/10.1002/eap.3013.
 
+
+get_longest_cont_ts = function(y, y_years){
+  n_y = length(y)
+  changes = data.frame( missing = is.na(y), present = !is.na(y))
+  changes$first_cont_present_vals = changes$present & c(T, changes$missing[1:(n_y-1)])
+  changes$last_cont_present_vals = c(changes$missing[2:n_y],T) & changes$present
+  cont_lengths = which(changes$last_cont_present_vals) - which(changes$first_cont_present_vals) + 1
+  longest_j = which.max(cont_lengths)
+  first_i = which(changes$first_cont_present_vals)[longest_j]
+  last_i = which(changes$last_cont_present_vals)[longest_j]
+
+  out_tab = data.frame(years = y_years[first_i:last_i],
+                       y_cont = y[first_i:last_i])
+  return(out_tab)
+}
+
+
 # Manipulate observation data
 
 get_obs_data_for_MARSS = function(metrics_tab,
@@ -2197,6 +2290,29 @@ get_flow_and_spawn_cov_model_fit_for_MARSS = function(y_obs_tab, pred, y_spawn_c
   #   R = "diagonal and equal"))
 }
 
+marss_predict_plot_single_covars = function(metrics_tab, pred_yrs_i, y_val,
+                                            top_cov, top_models){
+  plot(metrics_tab$brood_year[pred_yrs_i],
+       metrics_tab[pred_yrs_i, y_val],
+       main = paste0("MARSS models of ", yvlt$y_val_title[yvlt$y_val==y_val],
+                     ", single hydrologic covariates"), pch = 19, #type = "o",
+       xlab = "Brood Year",
+       ylab = paste0("Log10 of ", yvlt$y_val_title[yvlt == y_val]))
+  grid()
+
+  for(j in 1:length(top_cov)){
+    pred_j = top_cov[j]
+    mod_name = paste0(y_val, "__", pred_j)
+    mod_j = top_models[[mod_name]]
+    prediction = predict(mod_j, type = "ytt")
+    lines(x = metrics_tab$brood_year[pred_yrs_i],
+          y = prediction$pred$estimate, col = j+1,
+          lty = 2, pch = 18)
+  }
+  legend(x = "bottomright", legend = top_cov,
+         col = 1+(1:length(top_cov)), lwd = 1)
+
+}
 
 # Hydrologic Benefit Function Results -------------------------------------
 
@@ -2236,7 +2352,10 @@ get_hbf_tab = function(mt, coefs, int){
 }
 
 hbf_over_time_fig = function(mt, hbf_tab, y_val,
-                             y_val_axis, write_hist_HB_vals=F){
+                             y_val_axis,
+                             write_hist_HB_vals=F,
+                             plot_yrs = NA,
+                             show_legend = T){
   # plot details
   neg_values = hbf_tab$hbf_total < 0
   if(sum(neg_values,na.rm=T)>0){
@@ -2244,6 +2363,7 @@ hbf_over_time_fig = function(mt, hbf_tab, y_val,
   }
   obs_col = "goldenrod"
 
+  if(sum(is.na(plot_yrs))>0){plot_yrs = hbf_tab$brood_year}
 
   if(write_hist_HB_vals == T){
     file_name = paste0("hist_HBF_vals_",y_val,"_",Sys.Date(),".csv")
@@ -2251,13 +2371,14 @@ hbf_over_time_fig = function(mt, hbf_tab, y_val,
               file = file_name, quote = F, row.names = F)}
 
   # Plot predicted values
-  par(mar=c(5,5,2,2))
-  plot(x=hbf_tab$brood_year, y=hbf_tab$hbf_total,
+  y_lims_for_plot = c(min(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T),
+                      max(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T))
+  par(mar=c(5,5,2,5))
+  plot(x=plot_yrs, y=rep(NA,length(plot_yrs)),#hbf_tab$hbf_total,
        col = NA,
-       ylim = c(min(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T),
-                max(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T)), #yaxt = "n",
+       ylim = y_lims_for_plot, #yaxt = "n",
        xlab = "Brood Year",
-       ylab = paste0("Hydrologic Benefit value \n (predicted ",y_val_axis, ")"))
+       ylab = paste0("Hydrologic Benefit value (predicted \n log10 of ",y_val_axis, ")"))
   # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
   abline(v = seq(from = 1940, to = 2140, by = 10),
          h = pretty(range(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T)),
@@ -2269,8 +2390,8 @@ hbf_over_time_fig = function(mt, hbf_tab, y_val,
   points(mt$brood_year, mt[,y_val],
          pch = 24, bg= obs_col, cex = 1.1)
   # Add arrows connecting predicted values with observed
-  arrows_x = mt$brood_year
-  arrows_y0 = mt[,y_val]
+  arrows_x = intersect(mt$brood_year[!is.na(mt[,y_val])], hbf_tab$brood_year)
+  arrows_y0 = mt[mt$brood_year %in% arrows_x, y_val]
   arrows_y1 = hbf_tab$hbf_total[hbf_tab$brood_year %in% arrows_x]
   arrows(x0 = arrows_x, y0 = arrows_y0, x1 = arrows_x, y1 = arrows_y1,
          length = 0, lty = 1, col = obs_col, lwd = 2)
@@ -2281,22 +2402,43 @@ hbf_over_time_fig = function(mt, hbf_tab, y_val,
   }
 
   abline(h=0, col = "darkgray")
-  if(y_val=="coho_smolt_per_fem"){legend_place = "bottomleft"} else {legend_place="topleft"}
-  if(sum(neg_values,na.rm=T)>0){
-    legend(legend_place, pch = c(19,neg_val_pch,24, NA),
-           pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
-           col = c("black", neg_value_col,"black", obs_col),
-           pt.bg=c(NA,NA,obs_col, NA), lwd = c(NA,NA,NA,2), lty = c(NA,NA,NA,1),
-           legend = c("Predicted", "Predicted (neg. value)",
-                      "Observed", "Pred. - Obs. difference"))
-  } else {
-    legend(legend_place, pch = c(19,24, NA),
-           pt.lwd = c(NA,2, NA), pt.cex = c(1,1.2, NA), bg="white",
-           col = c("black", "black", obs_col),
-           pt.bg=c(NA,obs_col, NA), lwd = c(NA,NA,2), lty = c(NA,NA,1),
-           legend = c("Predicted",
-                      "Observed", "Pred. - Obs. difference"))
+  if(y_val=="coho_smolt_per_fem"){
+    legend_place = "bottomleft"
+  } else if (predict_eco == "juvenile abundance, hydro and spawners"){
+    legend_place = "topright"
+  }  else {
+    legend_place="topleft"
+  }
+
+  if(show_legend==T){
+    if(sum(neg_values,na.rm=T)>0){
+      legend(legend_place, pch = c(19,neg_val_pch,24, NA),
+             pt.lwd = c(NA,2,1, NA), pt.cex = c(1,1,1.2, NA), bg="white",
+             col = c("black", neg_value_col,"black", obs_col),
+             pt.bg=c(NA,NA,obs_col, NA), lwd = c(NA,NA,NA,2), lty = c(NA,NA,NA,1),
+             legend = c("Predicted", "Predicted (neg. value)",
+                        "Observed", "Diff., pred.-obs."))
+    } else {
+      legend(legend_place, pch = c(19,24, NA),
+             pt.lwd = c(NA,2, NA), pt.cex = c(1,1.2, NA), bg="white",
+             col = c("black", "black", obs_col),
+             pt.bg=c(NA,obs_col, NA), lwd = c(NA,NA,2), lty = c(NA,NA,1),
+             legend = c("Predicted",
+                        "Observed", "Diff., pred.-obs."))
+
+    }
 
   }
+
+  par(new = T)
+  plot(1000,NA, ylim = 10^y_lims_for_plot,
+  log = "y", xaxt = "n", yaxt = "n", ylab = "", xlab = "",
+  )
+  axis_oom_range = range(c(ceiling(y_lims_for_plot), floor(y_lims_for_plot)))
+  axis_oom = axis_oom_range[1]:axis_oom_range[2]
+
+  axis(side = 4, at = 10^axis_oom, tck=-.04)
+  axis(side=4, at = (1:9) * 10^(sort(rep(axis_oom, 9))), labels = F, tck = -0.02)
+  mtext(paste0("Corresponding predicted \n ",y_val_axis), side = 4, line = 3)
 }
 
