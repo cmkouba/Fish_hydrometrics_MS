@@ -70,7 +70,7 @@ if(dev_mode){
 ```
 
 ```{r lassoRegYVal, echo = F}
-predict_eco = "juveniles per spawner"
+predict_eco = "juvenile abundance, hydro and spawners"# "juveniles per spawner"
 # Hydro-only predictors
 if(predict_eco == "juveniles per spawner"){y_val_chinook = "chinook_juv_per_adult"; y_val_coho = "coho_smolt_per_fem"}
 if(predict_eco == "juvenile abundance, hydro only"){y_val_chinook = "chinook_juvenile_abundance"; y_val_coho = "coho_smolt_abun_est"}
@@ -116,15 +116,15 @@ if(dev_mode){
     metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
                                        MARGIN = 2, FUN = zscore_column_na_rm)
     
-    # if(predict_eco == "juvenile abundance, hydro and spawners"){
-    #     # add spawners as a z-scored predictor variable
-    # metrics_tab$coho_spawners_zscored = 
-    #   zscore_column_na_rm(x = metrics_tab$coho_spawner_abundance)
-    # metrics_tab$chinook_spawners_zscored = 
-    #   zscore_column_na_rm(x = metrics_tab$chinook_spawner_abundance)
-    # non_preds = c(non_preds, "coho_spawners_zscored", "chinook_spawners_zscored")
-    
-    # }
+    if(predict_eco == "juvenile abundance, hydro and spawners"){
+        # add spawners as a z-scored predictor variable
+    metrics_tab$coho_spawners_zscored =
+      zscore_column_na_rm(x = metrics_tab$coho_spawner_abundance)
+    metrics_tab$chinook_spawners_zscored =
+      zscore_column_na_rm(x = metrics_tab$chinook_spawner_abundance)
+    non_preds = c(non_preds, "coho_spawners_zscored", "chinook_spawners_zscored")
+
+    }
   }
   
   # transform data
@@ -157,6 +157,10 @@ if(dev_mode){
                        #"w2_Wet_Tim", "s2_SP_ROC", "s2_SP_ROC_Max",
                        #"s2_SP_Tim", 
                        "f1_recon_120")
+  if(predict_eco == "juvenile abundance, hydro and spawners"){
+    screened_cols = c(screened_cols, "coho_spawners_zscored","chinook_spawners_zscored")
+    screened_cols_ch = c(screened_cols_ch, "coho_spawners_zscored","chinook_spawners_zscored")
+  }
   
   preds_screened = screened_cols[!(screened_cols %in% non_preds)]
   metrics_tab_screened = metrics_tab[,screened_cols]
@@ -516,9 +520,9 @@ fig_i = fig_i +1
 <!-- ``` -->
 
 
-## Lasso Regression, juveniles per spawner
+## Lasso Regression, juvenile abundance on hydro. and spawners
 
-```{r kfold_lambda_juv_per_adult, echo = FALSE}
+```{r alt_lasso_analysis, echo = FALSE}
 
 # calculate lasso regression model and cross-validation objects
 # (lasso: alpha = 1; ridge: alpha = 0)\
@@ -551,6 +555,9 @@ if(predict_eco == "juveniles per spawner"){
   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
   
 }
+
+
+
 
 
 ```
@@ -589,8 +596,8 @@ coefs_interp = as.character(coefs_co$coef_non0_only)
 names(coefs_interp) = coefs_interp_names
 
 if(predict_eco == "juvenile abundance, hydro and spawners"){
-  coefs_interp$coho_spawner_abundance = "Number of spawners (cohort's parents)"
-  coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
+  # coefs_interp$coho_spawner_abundance = "Number of spawners (cohort's parents)"
+  # coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
   coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
   # coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)"
@@ -610,7 +617,8 @@ coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)),
                          Value = as.vector(coefs_co_vals),
                          Description = coefs_co_interp)
 
-caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated coho smolts per female spawner, including a description of which phenomena are associated with higher ecological outcome values."
+caption_text = paste0("Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated ",
+y_val_coho,", including a description of which phenomena are associated with higher ecological outcome values.")
 
 coco_tab_ft = flextable(data=coefs_co_ft)
 coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
@@ -635,7 +643,7 @@ coefs_interp = as.character(coefs_ch$coef_non0_only)
 names(coefs_interp) = coefs_interp_names
 # add interpretation to each non-0 coefficient
 if(predict_eco == "juvenile abundance, hydro and spawners"){
-  coefs_interp$chinook_spawner_abundance = "Abundance of spawners (parents of designated cohort)"
+  coefs_interp$chinook_spawners_zscored = "Abundance of spawners (parents of designated cohort)"
   coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (as eggs and hatchlings)"
   coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)"
@@ -651,7 +659,8 @@ coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
                          Value = as.vector(coefs_ch_vals),
                          Description = coefs_ch_interp)
 
-caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated Chinook juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values."
+caption_text = paste0("Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated",
+                      y_val_chinook,", including a description of which hydrologic phenomena are associated with higher ecological outcome values.")
 
 coch_tab_ft = flextable(data=coefs_ch_ft)
 coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
@@ -777,51 +786,55 @@ if(file.exists(file.path(data_dir, model_list_file))){
 
 ```
 
-```{r MARSS_single_covar_table_co, echo = F, warning =F, results = 'asis'}
+```{r MARSSSingleCovarTableCoho, echo = F, warning =F, results = 'asis'}
 
-# y_val = "coho_smolt_per_fem"
 aicc_order_co = order(aicc_tab[,y_val_coho])
 # view predictors in order of AICc value (smallest first)
 results_y_co = data.frame(pred = aicc_tab[aicc_order_co, "pred"])
-results_y_co$aicc = round(aicc_tab[aicc_order_co, y_val_coho], 2)
 results_y_co$coef = round(coef_tab[aicc_order_co, y_val_coho], 3)
-colnames(results_y_co) = c("Covariate", "AICc", "Coefficient")
+results_y_co$aicc = round(aicc_tab[aicc_order_co, y_val_coho], 2)
+colnames(results_y_co) = c("Covariate", "Coefficient", "AICc")
+# make table for display
+results_y_co_ft = results_y_co
+didnt_model = is.na(results_y_co_ft$AICc)
+results_y_co_ft$AICc[didnt_model] = "--"; results_y_co_ft$Coefficient[didnt_model] = "--"
 
-caption_text = paste0("Characteristics of MARSS models of ", yvlt$y_val_title[yvlt$y_val==y_val_coho], " using one hydrologic metric as the single covariate in each model.")
+caption_text = paste0("Each row corresponds to a MARSS model predicting the time series of ", yvlt$y_val_title[yvlt$y_val==y_val_coho], " observations using itself (up to time t) and one hydrologic metric covariate. Coefficient sign and value indicate the direction and strength of the influence of the hydrologic metric; i.e., a negative coefficient for hydrologic metric f1_recon_120 indicates that an earlier first fall river reconnection (120 cfs) is associated with a greater ", yvlt$y_val_title[yvlt$y_val==y_val_coho], " value. Models are listed in order from best (lowest AICc value) to worst.  Values marked with -- indicate that gaps in the time series for the hydrologic metric prevented the calculation of a model using that covariate.")
 
-coco_tab_ft = flextable(data=results_y_co)
+coco_tab_ft = flextable(data=results_y_co_ft)
 coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
-coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 2)
 coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
-coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
-coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
-                                           values = list(
-                                             Predictor ="Predictor", 
-                                             Value = "Value",
-                                             Description = "Greater Hydrologic Benefit value associated with"))
+coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 1)
 coco_tab_ft
 
 
 ```
 
 
-```{r MARSS_single_covar_table_ch, echo = F, results = 'asis'}
+```{r MARSSSingleCovarTableChinook, echo = F, results = 'asis'}
 
 aicc_order_ch = order(aicc_tab[,y_val_chinook])
 # view predictors in order of AICc value (smallest first)
 results_y_ch = data.frame(pred = aicc_tab[aicc_order_ch, "pred"])
-results_y_ch$aicc = round(aicc_tab[aicc_order_ch, y_val_chinook], 2)
 results_y_ch$coef = round(coef_tab[aicc_order_ch, y_val_chinook], 3)
-colnames(results_y_ch) = c("Covariate", "AICc", "Coefficient")
+results_y_ch$aicc = round(aicc_tab[aicc_order_ch, y_val_chinook], 2)
+colnames(results_y_ch) = c("Covariate", "Coefficient", "AICc")
+season_abbrev = substr(x = results_y_ch$Covariate, start = 1, stop = 2)
+# make table for display
+results_y_ch_ft = results_y_ch[!(season_abbrev %in% c("d2", "f2", "w2", "s2")),] # exclude predictors that don't temporally affect chinook smolt
+didnt_model = is.na(results_y_ch_ft$AICc)
+results_y_ch_ft$AICc[didnt_model] = "--"; results_y_ch_ft$Coefficient[didnt_model] = "--"
 
 
-caption_text = paste0("Characteristics of MARSS models of ", yvlt$y_val_title[yvlt$y_val==y_val_chinook], " using one hydrologic metric as the single covariate in each model.")
+caption_text = paste0("Each row corresponds to a MARSS model predicting the time series of ", yvlt$y_val_title[yvlt$y_val==y_val_chinook], " observations using itself (up to time t) and one hydrologic metric covariate. Coefficient sign and value indicate the direction and strength of the influence of the hydrologic metric; i.e., a negative coefficient for hydrologic metric f1_recon_120 indicates that an earlier first fall river reconnection (120 cfs) is associated with a greater ", yvlt$y_val_title[yvlt$y_val==y_val_chinook], " value. Models are listed in order from best (lowest AICc value) to worst.  Values marked with -- indicate that gaps in the time series for the hydrologic metric prevented the calculation of a model using that covariate.")
 
-coch_tab_ft = flextable(data=results_y_ch)
+
+coch_tab_ft = flextable(data=results_y_ch_ft)
 coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
-coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 2)
 coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
-coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
+coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 1)
 coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
                                            values = list(
                                              Predictor ="Predictor", 
@@ -833,7 +846,7 @@ coch_tab_ft
 
 ```
 
-```{r MARSSSingleCovars, echo = F, warning = F, fig.height = 8, fig.cap = "Results of MARSS to predict log-transformed Chinook outcomes with Z-scored hydrologic metrics.\\label{fig:MARSSSingleCovars}"}
+```{r MARSSSingleCovars, echo = F, warning = F, fig.height = 8, fig.cap = "Results of the three best single-hydrologic-covariate MARSS models to predict log-transformed Chinook and coho outcomes with Z-scored hydrologic metrics.\\label{fig:MARSSSingleCovars}"}
 
 n_mods = 3# for plot
 top_cov_co = results_y_co$Covariate[order(results_y_co$AICc)][1:n_mods]
@@ -1051,19 +1064,22 @@ results_y_co = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
 results_y_co$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
 results_y_co$flow = round(flow_tab[order(aicc_tab[,y_val]), y_val], 3)
 results_y_co$spawn = round(spawn_tab[order(aicc_tab[,y_val]), y_val], 3)
+results_y_co$HtoSratio = round(results_y_co$flow / results_y_co$spawn,1)
 
 
 afs_co_tab_ft = flextable(data=results_y_co)
 caption_text = paste0("Characteristics of MARSS models of", yvlt$y_val_title[yvlt$y_val==y_val], "using one hydrologic metric as the single covariate in each model.")
 
+
+afs_co_tab_ft = flextable::width(afs_co_tab_ft,j=1,  width = 2.5)
 afs_co_tab_ft = flextable::width(afs_co_tab_ft,j=3,  width = 1)
 afs_co_tab_ft = flextable::width(afs_co_tab_ft,j=4,  width = 1)
-# afs_co_tab_ft = flextable::set_header_labels(afs_co_tab_ft,
-#                                            values = list(
-# pred = Hydrologic Covariate,
-#                                              aicc = "AICc",
-#                                              flow ="Hydro Coef.",
-#                                              spawn = "Spawner Coef."))
+afs_co_tab_ft = flextable::set_header_labels(afs_co_tab_ft,
+                                           values = list(
+                                             pred = "Hydrologic Covariate",
+                                             aicc = "AICc",
+                                             flow ="Hydro Coef.",
+                                             spawn = "Spawner Coef."))
 afs_co_tab_ft
 ```
 
@@ -1075,12 +1091,12 @@ results_y_ch = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
 results_y_ch$aicc = round(aicc_tab[order(aicc_tab[, y_val]), y_val], 2)
 results_y_ch$flow = round(flow_tab[order(aicc_tab[,y_val]), y_val], 3)
 results_y_ch$spawn = round(spawn_tab[order(aicc_tab[,y_val]), y_val], 4)
+results_y_ch$HtoS_ratio = round(results_y_ch$flow / results_y_ch$spawn,1)
 
 
 afs_ch_tab_ft = flextable(data=results_y_ch)
 caption_text = paste0("Characteristics of MARSS models of", yvlt$y_val_title[yvlt$y_val==y_val], "using one hydrologic metric as the single covariate in each model.")
-afs_ch_tab_ft = flextable::width(afs_ch_tab_ft,j=1,  width = 2)
-
+afs_ch_tab_ft = flextable::width(afs_ch_tab_ft,j=1,  width = 2.5)
 afs_ch_tab_ft = flextable::width(afs_ch_tab_ft,j=3,  width = 1)
 afs_ch_tab_ft = flextable::width(afs_ch_tab_ft,j=4,  width = 1)
 afs_ch_tab_ft = flextable::set_header_labels(afs_ch_tab_ft,
@@ -1098,13 +1114,15 @@ afs_ch_tab_ft
 n_mods = 3# for plot
 top_cov_co = results_y_co$pred[order(results_y_co$aicc)][1:n_mods]
 top_mods_co = list_of_mods[paste0(y_val_coho, "__", top_cov_co)]
-yrs_with_data = which(!is.na(metrics_tab[,y_val_coho]))
-pred_yrs_i_co = min(yrs_with_data):max(yrs_with_data)
+yrs_with_data_yval = which(!is.na(metrics_tab[,y_val_coho]))
+yrs_with_data_spawn = which(!is.na(metrics_tab[,"coho_spawners_zscored"]))
+pred_yrs_i_co = min(yrs_with_data_spawn):max(yrs_with_data_yval)
 
 top_cov_ch = results_y_ch$pred[order(results_y_ch$aicc)][1:n_mods]
 top_mods_ch = list_of_mods[paste0(y_val_chinook, "__", top_cov_ch)]
-yrs_with_data = which(!is.na(metrics_tab[,y_val_chinook]))
-pred_yrs_i_ch = min(yrs_with_data):max(yrs_with_data)
+yrs_with_data_yval = which(!is.na(metrics_tab[,y_val_chinook]))
+yrs_with_data_spawn = which(!is.na(metrics_tab[,"chinook_spawners_zscored"]))
+pred_yrs_i_ch = min(yrs_with_data_spawn):max(yrs_with_data_yval)
 
 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
@@ -1112,14 +1130,16 @@ if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   
   par(mfrow = c(2,1))
-  marss_predict_plot_single_covars(metrics_tab = metrics_tab,
+  marss_predict_plot_flow_and_spawn(metrics_tab = metrics_tab,
                                    pred_yrs_i = pred_yrs_i_co,
-                                   y_val = y_val_coho, top_cov = top_cov_co,
+                                   y_val = y_val_coho, 
+                                   top_cov = top_cov_co,
                                    top_models = top_mods_co)
 
-  marss_predict_plot_single_covars(metrics_tab = metrics_tab,
+  marss_predict_plot_flow_and_spawn(metrics_tab = metrics_tab,
                                    pred_yrs_i = pred_yrs_i_ch,
-                                   y_val = y_val_chinook, top_cov = top_cov_ch,
+                                   y_val = y_val_chinook, 
+                                   top_cov = top_cov_ch,
                                    top_models = top_mods_ch)  
   
   dev.off()

@@ -1599,7 +1599,7 @@ lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
   abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
   if(!is.na(alt_lambda_co)){
     legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"),
-           legend = c(expression(Min.~err.~lambda~from~CV), expression(Alternative~lambda)))
+           legend = c(expression(Min.~err.~lambda~from~CV), expression(Alt.~low~err.~lambda)))
   } else {
     legend(x="bottomleft", lwd = 2, lty = 2, col= c("brown"),
            legend = expression(Min.~err.~lambda~from~CV))
@@ -1871,7 +1871,6 @@ get_refined_x_and_y_for_lasso_mod = function(mt,
 get_refined_x_and_y_for_lasso_mod_plus_spawn = function(mt,
                                              y_val = "coho_smolt_per_fem"){
   #step 1. Prep x matrix and y array
-  # (Dev: run manuscript .Rmd through line 395)
   # 1a. remove rows with no response var
   non_pred_vals = c("brood_year","smolt_year","coho_smolt_per_fem",
                     "chinook_juv_per_adult",
@@ -1894,34 +1893,11 @@ get_refined_x_and_y_for_lasso_mod_plus_spawn = function(mt,
     }
 
 
-  # if(y_val=="coho_smolt_per_fem"){non_pred_vals = c(non_pred_vals,"chinook_juv_per_adult")}
-  # if(y_val=="chinook_juv_per_adult"){non_pred_vals = c(non_pred_vals,"coho_smolt_per_fem")}
   non_y_vals = non_pred_vals[non_pred_vals != y_val]
   mt = mt[,!(colnames(mt) %in% non_y_vals)]
   mt = mt[!(is.na(mt[,y_val]) | is.na(mt[, x_spawn])),]
   na_col_detector = apply(X = mt, MARGIN = 2, FUN = sum)
   mt = mt[,!is.na(na_col_detector) ]
-
-  # 1b. Optional. Remove the other thresholds or Smolt Year metrics
-  # if(remove_extra_recon_thresholds==T){
-  #   remove_these = c("f1_recon_15", "f1_recon_20", "f1_recon_50", "f1_recon_80",
-  #                    "s1_discon_15", "s1_discon_20", "s1_discon_50", "s1_discon_80",
-  #                    "f2_recon_15", "f2_recon_20", "f2_recon_50", "f2_recon_80",
-  #                    "s2_discon_80")
-  #   mt = mt[,!(colnames(mt) %in% remove_these)]
-  # }
-  # if(remove_SY_metrics == T){
-  #   remove_these = grepl(pattern = "SY", x=colnames(mt)) |
-  #     grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
-  #   mt = mt[,!remove_these]
-  # }
-  # if(remove_RY_metrics == T){
-  #   remove_these = grepl(pattern = "RY", x=colnames(mt)) |
-  #     grepl(pattern = "tot_flow_CFLP", x=colnames(mt))
-  #   mt = mt[,!remove_these]
-  # }
-
-  # 2. Lasso Regression
 
   # Set up x and y, and retrieve table of best lambda and rmse values
   y = mt[,y_val]
@@ -2296,6 +2272,30 @@ marss_predict_plot_single_covars = function(metrics_tab, pred_yrs_i, y_val,
        metrics_tab[pred_yrs_i, y_val],
        main = paste0("MARSS models of ", yvlt$y_val_title[yvlt$y_val==y_val],
                      ", single hydrologic covariates"), pch = 19, #type = "o",
+       xlab = "Brood Year",
+       ylab = paste0("Log10 of ", yvlt$y_val_title[yvlt == y_val]))
+  grid()
+
+  for(j in 1:length(top_cov)){
+    pred_j = top_cov[j]
+    mod_name = paste0(y_val, "__", pred_j)
+    mod_j = top_models[[mod_name]]
+    prediction = predict(mod_j, type = "ytt")
+    lines(x = metrics_tab$brood_year[pred_yrs_i],
+          y = prediction$pred$estimate, col = j+1,
+          lty = 2, pch = 18)
+  }
+  legend(x = "bottomright", legend = top_cov,
+         col = 1+(1:length(top_cov)), lwd = 1)
+
+}
+
+marss_predict_plot_flow_and_spawn = function(metrics_tab, pred_yrs_i, y_val,
+                                            top_cov, top_models){
+  plot(metrics_tab$brood_year[pred_yrs_i],
+       metrics_tab[pred_yrs_i, y_val],
+       main = paste0("MARSS models of ", yvlt$y_val_title[yvlt$y_val==y_val],
+                     ", with two cov. \n (spawners and one hydro. metric)"), pch = 19, #type = "o",
        xlab = "Brood Year",
        ylab = paste0("Log10 of ", yvlt$y_val_title[yvlt == y_val]))
   grid()

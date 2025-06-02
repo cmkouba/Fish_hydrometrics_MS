@@ -76,8 +76,8 @@ zscore_flow_metrics = T
 
 ```{r select_eco_metric_3, echo = F, warning =F, comment = F}
 
-predict_eco = "juvenile abundance, hydro and spawners" #"juveniles per spawner" # "juveniles per spawner"
-# predict_eco = "juveniles per spawner"
+# predict_eco = "juvenile abundance, hydro and spawners" #"juveniles per spawner" # "juveniles per spawner"
+predict_eco = "juveniles per spawner"
 # predict_eco = "juvenile abundance, hydro only"
 
   # Based on the need for a normalized metric, going to select the juvenile per adult metric.
@@ -420,11 +420,38 @@ After aligning the hydrologic predictors and ecological responses, we calculated
 
 To generate predictive models, we make an assumption of independence for each year of ecological observation data. Cohort effects may reduce the validity of this assumption (i.e. the number of coho spawners in year 2009 may be partly dependent on the number of spawners in 2006). In order to control somewhat for cohort effects, we selected the normalized metric available for each species as the ecological response variable: coho smolts per female spawner (coho spf) and Chinook juveniles per spawner spawner (Chinook jpa). We used the correlation coefficents between the hydrologic metrics and ecological observations to assess the relatedness of the two species outcomes with hydrology, and determined that one was significantly less related. For completeness, we also compared the $R$ values of the two selected metrics to the other (non-normalized) ecological data types.
 
-## Step 6. Generate predictive model with lasso regression 
+## Step 6. Generate predictive models 
+
+```{r statsMethodsTable, echo = F, warning =F, results = 'asis'}
+
+stats_tab = data.frame(Predicts = c("juveniles per adult", "juvenile abundance", "juveniles per adult", "juvenile abundance"),
+                       Method = c("Lasso", "Lasso", "MARSS", "MARSS"),
+                         Predictors = c("hydrologic metrics", "hydrologic metrics and spawner abundance", 
+                                        "hydrologic metrics", "hydrologic metrics and spawner abundance"),
+                         Location = c("Main text (selected as primary method)", rep("Supplement",3)))
+
+stats_tab = stats_tab[c(1,3,2,4),]
+
+caption_text = paste0("Description of the four techniques considered in this study for modeling ecological outcomes using hydrologic metrics (and available ecological data, if applicable).")
+
+st_ft = flextable(data=stats_tab)
+st_ft = set_caption(st_ft, caption = caption_text)
+st_ft = flextable::width(st_ft,j=1,  width = 2)
+st_ft = flextable::width(st_ft,j=3,  width = 2)
+st_ft = flextable::width(st_ft,j=4,  width = 1.5)
+st_ft = flextable::set_header_labels(st_ft,
+                                           values = list(
+                                             Predicts ="Predicts (log-transformed obs.)",
+                                             Method = "Method",
+                                             Predictors = "Predictors (Z-scored)",
+                                             Location = "Location"))
+st_ft
+
+```
 
 With hydrologic metrics assigned to each salmon generation, indexed by brood-year (*Supplemental Table 2*), we assessed the potential for hydrologic metrics to predict biological outcomes by performing lasso regression [@; EtAlIntroduction2013; @RanstamCookLASSO2018] between `r num_predictors` (standardized) hydrologic predictors and the two ecological data types selected in the previous step (one for coho and one for Chinook). 
 
-### General approach
+### Lasso Regression, general approach
 
 We used the R programming environment [@TheRFoundationProject2025] and the linear modeling function `glmnet()` [@FriedmanEtAlRegularization2010] to perform variable selection using lasso regression. Lasso regression is less flexible than the classic least squares regression, and is commonly used in high-dimensional data settings, where the number of possible predictors approaches or exceeds the number of observations [@; EtAlIntroduction2013]. Because the solution can set some coefficients to 0, thereby removing their associated predictors from the final model, lasso regression can also perform predictor selection. Additionally, the `glmnet()` function standardizes the predictor values to have a unit variance before the lasso analysis, and then un-standardizes the resulting coefficients [@FriedmanEtAlRegularization2010].
 
@@ -835,6 +862,63 @@ fig_i = fig_i +1
 
 ## Lasso regression
 
+
+
+
+```{r findingsTab, echo = F, warning =F, results = 'asis'}
+findings_tab = data.frame(Predicts = c("juveniles per adult", "juvenile abundance", "juveniles per adult", "juvenile abundance"),
+                       Method = c("Lasso", "Lasso", "MARSS", "MARSS"),
+                         # Predictors = c("hydrologic metrics", "hydrologic metrics and spawner abundance", 
+                         #                "hydrologic metrics", "hydrologic metrics and spawner abundance"),
+                         # Location = c("Main text (Selected as primary method)", rep("Supplement",3)),
+                       MostImportantHydroCoho = c("Earlier first fall reconnection, longer first wet season, smaller second fall flow increase, faster second spring recession",
+                                                  "Larger first fall flow increase, smaller second fall flow increase, slower first spring recession",
+                                                  "Earlier fall reconnection, larger first fall flow increase, greater first wet season baseflow",
+                                                  "Larger first fall flow increase, earlier fall reconnection, greater dry season high flows"),
+                       MostImportantHydroChinook = c("Lower wet season baseflow, slower max. spring recession rate, longer wet season",
+                                                     "Lower wet season baseflow, (spawner abundance), slower max. spring recession, longer wet season",
+                                                     "Greater dry season high flows, slower max. spring recession rate, earlier fall reconnection",
+                                                     "Slower max. spring recession rate, lower wet season baseflow, earlier fall reconnection"),
+                       
+                       #                        MostImportantHydroCoho = c("f1_recon_120, w1_Wet_BFL_Dur, f2_FA_Dif_num, s2_SP_ROC",
+                       #                            "f1_FA_Dif_num, f2_FA_Dif_num, s1_SP_ROC",
+                       #                            "f1_recon_120, f1_FA_Dif_num, w1_Wet_BFL_Mag_50, d1_DS_Mag_90",
+                       #                            "f1_FA_Dif_num, f1_recon_120, d1_DS_Mag_90, w1_Wet_BFL_Mag_50"),
+                       # MostImportantHydroChinook = c("w1_Wet_BFL_Mag_50, s1_SP_ROC_Max, w1_Wet_BFL_Dur",
+                       #                               "w1_Wet_BFL_Mag_50, (spawner abundance), s1_SP_ROC_Max, w1_Wet_BFL_Dur",
+                       #                               "d1_DS_Mag_90, s1_SP_ROC_Max, f1_recon_120, w1_Wet_BFL_Dur",
+                       #                               "s1_SP_ROC_Max, w1_Wet_BFL_Mag_50, f1_recon_120, d1_DS_Mag_50"), 
+                       H2SRatioCo= c("(untested)", "Greater hydro influence; Hydro-to-Spawner >8x","(untested)","~Equivalent influence (Hydro-to-Spawner of 0.7 to 1.5)"),
+                                              H2SRatioCh= c("(untested)", "Greater hydro influence; Hydro-to-Spawner >2x","(untested)","Greater hydro influence; Hydro-to-Spawner of 1.7 to 6.3"))
+
+findings_tab = findings_tab[c(1,3,2,4),]
+
+caption_text = "Description of four different techniques for modeling two types ecological outcomes using hydrologic metrics (and available ecological data, if applicable)."
+
+ft_ft = flextable(data=findings_tab)
+ft_ft = set_caption(ft_ft, caption = caption_text)
+ft_ft = flextable::width(ft_ft,j=3,  width = 1.9)
+ft_ft = flextable::width(ft_ft,j=4,  width = 1.9)
+ft_ft = flextable::width(ft_ft,j=5,  width = 1.4)
+ft_ft = flextable::width(ft_ft,j=6,  width = 1.4)
+
+# add complex header
+
+ft_ft = flextable::set_header_labels(ft_ft,
+                                           values = list(
+                                             Predicts ="",
+                                             Method = "",
+                                             # MostImportantHydroCoho = "Important Hydro. for Coho",
+                                             # MostImportantHydroChinook = "Important Hydro. for Chinook",
+                                             MostImportantHydroCoho = "Coho",
+                                             MostImportantHydroChinook = "Chinook",
+                                             # H2SRatioCo = "Coef. Ratios, Hydro-to-Spawner",
+                                             H2SRatioCo = "Coho", H2SRatioCh= "Chinook"))
+
+ft_ft = add_header_row(ft_ft, values = c("Predicts","Method","Most Important Hydrologic Metrics","Hydrologic vs. Spawner Influence (Coef. Ratios)"), colwidths = c(1,1,2,2), top = T)
+ft_ft
+```
+
 Lasso regression findings included results from the 50% test-train subsets and from the full dataset (Figures \@ref(fig:lassoResultsCoho) and \@ref(fig:lassoResultsChinook); Tables \@ref(tab:predAppearTabCoho) and \@ref(tab:predAppearTabChinook)). During the test-train step, each of the 1,716 and 10,000 (coho and Chinook, respectively) subsets produced an optimal lambda value and associated regression model with a number of non-zero coefficients (degrees of freedom). The test errors informed the selection of the final lambda value, while the order of appearance of the non-zero coefficients in their optimal regression models allowed us to assess general predictor rank stability. During the full dataset analysis, we examined predictor coefficient values and percent of variability (deviation from the mean) in ecological data explained by hydrology across a range of lambda values. 
 
 Finally, we used the final lambda value and the full dataset to generate a regression model to be used as a predictive tool (the Hydrologic Benefit function). As mentioned in Methods, we selected normalized values of reproductive success for both species as the ecological response variable: coho smolts per female spawner (coho spf) and Chinook juveniles per spawner spawner (Chinook jpa). These metrics isolate the effects of the freshwater environment on a given salmon cohort and minimize the importance of ocean conditions or cohort strength. 
@@ -898,14 +982,14 @@ if(predict_eco == "juvenile abundance, hydro and spawners"){
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
-# if(predict_eco %in% c("juvenile abundance, hydro and spawners")){
-#   lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch)
-# 
-# }
-# if(predict_eco %in% c("juveniles per spawner", "juvenile abundance, hydro only")){
+if(predict_eco %in% c("juvenile abundance, hydro and spawners")){
+  lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch)
+
+}
+if(predict_eco %in% c("juveniles per spawner", "juvenile abundance, hydro only")){
 lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, 
-              mod_ch = mod_ch)
-# }
+              mod_ch = mod_ch, alt_lambda_co = alt_lambda_co)
+}
 
 # par(mfrow = c(3,2))
 # # Row 1: CV error and min lambda
