@@ -940,35 +940,38 @@ y_val_label_tab = function(){
   spawn_szns = paste(c("d1", "f1", "w1"), collapse = ", ")
   # spawn_szns = paste(c("d1", "f1"), collapse = ", ")
 
-  y_val_label_tab = data.frame(y_val = c("coho_smolt_per_fem",
+  y_val_label_tab = data.frame(y_val = c("chinook_spawner_abundance",
+                                         "chinook_juvenile_abundance",
                                          "chinook_juv_per_adult",
                                          "coho_spawner_abundance",
-                                         "coho_redds_in_brood",
                                          "coho_smolt_abun_est",
-                                         "chinook_spawner_abundance",
-                                         "chinook_juvenile_abundance"
+                                         "coho_smolt_per_fem",
+                                         "coho_redds_in_brood"
+
   ),
-  y_val_title = c("coho spf","Chinook jpa",
-                  "coho escapement",
-                  "coho redd abundace",
+  y_val_title = c("Chinook spawners",
+                  "Chinook juv. abundance",
+                  "Chinook jpa",
+                  "coho spawners",
                   "coho smolt abundance",
-                  "Chinook escapement",
-                  "Chinook juv. abundance"
+                  "coho spf",
+                  "coho redd abundace"
+
   ),
-  y_val_label = c("Coho smolt per fem. spawner",
+  y_val_label = c("Num. Chinook spawners",# (escapement)",
+                  "Num. Chinook juveniles",
                   "Chinook juv. per adult",
                   "Num. coho spawners",# (escapement)",
-                  "Num. obs. coho redds",
                   "Est. num. coho smolt",
-                  "Num. Chinook spawners",# (escapement)",
-                  "Num. Chinook juveniles"),
-  influencing_seasons = c(all_szns,
+                  "Coho smolt per fem. spawner",
+                  "Num. obs. coho redds"),
+  influencing_seasons = c(spawn_szns,
+                          y1_szns,
                           y1_szns,
                           spawn_szns,
-                          spawn_szns,
                           all_szns,
-                          spawn_szns,
-                          y1_szns))
+                          all_szns,
+                          spawn_szns))
   return(y_val_label_tab)
 }
 
