@@ -1311,7 +1311,6 @@ zscore_column_na_rm = function(x){
 
 # Correlations ------------------------------------------------------------
 
-
 calc_corr_matrix=function(metrics_tab,
                           preds_all,
                           corr_method = "pearson",
@@ -1414,11 +1413,9 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
   colnames(corr_matrix1) = colname_matching_df$fig_name[match(colnames(corr_matrix1),
                                                              colname_matching_df$data_name)]
 
-  # if(predict_eco == "juvenile abundance"){
     rownames(corr_matrix1)[rownames(corr_matrix1) %in% colname_matching_df$data_name] =
       colname_matching_df$fig_name[match(rownames(corr_matrix1),
                                          colname_matching_df$data_name)]
-  # }
 
 
   if(length(pred_subset)>10){
@@ -1525,6 +1522,129 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
 #   arrows(x0=5.5, x1=5.5, y0=0.5, y1=vert_line_y1, length=0, lwd=2)
 #
 # }
+
+collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
+                                        minimum_years = 10,
+                                        high_corr_threshold = 0.7,
+                                        zscore_flow_metrics = T,
+                                        return_tab = "elim_pred_tab"){
+
+
+  # Exclude predictors with too small a sample size
+  mt_years_count = apply(X=metrics_tab, MARGIN = 2, FUN = function(x){sum(!is.na(x))})
+  # minimum_years = 10
+  too_few_years = names(mt_years_count)[mt_years_count < minimum_years]
+
+  # Select high correlation threshold (0.7 after Baruch et al 2024)
+  high_corr_threshold = 0.7
+
+  # Make new table of corr. coeffs, excluding index years, eco responses,
+  # and predictors with too-small sample size
+  corr_tab_screener = corr_tab_all_metrics
+  diag(corr_tab_screener) = NA # exclude 1.0 R values along diagonal
+
+  exclude_these = colnames(corr_tab_screener) %in% too_few_years +
+    colnames(corr_tab_screener) %in% c("brood_year","smolt_year") +
+    grepl(pattern = "coho", x = colnames(corr_tab_screener)) |
+    grepl(pattern = "chinook", x = colnames(corr_tab_screener))
+
+  corr_tab_screener = corr_tab_screener[!exclude_these, ]
+  corr_tab_screener = corr_tab_screener[ ,!exclude_these]
+
+  # Convert remaining corr. coefs into a long-form table
+  corr_tab_long = melt(corr_tab_screener)
+  ctl = corr_tab_long
+  ctl = ctl[!(is.na(ctl$value)),] # remove NA values
+
+  # explore the predictors correlated with the highest number of other predictors
+
+  # To find the most parsimonious explainer, pick one predictor from each group of
+  # collinears, and eliminate the remaining ones until no abs(R)> threshold remain
+
+  # Sort predictors according to highest number of collinears > threshold
+  preds_sort = sort(table(ctl$Var1[abs(ctl$value) > high_corr_threshold]), decreasing = T)
+  # identify the predictors collinear with the top-correlated predictor
+  collin_preds = preds_sort[preds_sort > 0]
+  # Initialize the while loop and structures to record the collinear groups
+  loop = 1; collinear_group = list(); selected_pred = list()
+
+  while(length(collin_preds)>0){
+    most_collin_pred = names(collin_preds[1]) # pick predicter with highest number of collinears
+    collinear_with = unique(ctl$Var2[ctl$Var1 == most_collin_pred &
+                                       abs(ctl$value) > high_corr_threshold])
+
+    # Record the groups of collinear predictors and the ultimate selected one
+    if(zscore_flow_metrics == F){
+      collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
+      if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
+      if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
+      if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
+      if(loop==4){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
+      if(loop==5){selected_pred[[loop]] = "w2_Wet_BFL_Dur"} # Dry to wet transition timing (rearing juv)
+      if(loop==6){selected_pred[[loop]] = "d1_DS_Dur_WS"} # Fall pulse magnitude during spawning (diff has higher sample size)
+      if(loop==7){selected_pred[[loop]] = "f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+      if(loop==8){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    }
+
+    if( zscore_flow_metrics == T){
+      collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
+      collinear_group[[loop]]
+      loop
+      if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
+      if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
+      if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
+      if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
+      if(loop==5){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the first wet season
+      if(loop==6){selected_pred[[loop]] = "f1_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+      if(loop==7){selected_pred[[loop]] = "f2_FA_Dif_num"}#"f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+      selected_pred[[loop]]
+    }
+
+    # Remove the other collinears
+    keep = selected_pred[[loop]] # Keep this one
+    dont_keep = collinear_group[[loop]][collinear_group[[loop]] != keep] # exclude these ones
+    ctl = ctl[!(ctl$Var1 %in% dont_keep |
+                  ctl$Var2 %in% dont_keep),]
+    # Recalculate the number of remaining collinear predictors with R > threshold
+    preds_sort = sort(table(ctl$Var1[abs(ctl$value) > high_corr_threshold]), decreasing = T)
+    collin_preds = preds_sort[preds_sort>0]
+    loop = loop + 1
+    loop
+  }
+
+  # Restructure the groups and eliminated predictors in a table
+  elim_pred_tab_col1 = unlist(lapply(X=collinear_group, FUN = function(x){paste(x, collapse = ", ")}))
+  if(zscore_flow_metrics == F){
+    elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
+                           "How wet was the wet season? (year 2, as rearing juv.)",
+                           "How dry was the dry season? (pre-spawning)",
+                           "How long was the wet season? (year 1, as eggs and fry)",
+                           "How long was the wet season? (year 2, as rearing juv.)",
+                           "How long was the dry season? (pre-spawning)",
+                           "Fall pulse magnitude (year 1, during parents' spawning)",
+                           "Fall pulse magnitude (year 2, as rearing juv.)")
+  }
+  if(zscore_flow_metrics == T){
+    elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
+                           "How wet was the wet season? (year 2, as rearing juv.)",
+                           "How dry was the dry season? (pre-spawning",
+                           "Dry to wet season transition timing (as rearing juv.)",
+                           "How long was the wet season (as eggs and fry)",
+                           "Fall pulse magnitude (parents' spawning)",
+                           "Fall pulse magnitude (rearing juv.)")
+  }
+
+
+  elim_pred_tab_col3 = unlist(selected_pred)
+
+  elim_pred_tab = data.frame(collin_group=elim_pred_tab_col1,
+                             interp = elim_pred_tab_col2,
+                             selected_pred = elim_pred_tab_col3)
+
+  if(return_tab == "elim_pred_tab"){return(elim_pred_tab)}
+  if(return_tab == "corr_tab_long_screened"){return(ctl)}
+
+}
 
 # Lasso and Ridge Regression ----------------------------------------------
 

@@ -8,6 +8,7 @@ output:
     number_sections: true
     global_numbering: true
 bibliography: draft_library.bib
+biblio-style: "apalike"
 ---
 
 ```{r setup_dirs_load_data, include = FALSE}
@@ -100,20 +101,21 @@ if(predict_eco == "juvenile abundance, hydro and spawners"){
 
 #table of ecological record identifiers
 yvlt = y_val_label_tab()
-spawner_records = yvlt$y_val[grepl(pattern = "spawner", x = yvlt$y_val)]
-if(predict_eco == "juvenile abundance, hydro and spawners"){
-  spawner_records = c("coho_spawners_zscored", "chinook_spawners_zscored")
-    }
+# spawner_records = yvlt$y_val[grepl(pattern = "spawner", x = yvlt$y_val)]
+spawner_z_records = c("coho_spawners_zscored", "chinook_spawners_zscored")
 
 ```
 
 # Abstract {-}
 
-In many rural areas of arid and semi-arid regions, balancing agricultural and environmental water needs is a key challenge facing resource managers. This is complicated  by the tendency for the water needs of cultivated crops to be better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species using a functional flows framework. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study.
 
-Taking advantage of a nearly two-decade ecological monitoring dataset and long-term stream gauge measurements, we used lasso regression to build predictive models of coho and Chinook salmon reproductive success based on hydrologic metrics. To control for cohort effects, we chose normalized ecological response metrics for coho and Chinook (number of outmigrating smolt per spawning adult or spawning adult female). For both species, we calculated optimal prediction models using a cross-validation bootstrapping approach to resample and test on unsampled observations. Lambda values, a key fitting parameter in the lasso models, were selected based on an **average relative test error threshold of 1.0.** Selected lambda values were used to calculate a final predictive model, or Hydrologic Benefit function, using the full dataset for each species. Hydrology could explain a greater degree of variance in relative coho reproduction than in Chinook. The hydrologic metrics that explain the greatest variance in coho reproduction values occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
+In many rural areas of arid and semi-arid regions, balancing agricultural and environmental water needs is a key challenge facing resource managers. This is complicated by the tendency for the water needs of cultivated crops to be better understood than those of aquatic ecosystems. In particular, the timing and magnitude of flow needed to sustain key ecological functions remain poorly quantified in many regions. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species using a functional flows framework, not in the context of a prescribed flow regime, but in terms of which features of the hydrograph are empirically correlated with ecological outcomes. We use the (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon run in Scott Valley, a 2,109 km2 undammed rural watershed in northern California, USA, as a case study.
 
-Robustness of the results indicate that this method for empirically deriving hydrologic metrics with the highest ecological benefit for a threatened species may be useful in other watersheds, where sufficient ecological data records are available, to evaluate trade-offs and support water management decisions in human-altered novel ecosystems. 
+Taking advantage of a nearly two-decade ecological monitoring dataset and long-term stream gauge measurements, we compared eight total modeling exercises: we used two  regression methods (lasso and MARSS) to build predictive models of two different units of salmon outcome (outmigrating juvenile abundance, based on hydrologic metrics and parental spawner abundance; or an outmigrant-to-parental-spawner ratio, based on hydrologic metrics only) for two key species, coho and Chinook salmon. In the lasso regressions, to balance the explanatory power of the models with the risk of overfitting, we used k-fold cross-validation to find the lowest-error value of the tuning parameter lambda. To assess the utility of the MARSS regressions we calculated the autocorrelation function of each ecological data time series.
+
+We selected lasso regression of outmigrant-to-spawner ratio to calculate a final predictive model, referred to as a Hydrologic Benefit function, for each species. In low-error lasso regression models, hydrology could explain a greater degree of variance in this ratio for Chinook than for coho. The most important hydrologic metrics associated with higher relative reproduction were an earlier river reconnection after the dry season of parents' spawning, a longer duration of the first wet season, and a smaller fall pulse flow as oversummering juveniles for coho; and lower wet season baseflow, slower maximum spring recession rate, and a longer wet season duration for Chinook. The large coefficients calculated for fall river reconnection timing for coho, and lower wet season baseflows for Chinook, suggest that conditions during the window of their parents' spawning or as eggs and hatchlings, supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
+
+Robustness of the results indicate that this method for empirically deriving hydrologic metrics with the highest ecological benefit for a threatened species may be useful in other watersheds, where sufficient ecological data records are available, to evaluate trade-offs and support water management decisions in human-altered novel ecosystems.
 
 \newpage
 
@@ -123,6 +125,8 @@ Robustness of the results indicate that this method for empirically deriving hyd
 2. Hydrology could explain a greater degree of variance in relative coho reproduction than in Chinook. 
 3. The hydrologic metrics that explain the greatest variance in coho reproduction values occur during the window of their parents' spawning and, to a lesser extent, in the spring and fall of their year of rearing in freshwater. This supports an interpretation that spawning conditions may exert a significant influence on the mortality rates of the hatching juveniles.
 
+Specifically, results indicate that the timing of stream connection and disconnection each year relate to relative coho reproduction and the length of the wet season relates to spawning success." (or whatever is most accurate).
+
 \newpage
 
 # Introduction
@@ -130,23 +134,62 @@ Robustness of the results indicate that this method for empirically deriving hyd
 
 ## Motivation and objectives 
 
-Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014; @YarnellEtAlFunctional2015]. However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010; @BarbourEtAlOptimisation]. Higher certainty in quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
+Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014;@YarnellEtAlFunctional2015], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014; @YarnellEtAlFunctional2015]. However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010; @BarbourEtAlOptimisation]. Better quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to the desired ecological conditions, and at what cost, particularly in a changing climate?
 
-In practice, these questions are often asked and answered locally [@TarlockLocal1993]. Reflecting this reality, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; CDFW -@CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
+In practice, such natural resource management is often local [@TarlockLocal1993]. Accordingly, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; CDFW -@CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
 
-One method for estimating ecological water needs is the functional flows framework [@YarnellEtAlFunctional2015; @GranthamEtAl2020Making] [@PoffEtAlNatural1997; @PoffEtAlEcological2010]. Functional flow metrics (hydrologic metrics) are used to quantify potential ecological services provided by river flow in terms of flowrate amplitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics specific to California hydrology [@SteinEtAl2021California] and made the metric-calculating algorithms publicly available [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020].
+One method for estimating ecological water needs is the functional flows framework [@YarnellEtAlFunctional2015; @GranthamEtAl2020Making] [@PoffEtAlNatural1997; @PoffEtAlEcological2010]. Functional flow metrics are used to quantify potential ecological services provided by river flow in terms of flowrate magnitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). Recent work has refined these metrics specific to California hydrology [@SteinEtAlCalifornia2021] and made the metric-calculating algorithms publicly available [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020].
 
 In this study we examine correlations between several dozen hydrologic metrics and local salmon observations to determine the potential to empirically quantify a hydrologic regime that meets the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed). Using lasso regression, hydrologic metrics (predictors) were selected that best explain variation in salmon outcomes. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value (in units of ecological observations) per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives.
 
 ## History of flow-ecology relationships
 
-[@TharmeGlobal2003]
-[@HorneEtAlOptimization2016]
-[@JagerThinking2014]
-[@JagerRoseDesigning2003]
-[@TharmeGlobal2003]
-[@TurnerStewardsonHydrologic2014]
+[@TharmeGlobal2003] methods: hydrological, hydraulic rating, habitat simulation, holistic (plus combo and other). 
+Hydrologic methods most appropriate for planning-level water resources, or preliminary flow targets.
+Hydraulic rating: plot wetted perimeter or max depth against flow. Identify a flow point below which habitat function is no longer viable to calculate min. flow. 
+Habitat rating: simulate instream physical habitat at range of flows. Often produce seasonal habitat suitability curves. Usually specific to a species?
+Holistic: this one is best. uh, decide holistically which flow features are important for maintaining the whole ecosystem. Can be bottom-up (which features do we want?) or top down (what degree of alteration from natural is acceptable?).
 
+
+[@HorneEtAlOptimization2016] review of methods for optimizing  dam releases for env flows. No one has actually used optimization in their management. "Env decisions poorly informed by env research"
+
+[@JagerThinking2014] habitat simulation and population/growth modeling in Central Valley chinook.
+
+[@JagerRoseDesigning2003] Used flow to predict fish recruitment. Optimal flow regimes different for different env objectives?  
+
+[@TurnerStewardsonHydrologic2014] Does hydro alteration mean alteration of hydraulic microhabitat environments? "Modelling flow-biota relationships in a regional context is limited by the inadequacy of streamflow statistics to model ecologically significant hydraulic function." Three levels of specificity: site-specific hydraulics (non-linearity in eco response to flow); eco responses to flow across multiple sites (hydraulic response to a given flow confounded by geomorph) ; flow used as proxy for hydraulics/eco metrics (this is just bad).  Depending on geomorph, "the same flow alteration can produce quite different changes in hydraulic env."
+
+[@Grantham2020] PPIC report. describes CEFF. Calls for CA to use it. Advocates ecosystem water budget with senior water rights.
+
+[@Stein2021]. Developed CEFF. Interagency Workgroup. Example of state-scale e-flows recommendation rather than watershed-specific flow regime. Tiered framework: full consideration of ecosystem needs before deciding trade-offs with other water uses.
+
+
+ 
+
+[@YarnellEtAlFunctional2015]. Preserving functions in modified riverscapes, examples in rivers in western US. "Managing rivers in a nonstationary world requires management strategies and policies that focus on preserving key functions and processes to sustain the dynamically evolving nature of river ecosystems"
+[@Arthington2012]. Environmental Flows: Saving Rivers in the Third Millenium. Story of e flows development.
+"functional flows" term proposed in Escobar-Arias and Pasternack 2010
+[@KelsonCarlsonPrecipitation2019]. Dry and wet year diffs in streamflows in the S Fork Eel do not impact out-migration timing of steelhead (maybe because it's such good habitat). 
+
+
+[@SellheimEtAlInformed2020]. Sac River Chinoook real time adaptive flow mgmt: Two prescribed flow pulses reduced 1) fish egg stranding,  and 2) high juvenile fish densities in 2013-2014.
+[@Bellido-LeivaEtAlModeling2021]. Simple population model plus hydraulics plus bioenergetics in different habitats mostly reproduced outmigrant numbers and timing. 
+
+ 
+ [@MichelEtAlNonlinear2021]. Flow-ecology relationships. Previous work: more Central Valley flow can cause more juvenile fish survival, but nonlinearities not explored. This study developed a flow-survival relationship in different water years (2013-2019). Survival % numbers (min, mean, high thresholds): Below min: 3%; Min-mean: 19%; mean-high: 50% (also shortest travel times out); above high: 35% survival. Then, calculated survival rates in redesigned hydrographs. Focused on one functional flow (spring pulse), one lifestage and function (outmigration of juveniles) and had great eco data (PIT tagged transit times and survival rates).
+ 
+[@BarbourEtAlOptimisation2016]. Tradeoffs between conflicting objectives. 4 challenges: ID and quantify ecosystem objectives; spec obj and mgmt. alts in an optimization framework; and testing predictions against observations. Practices for defining obj functions. Two types of obj fns: achieving hydro metrics and targeting eco needs directly. Level of specificity affects quantifiability. Involving stakeholders is important. Species-preference/eco needs methods: need to pick an appropriate umbrella/keystone species. Good history of Functional Flows and utility. Optimization methods: metaheuristics (fuzzier?) and classical methods like linear programming. Obj fn definitions: 1) max/min totals or avgs (tends to prioritize outlier "good" periods instead of longer periods avoiding, e.g., critical lows); 2) max/min diff between actual and target values; 3) constraints; 4) max a min (avoid worst case conditions)/min a max. also: no one checks to see if their model bears out in practice.
+
+[@NislowArmstrongLifehistorybased2012] "fundamental interactions between flow and water temperature must be incorporated into the robust models ultimately required for science-based management"
+ [@JagerSmithSustainable2008]. Need more prediction of ecosystem responses to flow.
+[@NullLundFISH2012]. Shasta R. Scenarios: relocating major diversion, increasing riparian shading, higher instream flow, coolwater spring, removing a dam
+Other notes:
+Regulated rivers e flows started at: single minimum in-stream flow during low-flow periods.
+Utility of hydrologic-only methods.
+Species-specific study versus attempting to preserve functions for the whole ecosystem: "umbrella species" effect for some species?
+
+
+ 
 A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@BunnArthingtonBasic2002; @PoffEtAlEcological2010]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. 
 
 Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @MonkEtAlFlow2006; @GuareschiEtAlHow2014; @KevicEtAlEffects2018; @MazorEtAlTools2018; @LarsenEtAlCombining2021; @PeekEtAlIdentifying2022], and secondly, fish diversity and community assemblage [e.g., @McManamayEtAlApplication2013; @PetersonFreemanIntegrating2016; @CartwrightEtAlPutting2017; @SinnathambyEtAlEcohydrological2018; @HainEtAlUsing2018; @GuedesEtAlArtificial2020; @YaoEtAlIdentifying2021]. Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-KosterEtAlFish2011; @BoothEtAlDetermining2014; @DeWeberPetersonComparing2020; @HaleEtAlMy2023], as well as the extent of habitat types [@ChowdhuryDriverEcohydrological2007; @ArrianaBrandEtAlProjecting2011] and the presence of organisms including vegetation and plankton [@RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @QianEtAlEffects2016; @TesfayeEtAlClimatic2017; @SabyEtAlSensitivity2022]. Hydrologic predictors range widely, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @AyllonEtAlSpatiotemporal2014; @LamourouxOlivierTesting2015; @McManamayFrimpongHydrologic2015; @BowerEtAlQuantifying2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerreraCarreraBurneoEnvironmental2017; @GaoEtAlHydrological2020; @WhiteEtAlMacroinvertebrate2018; @DaneshvarEtAlResponse2017; @HerbstEtAlDrought2019].
@@ -279,26 +322,6 @@ Two combined metrics historically calculated and reported by regional agencies [
 
 **figure out order of this paragraph in this section?** These time series of observations are the result of decades of investment in local ecological monitoring. Monitoring activity in the past 20 years has included population estimates from a video counting flume and a rotary screw trap operated by CDFW [CDFW -@CaliforniaDepartmentofFishandWildlifeRecovery2015; @MassieMorrow20202021; @KnechtleGiudice20222023], and spawning surveys for Chinook [@MagranetScott2015a; @MagranetScott2017; @MagranetScott2018] and coho [@MaurerScott2003; Siskiyou RCD -@SiskiyouResourceConservationDistrictFinal2004; @QuigleyScott2005; @QuigleyFinal2006; @QuigleyFinal2007; @SiskiyouResourceConservationDistrictScott2010; @YokelScott2011; @FranklinScott2012; @YokelScott2013; @YokelScott2014; @MagranetScott2015; @MagranetYokelScott2017]. Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@Magranet20172018], the prioritization of stream reaches for habitat restoration [SRWC -@ScottRiverWatershedCouncilRestoring2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@YokelEtAlScott2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCountyScott2021].
 
-```{r ecoMetricsMonitoringTab, echo = FALSE, results = 'asis'}
-
-em_tab = read.csv(file.path(data_dir,"Ecological Monitoring Data Source Information.csv"))
-
-#Create caption and column labels
-caption_text = "Description and source information for ecological observations of the two salmonid species of concern."
-column_labels = c("Obs. ID","Abbrev.","Description", "Monitoring Details", "Source(s)", "Predictor Seasons")
-colnames(em_tab) = column_labels
-
-em_tab_ft = flextable(data=em_tab)
-em_tab_ft = set_caption(em_tab_ft, caption = caption_text)
-em_tab_ft = flextable::width(em_tab_ft,j=1,  width = .5)
-em_tab_ft = flextable::width(em_tab_ft,j=2,  width = 1.5)
-em_tab_ft = flextable::width(em_tab_ft,j=3, width = 1.5)
-em_tab_ft = flextable::width(em_tab_ft,j=4,  width = 1.5)
-em_tab_ft = flextable::width(em_tab_ft,j=5,  width = 1.2)
-em_tab_ft = flextable::width(em_tab_ft,j=6,  width = 0.7)
-em_tab_ft
-
-```  
 
 ## Step 3. Align predictor and response metrics with timing of species cohorts
 
@@ -381,7 +404,7 @@ if(zscore_flow_metrics == T){
   metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
                                      MARGIN = 2, FUN = zscore_column_na_rm)
   
-  if(predict_eco == "juvenile abundance, hydro and spawners"){
+  # if(predict_eco == "juvenile abundance, hydro and spawners"){
       # add spawners as a z-scored predictor variable
   metrics_tab$coho_spawners_zscored = 
     zscore_column_na_rm(x = metrics_tab$coho_spawner_abundance)
@@ -389,7 +412,7 @@ if(zscore_flow_metrics == T){
     zscore_column_na_rm(x = metrics_tab$chinook_spawner_abundance)
   non_preds = c(non_preds, "coho_spawners_zscored", "chinook_spawners_zscored")
 
-  }
+  # }
 }
 
 if(log_transform_eco_metrics == T){
@@ -667,136 +690,28 @@ corrplot(corr_tab_all_metrics,
 ```
 
 
-```{r predictor_correlation_screening, echo = F, warning =F, comment = F}
+<!-- ```{r predCorrScreeningTable, echo = F, warning =F, comment = F} -->
 
-# Exclude predictors with too small a sample size
-mt_years_count = apply(X=metrics_tab, MARGIN = 2, FUN = function(x){sum(!is.na(x))})
-minimum_years = 10
-too_few_years = names(mt_years_count)[mt_years_count < minimum_years]
+<!-- # Calculate correlation matrix  -->
+<!-- corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs", -->
+<!--                            method = "spearman") -->
 
-# Select high correlation threshold (0.7 after Baruch et al 2024)
-high_corr_threshold = 0.7
+<!-- elim_pred_tab = collinear_screening_exercise(metrics_tab = metrics_tab, -->
+<!--                                              corr_tab_all_metrics = corr_tab_all_metrics) -->
 
-# Make new table of corr. coeffs, excluding index years, eco responses, 
-# and predictors with too-small sample size
-corr_tab_screener = corr_tab_all_metrics
-diag(corr_tab_screener) = NA # exclude 1.0 R values along diagonal
+<!-- caption_text = "Groups of collinear predictors (absolute value of R greater than 0.7), interpretation of their hydrologic significance, and the predictor selected from each group to reduce collinearity." -->
 
-exclude_these = colnames(corr_tab_screener) %in% too_few_years +
-  colnames(corr_tab_screener) %in% c("brood_year","smolt_year") + 
-  grepl(pattern = "coho", x = colnames(corr_tab_screener)) | 
-  grepl(pattern = "chinook", x = colnames(corr_tab_screener)) 
+<!-- column_labels = c("Group of Collinear Predictors","Hydrologic Significance (Coho Life Stage)", -->
+<!--                   "Predictor Selected from Group") -->
+<!-- colnames(elim_pred_tab) = column_labels -->
 
-corr_tab_screener = corr_tab_screener[!exclude_these, ]
-corr_tab_screener = corr_tab_screener[ ,!exclude_these]
-
-# Convert remaining corr. coefs into a long-form table
-corr_tab_long = melt(corr_tab_screener)
-ctl = corr_tab_long
-ctl = ctl[!(is.na(ctl$value)),] # remove NA values
-
-# explore the predictors correlated with the highest number of other predictors
-
-# To find the most parsimonious explainer, pick one predictor from each group of
-# collinears, and eliminate the remaining ones until no abs(R)> threshold remain
-
-# Sort predictors according to highest number of collinears > threshold
-preds_sort = sort(table(ctl$Var1[abs(ctl$value) > high_corr_threshold]), decreasing = T)
-# identify the predictors collinear with the top-correlated predictor
-collin_preds = preds_sort[preds_sort > 0]
-# Initialize the while loop and structures to record the collinear groups
-loop = 1; collinear_group = list(); selected_pred = list()
-
-while(length(collin_preds)>0){
-  most_collin_pred = names(collin_preds[1]) # pick predicter with highest number of collinears
-  collinear_with = unique(ctl$Var2[ctl$Var1 == most_collin_pred &
-                                     abs(ctl$value) > high_corr_threshold])
-  
-  # Record the groups of collinear predictors and the ultimate selected one
-  if(zscore_flow_metrics == F){
-    collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
-    if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
-    if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
-    if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-    if(loop==4){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
-    if(loop==5){selected_pred[[loop]] = "w2_Wet_BFL_Dur"} # Dry to wet transition timing (rearing juv)
-    if(loop==6){selected_pred[[loop]] = "d1_DS_Dur_WS"} # Fall pulse magnitude during spawning (diff has higher sample size)
-    if(loop==7){selected_pred[[loop]] = "f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-    if(loop==8){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-  }
-  
-  if( zscore_flow_metrics == T){
-    collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
-    collinear_group[[loop]]
-    loop
-    if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
-    if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
-    if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-    if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
-    if(loop==5){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the first wet season
-    if(loop==6){selected_pred[[loop]] = "f1_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-    if(loop==7){selected_pred[[loop]] = "f2_FA_Dif_num"}#"f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-    selected_pred[[loop]]
-  }
-  
-  # Remove the other collinears 
-  keep = selected_pred[[loop]] # Keep this one
-  dont_keep = collinear_group[[loop]][collinear_group[[loop]] != keep] # exclude these ones
-  ctl = ctl[!(ctl$Var1 %in% dont_keep |
-                ctl$Var2 %in% dont_keep),]
-  # Recalculate the number of remaining collinear predictors with R > threshold
-  preds_sort = sort(table(ctl$Var1[abs(ctl$value) > high_corr_threshold]), decreasing = T)
-  collin_preds = preds_sort[preds_sort>0]
-  loop = loop + 1
-  loop
-}
-
-```
-
-```{r predCorrScreeningTable, echo = F, warning =F, comment = F}
-
-# Restructure the groups and eliminated predictors in a table
-elim_pred_tab_col1 = unlist(lapply(X=collinear_group, FUN = function(x){paste(x, collapse = ", ")}))
-if(zscore_flow_metrics == F){
-  elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
-                         "How wet was the wet season? (year 2, as rearing juv.)",
-                         "How dry was the dry season? (pre-spawning)",
-                         "How long was the wet season? (year 1, as eggs and fry)",
-                         "How long was the wet season? (year 2, as rearing juv.)",
-                         "How long was the dry season? (pre-spawning)",
-                         "Fall pulse magnitude (year 1, during parents' spawning)",
-                         "Fall pulse magnitude (year 2, as rearing juv.)")
-}
-if(zscore_flow_metrics == T){
-  elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
-                         "How wet was the wet season? (year 2, as rearing juv.)",
-                         "How dry was the dry season? (pre-spawning",
-                         "Dry to wet season transition timing (as rearing juv.)",
-                         "How long was the wet season (as eggs and fry)",
-                         "Fall pulse magnitude (parents' spawning)",
-                         "Fall pulse magnitude (rearing juv.)")
-}
-
-
-elim_pred_tab_col3 = unlist(selected_pred)
-
-elim_pred_tab = data.frame(collin_group=elim_pred_tab_col1,
-                           interp = elim_pred_tab_col2,
-                           selected_pred = elim_pred_tab_col3)
-
-caption_text = "Groups of collinear predictors (absolute value of R greater than 0.7), interpretation of their hydrologic significance, and the predictor selected from each group to reduce collinearity."
-
-column_labels = c("Group of Collinear Predictors","Hydrologic Significance",
-                  "Predictor Selected from Group")
-colnames(elim_pred_tab) = column_labels
-
-ept_tab_ft = flextable(data=elim_pred_tab)
-ept_tab_ft = set_caption(ept_tab_ft, caption = caption_text)
-ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 2.8)
-ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2)
-ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 1.8)
-ept_tab_ft
-```
+<!-- ept_tab_ft = flextable(data=elim_pred_tab) -->
+<!-- ept_tab_ft = set_caption(ept_tab_ft, caption = caption_text) -->
+<!-- ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 2.8) -->
+<!-- ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2) -->
+<!-- ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 1.8) -->
+<!-- ept_tab_ft -->
+<!-- ``` -->
 
 
 
@@ -811,7 +726,13 @@ The correlation coefficients do not show uniform effects of hydrology on both sp
 ```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 18 predictors and 7 ecological monitoring metrics: the two normalized metrics (left two columns), three additional metrics for coho (center), and two additional metrics for Chinook (right). Red colors indicate a negative correlation and blue colors indicate a positive correlation; the size and color of the circle in each box are both scaled to the value of the correlation coefficient. Large blue circles indicate that the quantity (such as the Brood Year fall pulse magnitude, or BY FA_Mag) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier date is correlated with higher fish values. Predictors that produced an absolute R value of at least 0.45 with at least one observed value are shown here; the full suite of calculated R values is shown in Supplemental Figure 1.\\label{fig:corrMatrixFig}"}
 
 # identify which columns we should keep in our correlation analysis
+ctl = collinear_screening_exercise(metrics_tab = metrics_tab,
+                                              corr_tab_all_metrics = corr_tab_all_metrics,
+                                   return_tab = "corr_tab_long_screened")
+
 keepers_co = c(non_preds, as.character(unique(ctl$Var1)))
+#remove spawners from lasso exercise if not using as a predictor
+if(predict_eco == "juveniles per spawner"){keepers_co = keepers_co[!(keepers_co %in% spawner_z_records)]}
 metrics_tab_screened = metrics_tab[,keepers_co]
 
 # Addl screening for temporal relevance to Chinook freshwater period
@@ -829,7 +750,7 @@ metrics_tab_screened_chinook = metrics_tab_screened[,keepers_ch]
 # Run correlations for all metrics in coho table (which includes all metrics in chinook table)
 
   corr_matrix_pearson = calc_corr_matrix(metrics_tab = metrics_tab_screened, 
-                                       preds_all = c(spawner_records, preds_all), 
+                                       preds_all = c(spawner_z_records, preds_all), 
                                        corr_method = "pearson", min_pairs = 10)
 
 
@@ -847,7 +768,7 @@ if(save_imgs == TRUE){
   
   corr_matrix_fig_2(corr_matrix = corr_matrix_pearson,
                     pred_subset = pred_subset,
-                    preds_in_order = c(spawner_records, preds_all))
+                    preds_in_order = c(spawner_z_records, preds_all))
 }
 
 dev.off()
@@ -940,7 +861,7 @@ if(predict_eco %in% c("juveniles per spawner", "juvenile abundance, hydro only")
                         y_val = y_val_chinook)
   mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
   # extract coefficients from the model using alt. lambda value
-  alt_lambda_co = .135
+  alt_lambda_co = .145
   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3, alt_lambda = alt_lambda_co)
   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
 }
@@ -960,19 +881,6 @@ if(predict_eco == "juvenile abundance, hydro and spawners"){
   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
 }
 
-# if(predict_eco == "juvenile abundance, hydro only"){
-#   mod_obj_co = kfold_cv(mt = metrics_tab_screened, y_val = y_val_coho, alpha = 1)
-#   mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
-#   
-#   mod_obj_ch = kfold_cv(mt = metrics_tab_screened_chinook, alpha = 1,
-#                         y_val = y_val_chinook)
-#   mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
-#   
-#   # extract coefficients from the model using the optimal lambda value found in cross-validation
-#   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3)
-#   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
-#   
-# }
 
 ```
 
@@ -991,46 +899,6 @@ lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co,
               mod_ch = mod_ch, alt_lambda_co = alt_lambda_co)
 }
 
-# par(mfrow = c(3,2))
-# # Row 1: CV error and min lambda
-# plot(cv_co); grid()
-# title(main = yvlt$y_val_label[yvlt$y_val==y_val_coho], line = 3)
-# abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
-# abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
-# legend(x = "topright", legend = "A", bty = "n") # panel label
-# 
-# plot(cv_ch); grid()
-# title(main = yvlt$y_val_label[yvlt$y_val==y_val_chinook], line = 3)
-# abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
-# legend(x = "topright", legend = "B", bty = "n") # panel label
-# 
-# 
-# #Row 2: variance explained
-# plot(log(mod_co$lambda), mod_co$dev.ratio, type = "l",
-#      xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
-# grid()
-# abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
-# abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
-# legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"), 
-#        legend = c(expression(Min.~err.~lambda~from~CV), expression(Alternative~lambda)))
-# legend(x = "topright", legend = "C", bty = "n") # panel label
-# 
-# plot(log(mod_ch$lambda), mod_ch$dev.ratio, type = "l", ylim = c(0,1),
-#      xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
-# grid()
-# abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
-# legend(x = "topright", legend = "D", bty = "n") # panel label
-# 
-# 
-# #Row 3: coefficients
-# plot(mod_co, xvar = "lambda", xlab = expression(Log(lambda))); grid()
-# abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
-# abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
-# legend(x = "topright", legend = "E", bty = "n") # panel label
-# 
-# plot(mod_ch, xvar = "lambda", xlab = expression(Log(lambda))); grid()
-# abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
-# legend(x = "topright", legend = "F", bty = "n") # panel label
 
 if(save_imgs == TRUE){
   dev.off()
@@ -1079,7 +947,7 @@ if(predict_eco == "juveniles per spawner"){
   coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and hatchlings)"
   coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)"
-  coefs_interp$s2_SP_ROC = "Faster rate of change (as outmigrating smolt)"
+  # coefs_interp$s2_SP_ROC = "Faster rate of change (as outmigrating smolt)"
 }
 if(predict_eco == "juvenile abundance, hydro and spawners"){
   # coefs_interp$coho_spawner_abundance = "Greater number of spawners (cohort's parents)"
