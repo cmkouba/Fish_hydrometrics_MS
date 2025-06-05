@@ -101,7 +101,6 @@ if(predict_eco == "juvenile abundance, hydro and spawners"){
 
 #table of ecological record identifiers
 yvlt = y_val_label_tab()
-# spawner_records = yvlt$y_val[grepl(pattern = "spawner", x = yvlt$y_val)]
 spawner_z_records = c("coho_spawners_zscored", "chinook_spawners_zscored")
 
 ```
@@ -110,22 +109,37 @@ spawner_z_records = c("coho_spawners_zscored", "chinook_spawners_zscored")
 
 In many rural areas of arid and semi-arid regions, balancing agricultural and environmental water needs is a key challenge facing resource managers. This is complicated by the tendency for the water needs of cultivated crops to be better understood than those of aquatic ecosystems. This work aims to quantify hydrologic conditions that support persistence of key ecosystem species using a functional flows framework, not in the context of a prescribed flow regime, but in terms of which features of the hydrograph are empirically correlated with specific ecological outcomes. We use the coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon runs in Scott Valley, a 2,109 km^2^ undammed rural watershed in northern California, USA, as a case study.
 
-Taking advantage of a nearly two-decade ecological monitoring dataset and long-term stream gauge measurements, we first examined hydrological-ecological correlations, then implemented four different statistical modeling exercises. Of these, we selected lasso regression, using hydrologic metrics to predict an outmigrant-to-spawner ratio, to generate a final predictive model for each species. This model predicts units of $log_{10}(outmigrant/spawner)$ and is referred to as a Hydrologic Benefit function.  In the lasso regressions, to balance the explanatory power of the models with the risk of overfitting, we used k-fold cross-validation to find the lowest-error value of the tuning parameter lambda. 
+Taking advantage of a nearly two-decade ecological monitoring dataset and long-term stream gauge measurements, we first examined hydrological-ecological correlations, then implemented four different statistical modeling exercises. Of these, we selected lasso regression to generate a final predictive model for each species. This model is referred to as a "hydrologic benefit" function and uses hydrologic metrics (Z-scored for better inter-metric comparison) to predict units of $log_{10}(outmigrant/spawner)$. In the lasso regressions, to balance the explanatory power of the models with the risk of overfitting, we used k-fold cross-validation to find the lowest-error value of the tuning parameter lambda. 
 
-Correlation coefficients indicate that hydrologic factors and spawner abundance both exert influence on juvenile fish production. In low-error lasso regression models of this ratio, hydrology could explain a greater degree of variance for Chinook than for coho (approximately 60% and 40%, respectively). The single most important hydrologic metric was earlier river reconnection during parents' spawning for coho, and lower wet season baseflow for Chinook. This suggests that conditions during their parents' spawning or as eggs and hatchlings may exert a significant influence on the mortality rates of the hatching juveniles in this study area.
+Correlation coefficients indicate that hydrologic factors and spawner abundance both exert influence on juvenile fish production. In low-test-error lasso regression models of $log_{10}(outmigrant/spawner)$, hydrology could explain a greater degree of variance for Chinook than for coho (approximately 60% and 40%, respectively). The hydrologic metric with the highest coefficient is earlier river reconnection during parents' spawning for coho, and lower wet season baseflow for Chinook (though this could change with additional years of data, especially for the smaller coho dataset). This suggests that conditions during their parents' spawning or as eggs and hatchlings may exert a significant influence on the mortality rates of the hatching juveniles in this study area.
 
-The simplicity of this approach for empirically identifying hydrologic metrics with the highest ecological benefit for a threatened species may be useful in other watersheds (where sufficient ecological data records are available), and could be a step towards evaluating trade-offs and supporting water management decisions in human-altered novel ecosystems.
+The simplicity of this approach for empirically identifying hydrologic metrics with high ecological importance for a threatened species may make it useful in other watersheds, where sufficient ecological data are available. The hydrologic benefit function is intended to set the stage for evaluating trade-offs and supporting water management decisions in human-altered novel ecosystems.
 
 
 \newpage
 
 # Practitioner points {-}
 
-**Revise**
-
 1. Correlation coefficients indicate that juvenile fish production is not dominantly controlled by hydrologic factors or by spawner abundance but is influenced by both.
-2. In statistical models, hydrology could explain a greater degree of variance in relative Chinook reproduction than in coho (60% versus 40%), suggesting that Chinook outcomes may be more sensitive to flow than coho.
-3. The most important single hydrologic metric was earlier river reconnection during parents' spawning for coho, and lower wet season median baseflow for Chinook. This suggests that conditions during their parents' spawning or as eggs and hatchlings may exert a significant influence on the mortality rates of the hatching juveniles in this study area.
+2. In statistical models, hydrology could explain a greater degree of variance in relative Chinook reproduction than in coho (60% versus 40%), suggesting that Chinook outcomes may be more sensitive to hydrology than coho.
+3. The most important single hydrologic metric was earlier river reconnection/preferred habitat access during parents' spawning for coho, and lower wet season median baseflow for Chinook. This supports an interpretation that conditions during their parents' spawning (potentially, more time to find better nesting habitat) or as eggs and hatchlings (potentially, lower average winter flowrates producing less burial or scour of eggs laid in the mainstem Scott River) may exert a significant influence on the mortality rates of the hatching juveniles in this study area.
+4. Finally, in models of juvenile abundance based on hydrology and spawner abundance, spawner abundance was identified as one of the 3 most important predictors for Chinook but not for coho. The important hydrologic predictors identified in all 8 statistical modeling approaches are listed below in order of season and life stage.
+* Full list for coho:
+    + higher first dry season high flows,
+    + earlier first fall reconnection, 
+    + longer first wet season, 
+    + higher first wet season average baseflow,
+    + larger first fall flow increase, 
+    + smaller second fall flow increase, 
+    + slower first spring recession, and
+    + faster second spring recession.
+* Full list for Chinook: 
+    + higher top 10% of flows in the dry season, 
+    + earlier fall reconnection,
+    + lower wet season baseflows,
+    + longer wet season, and
+    + slower maximum spring recession rate.
+
 
 
 \newpage
@@ -135,82 +149,57 @@ The simplicity of this approach for empirically identifying hydrologic metrics w
 
 ## Motivation and objectives 
 
-Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014;@YarnellEtAlFunctional2015], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014; @YarnellEtAlFunctional2020]. 
+Reconciliation ecology posits that some human-impacted ecosystems should be considered irrevocably-altered, "novel" systems [@MoyleNOVEL2014;@YarnellEtAlFunctional2015], with their own specific management concerns. To implement this philosophy, rather than working to restore novel ecosystems to pre-human conditions, a natural resource manager would actively manage biodiversity in human-altered landscapes as a co-equal goal with extracting and cultivating natural resources to provide for human material needs [e.g., @RobertsonSwintonReconciling2005; @ArthingtonEtAlTEMPORARY2014; @AcremanEtAlEnvironmental2014; @YarnellEtAlFunctional2020]. Ideally this management would be based on an empirical or mechanistic understanding of how management actions affect availability and quality of water, and how those changes in turn affect human beneficial uses and ecological receptors [@RosenfeldDeveloping2017]. 
 
-**Rephrase: case studies are good to support international river conservation efforts?** However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010; @BarbourEtAlOptimisation2016].
+<!-- Better quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to desired ecological conditions, and at what cost, particularly in a changing climate? -->
 
-Better quantitative ecological targets could support more robust decision making and trade-off analysis, potentially answering questions like: how close can managers get to desired ecological conditions, and at what cost, particularly in a changing climate?
 
-In practice, such natural resource management is often local [@TarlockLocal1993]. Accordingly, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; CDFW -@CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
+<!-- **Rephrase: case studies are good to support international river conservation efforts?** However, in many river ecosystems, though general methods to characterize environmental flows have been in wide use for at least a decade [e.g., @PoffZimmermanEcological2010; @ShentonEtAlPutting2012; @SolansGarciaDeJalonBasic2016], the regional-scale conditions that would maintain biodiversity are as yet unquantified or highly uncertain [@PoffEtAlEcological2010; @BarbourEtAlOptimisation2016]. -->
 
-One method for estimating ecological water needs, developed for the hydrologic setting of California,is the functional flows framework [@Escobar-AriasPasternackHydrogeomorphic2010; @YarnellEtAlFunctional2015; @GranthamEtAlMaking2020; @YarnellEtAlFunctional2020; @SteinEtAlCalifornia2021]. Functional flow metrics are used to quantify potential ecological services provided by river flow in terms of flowrate magnitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). These metrics can be calculated for any location with daily river data using noise-processing algorithms [@PattersonEtAlHydrologic2020]**(CITATION FOR FLASHY CALCULATOR)**. In addition to functional flows, we define several other hydrologic metrics for purposes of this study.
 
-Here, we assess the potential to empirically identify and prioritize hydrologic features that support the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed). To do this, we first examine correlations between dozens of hydrologic metrics and local salmon observations. Then, using two regression methods, hydrologic metrics (predictors) were selected that best explain variation in salmon outcomes while minimizing the risk of overfitting. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value, in units of $log_{10}(ecological~observations)$, per water year. This work sets the stage for a quantitative comparison of competing natural resource management alternatives that may have an influence on river flows.
+A large body of research has focused on general methods for quantifying connections between water management, flow, and ecological responses, as discussed below; however,in practice, such natural resource management is often local [@TarlockLocal1993]. Accordingly, the authors of this study have posed research questions tailored to conserving two specific salmon species, the threatened coho salmon (*Oncorhynchus kisutch*) and the less-threatened Chinook salmon (*Onchorhynchus tshawytscha*), in a specific study area: the Scott River watershed in northern California, USA. In this undammed, rural watershed, water use is primarily managed by managing land use. Balancing the competing water needs of fish and farmers is a key challenge for local water managers [@SiskiyouCountyScott2021]. Agricultural water needs are well-known and can be estimated and scheduled [@SiskiyouResourceConservationDistrictScott1994; @ParryEvaluation2013; CDFW -@CaliforniaDepartmentofWaterResourcesAgricultural2021], but, in spite of decades of investigation by local, state and federal actors [e.g., SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictScott2003; NMFS -@NationalMarineFisheriesServiceFinal2014; CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015; CDFW -@CaliforniaDepartmentofFishandWildlifeScott2021], the ecological water needs in this balancing act are not as well constrained. 
 
+One method for estimating ecological water needs, developed for the hydrologic setting of California,is the functional flows framework [@Escobar-AriasPasternackHydrogeomorphic2010; @YarnellEtAlFunctional2015; @GranthamEtAlMaking2020; @YarnellEtAlFunctional2020; @SteinEtAlCalifornia2021]. Functional flow metrics are used to quantify potential ecological services provided by river flow in terms of flowrate magnitude, timing, frequency, and duration in distinct seasons of a water year, where water year is here defined to begin on October 1 of the year preceding the calendar year of the same number (i.e., water year 2020 begins on October 1, 2019). These metrics can be calculated for any location with daily river data using noise-processing algorithms [@PattersonEtAlHydrologic2020; @YarnellMeeting2025] **(MORE APPROPRIATE CITATION FOR FLASHY CALCULATOR?)**. While much functional flows work has been dedicated to "top down" approaches [@TharmeGlobal2003] that characterize a natural or altered flow regime in its entirety [e.g., @YarnellEtAlFunctional2020; @SteinEtAlCalifornia2021], in this study we propose to break apart the hydrograph and assess the relative importance of individual functional flow types. In addition to functional flows, we define several other hydrologic metrics for purposes of this study.
+
+Here, we assess the potential to empirically identify and prioritize hydrologic features that support the ecological needs of specific species (coho and Chinook salmon) in a specific ecological region (the Scott River watershed). We focus on the questions: while we expect both biotic (e.g., number of spawners) and abiotic (e.g., hydrological) factors to influence fishery success, which ecological observations are most correlated with hydrology, and thus amenable to this predictive exercise? Is the predictive power of hydrology different for two different species? Can we identify and prioritize important hydrologic metrics and use them as benchmarks for evaluating the effects of different management actions on this aquatic ecosystem? 
+
+<!-- This work sets the stage for a quantitative comparison of competing natural resource management alternatives that may have an influence on river flows. -->
+
+<!-- To do this, we first examine correlations between dozens of hydrologic metrics and local salmon observations. Then, using two regression methods, hydrologic metrics (predictors) were selected that best explain variation in salmon outcomes while minimizing the risk of overfitting. The result of the predictor selection was a Hydrologic Benefit function for each species, conceptually translating the various ecological services provided by hydrology across different seasons into a single value, in units of $log_{10}(ecological~observations)$, per water year.  -->
 
 
 ## Utility of modeling ecological responses to flow
 
-Fish recruitment is one of the most obvious indicators of the health of a fishery **(CITE)**, but is predicting fish recruitment (or any ecological response) using flow alone a worthwhile exercise, given the many interacting non-hydrologic factors (channel hydraulics, water quality, food resources, internal population dynamics) influencing a fishery **(CITE)**?
+Juvenile outmigrant production is one of the most obvious indicators of the health of an anadromous fishery [@JagerRoseDesigning2003], but is predicting outmigrant production (or any ecological response) using flow alone a worthwhile exercise, given the many interacting non-hydrologic factors (channel geomorphology, water quality, food resources, internal population dynamics) influencing a fishery [@McMahonHabitat1983; @BradfordEtAlEmpirical1997; @Escobar-AriasPasternackHydrogeomorphic2010; @WillisInstream2015]?
 
-For some applications, it is not. Flow observations alone cannot represent site-specific hydraulics, which dictate the physical conditions for aquatic life; indeed, in different geomorphology, the same flow can produce very different hydraulic environments (Turner and Stewardson 2014). Flow observations also fail to capture other critical ecological drivers such as water quality, habitat quality, or food resources **(CITE)**. Thus it is often fruitless to attempt to predict numerical fish recruitment based solely on hydrologic data; more complex approaches such as combining hydraulics with bioenergetic models [@Bellido-LeivaEtAlModeling2021], fish population and mortality [@JagerRoseDesigning2003] or considering flow and water temperature [@NislowArmstrongLifehistorybased2012] may produce better recruitment forecasts.
+For some applications, it is not. Flow observations alone cannot represent site-specific hydraulics, which dictate the physical conditions for aquatic life; indeed, in different geomorphology, the same flow can produce very different hydraulic environments (Turner and Stewardson 2014). Flow observations also fail to capture other critical ecological drivers such as water quality, habitat quality, or food resources [e.g., @WillisInstream2015]. Thus it is often fruitless to attempt to predict numerical fish recruitment based solely on hydrologic data; more complex approaches such as combining hydraulics with bioenergetic models [@Bellido-LeivaEtAlModeling2021], fish population and mortality [@JagerRoseDesigning2003] or considering flow and water temperature [@NislowArmstrongLifehistorybased2012] may produce better recruitment forecasts.
 
-Nevertheless, in the absence of data such as site-specific flow-hydraulic relationships and dynamic population models, hydrologic-only approaches may be suitable for some types of natural resource planning (assuming the objective is more abstract than predicting numerical fish recruitment) [@NislowArmstrongLifehistorybased2012; @TurnerStewardsonHydrologic2014], and could be valuable in that they could enhance efforts to balance environmental and resource-extraction objectives [@JagerSmithSustainable2008] while being  based on relatively cheap and abundant hydrologic data. Among hydrologic-only methods, "top-down" approaches [@TharmeGlobal2003] aim to support the flow needs of the entire ecosystem, often based on alteration of calculated hydrologic metrics from a pre-development flow regime [e.g., @PoffEtAlEcological2010; @ArthingtonEnvironmental2012; @YarnellEtAlFunctional2020], while "bottom-up" approaches aim to identify the individual flow features most critical to supporting a given objective [@TharmeGlobal2003]. This study falls into the latter category.
+Nevertheless, in the absence of data such as site-specific flow-hydraulic relationships and dynamic population models, hydrologic-only approaches may be suitable for some types of natural resource planning (assuming the objective is more abstract than predicting numerical fish recruitment) [@NislowArmstrongLifehistorybased2012; @TurnerStewardsonHydrologic2014]. Furthermore, they could enhance efforts to balance environmental and resource-extraction objectives [@JagerSmithSustainable2008] while being  based on relatively cheap and abundant hydrologic data. Among hydrologic-only methods, "top-down" approaches aim to support the flow needs of the entire ecosystem, often based on alteration of calculated hydrologic metrics from a pre-development flow regime [e.g., @PoffEtAlEcological2010; @ArthingtonEnvironmental2012; @YarnellEtAlFunctional2020], while "bottom-up" approaches aim to identify the individual flow features most critical to supporting a given objective [@TharmeGlobal2003]. This study falls into the latter category.
 
 ## Previous findings on California salmon flow requirements
 
-**review previous studies**
-<!-- [@TharmeGlobal2003] methods: hydrological, hydraulic rating, habitat simulation, holistic (plus combo and other).  -->
+Even within the geographic context of California, specific flows identified as being important to salmonids have varied by the study region, objective, and species under consideration. They include, in Central Valley rivers, winter minimum flows [@JagerRoseDesigning2003] and early summer pulse flows and late winter overbank pulse flows [@JagerThinking2014]; and an indication that juvenile survival was highest in an intermediate flow range in the Sacramento River [@MichelEtAlNonlinear2021]. In one adaptive management retrospective, two individual dam release pulse events improved habitat conditions for rearing juveniles during a critically dry year [@SellheimEtAlInformed2020]. Optimal flow regimes are also different for different species-specific environmental objectives, and vary based on water year type (provide high spring flows in wet years) [@JagerRoseDesigning2003]. Conversely, in at least one study, flow differences had little effect on migration timing or growth of South Fork Eel River steelhead [@KelsonCarlsonPrecipitation2019]. 
+
+This variability reflects that in different geomorphic and hydroclimate contexts, the habitat and ecological effects of identical flowrates is highly variable. This study aims to contribute to this body of work by proposing a simple method for identifying empirical relationships between flows and species focusing on the scale of a single watershed at which several other types of management choices are made.
+
+<!-- Implementing functional flows is theoretically more straightforward on a regulated river, since there is direct control of dam releases (subject to many constraints), than it is in a watershed with no major dams, such as Scott Valley, where land use is the most direct mechanism for water management.  -->
+
+
+<!-- [@TharmeGlobal2003] methods: hydrological, hydraulic rating, habitat simulation, holistic (plus combo and other). -->
 <!-- Hydrologic methods most appropriate for planning-level water resources, or preliminary flow targets. -->
-<!-- Hydraulic rating: plot wetted perimeter or max depth against flow. Identify a flow point below which habitat function is no longer viable to calculate min. flow.  -->
+<!-- Hydraulic rating: plot wetted perimeter or max depth against flow. Identify a flow point below which habitat function is no longer viable to calculate min. flow. -->
 <!-- Habitat rating: simulate instream physical habitat at range of flows. Often produce seasonal habitat suitability curves. Usually specific to a species? -->
 <!-- Holistic: this one is best. uh, decide holistically which flow features are important for maintaining the whole ecosystem. Can be bottom-up (which features do we want?) or top down (what degree of alteration from natural is acceptable?). -->
 
-
-<!-- [@HorneEtAlOptimization2016] review of methods for optimizing  dam releases for env flows. No one has actually used optimization in their management. "Env decisions poorly informed by env research" -->
-
-<!-- [@JagerThinking2014] habitat simulation and population/growth modeling in Central Valley chinook. -->
-
-<!-- [@JagerRoseDesigning2003] Used flow to predict fish recruitment. Optimal flow regimes different for different env objectives?   -->
-
-<!-- [@TurnerStewardsonHydrologic2014] Does hydro alteration mean alteration of hydraulic microhabitat environments? "Modelling flow-biota relationships in a regional context is limited by the inadequacy of streamflow statistics to model ecologically significant hydraulic function." Three levels of specificity: site-specific hydraulics (non-linearity in eco response to flow); eco responses to flow across multiple sites (hydraulic response to a given flow confounded by geomorph) ; flow used as proxy for hydraulics/eco metrics (this is just bad).  Depending on geomorph, "the same flow alteration can produce quite different changes in hydraulic env." -->
-
-<!-- [@Grantham2020] PPIC report. describes CEFF. Calls for CA to use it. Advocates ecosystem water budget with senior water rights. -->
-
-<!-- [@Stein2021]. Developed CEFF. Interagency Workgroup. Example of state-scale e-flows recommendation rather than watershed-specific flow regime. Tiered framework: full consideration of ecosystem needs before deciding trade-offs with other water uses. -->
-
-
-
-
-<!-- [@YarnellEtAlFunctional2015]. Preserving functions in modified riverscapes, examples in rivers in western US. "Managing rivers in a nonstationary world requires management strategies and policies that focus on preserving key functions and processes to sustain the dynamically evolving nature of river ecosystems" -->
-<!-- [@Arthington2012]. Environmental Flows: Saving Rivers in the Third Millenium. Story of e flows development. -->
-<!-- "functional flows" term proposed in Escobar-Arias and Pasternack 2010 -->
-<!-- [@KelsonCarlsonPrecipitation2019]. Dry and wet year diffs in streamflows in the S Fork Eel do not impact out-migration timing of steelhead (maybe because it's such good habitat).  -->
-
-
-<!-- [@SellheimEtAlInformed2020]. Sac River Chinoook real time adaptive flow mgmt: Two prescribed flow pulses reduced 1) fish egg stranding,  and 2) high juvenile fish densities in 2013-2014. -->
-<!-- [@Bellido-LeivaEtAlModeling2021]. Simple population model plus hydraulics plus bioenergetics in different habitats mostly reproduced outmigrant numbers and timing.  -->
-
-
-<!--  [@MichelEtAlNonlinear2021]. Flow-ecology relationships. Previous work: more Central Valley flow can cause more juvenile fish survival, but nonlinearities not explored. This study developed a flow-survival relationship in different water years (2013-2019). Survival % numbers (min, mean, high thresholds): Below min: 3%; Min-mean: 19%; mean-high: 50% (also shortest travel times out); above high: 35% survival. Then, calculated survival rates in redesigned hydrographs. Focused on one functional flow (spring pulse), one lifestage and function (outmigration of juveniles) and had great eco data (PIT tagged transit times and survival rates). -->
-
-<!-- [@BarbourEtAlOptimisation2016]. Tradeoffs between conflicting objectives. 4 challenges: ID and quantify ecosystem objectives; spec obj and mgmt. alts in an optimization framework; and testing predictions against observations. Practices for defining obj functions. Two types of obj fns: achieving hydro metrics and targeting eco needs directly. Level of specificity affects quantifiability. Involving stakeholders is important. Species-preference/eco needs methods: need to pick an appropriate umbrella/keystone species. Good history of Functional Flows and utility. Optimization methods: metaheuristics (fuzzier?) and classical methods like linear programming. Obj fn definitions: 1) max/min totals or avgs (tends to prioritize outlier "good" periods instead of longer periods avoiding, e.g., critical lows); 2) max/min diff between actual and target values; 3) constraints; 4) max a min (avoid worst case conditions)/min a max. also: no one checks to see if their model bears out in practice. -->
-
-<!-- [@NislowArmstrongLifehistorybased2012] "fundamental interactions between flow and water temperature must be incorporated into the robust models ultimately required for science-based management" -->
-<!--  [@JagerSmithSustainable2008]. Need more prediction of ecosystem responses to flow. -->
-<!-- [@NullLundFISH2012]. Shasta R. Scenarios: relocating major diversion, increasing riparian shading, higher instream flow, coolwater spring, removing a dam -->
-<!-- Other notes: -->
-<!-- Regulated rivers e flows started at: single minimum in-stream flow during low-flow periods. -->
-<!-- Utility of hydrologic-only methods. -->
-<!-- Species-specific study versus attempting to preserve functions for the whole ecosystem: "umbrella species" effect for some species? -->
 
 ## History of flow-ecology relationships
 
 A river's flow regime is often referred to as a "master variable" controlling geomorphic, chemical, and other conditions in its aquatic ecosystems, and organisms that have evolved to persist in specific flow regimes are commonly negatively affected by flow alteration [@BunnArthingtonBasic2002; @PoffEtAlEcological2010]. Consequently, in recent decades a diverse body of research has sought to identify and quantify ecological responses to changes in flow. 
 
-Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @MonkEtAlFlow2006; @GuareschiEtAlHow2014; @KevicEtAlEffects2018; @MazorEtAlTools2018; @LarsenEtAlCombining2021; @PeekEtAlIdentifying2022], and secondly, fish diversity and community assemblage [e.g., @McManamayEtAlApplication2013; @PetersonFreemanIntegrating2016; @CartwrightEtAlPutting2017; @SinnathambyEtAlEcohydrological2018; @HainEtAlUsing2018; @GuedesEtAlArtificial2020; @YaoEtAlIdentifying2021]. Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-KosterEtAlFish2011; @BoothEtAlDetermining2014; @DeWeberPetersonComparing2020; @HaleEtAlMy2023], as well as the extent of habitat types [@ChowdhuryDriverEcohydrological2007; @ArrianaBrandEtAlProjecting2011] and the presence of organisms including vegetation and plankton [@RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @QianEtAlEffects2016; @TesfayeEtAlClimatic2017; @SabyEtAlSensitivity2022]. Hydrologic predictors range widely **insert IHA and ELOHA**, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @AyllonEtAlSpatiotemporal2014; @LamourouxOlivierTesting2015; @McManamayFrimpongHydrologic2015; @BowerEtAlQuantifying2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerreraCarreraBurneoEnvironmental2017; @GaoEtAlHydrological2020; @WhiteEtAlMacroinvertebrate2018; @DaneshvarEtAlResponse2017; @HerbstEtAlDrought2019].
+<!-- Work on this topic spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration.  -->
+<!-- Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @MonkEtAlFlow2006; @GuareschiEtAlHow2014; @KevicEtAlEffects2018; @MazorEtAlTools2018; @LarsenEtAlCombining2021; @PeekEtAlIdentifying2022], and secondly, fish diversity and community assemblage [e.g., @McManamayEtAlApplication2013; @PetersonFreemanIntegrating2016; @CartwrightEtAlPutting2017; @SinnathambyEtAlEcohydrological2018; @HainEtAlUsing2018; @GuedesEtAlArtificial2020; @YaoEtAlIdentifying2021]. Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-KosterEtAlFish2011; @BoothEtAlDetermining2014; @DeWeberPetersonComparing2020; @HaleEtAlMy2023], as well as the extent of habitat types [@ChowdhuryDriverEcohydrological2007; @ArrianaBrandEtAlProjecting2011] and the presence of organisms including vegetation and plankton [@RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @QianEtAlEffects2016; @TesfayeEtAlClimatic2017; @SabyEtAlSensitivity2022]. Hydrologic predictors range widely **insert IHA and ELOHA**, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @AyllonEtAlSpatiotemporal2014; @LamourouxOlivierTesting2015; @McManamayFrimpongHydrologic2015; @BowerEtAlQuantifying2022]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerreraCarreraBurneoEnvironmental2017; @GaoEtAlHydrological2020; @WhiteEtAlMacroinvertebrate2018; @DaneshvarEtAlResponse2017; @HerbstEtAlDrought2019]. -->
 
-Investigations of flow-ecology relationships can also be grouped by approach [as in @TharmeGlobal2003 and @BrummerEtAlQuantitative2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @KonradEtAlLargescale2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Mellado-DiazEtAlExploring2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring is related to flow differences between streams [e.g., @MonkEtAlMacroinvertebrate2008; @RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @BowerEtAlQuantifying2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@BrummerEtAlQuantitative2016]. 
+<!-- Investigations of flow-ecology relationships can also be grouped by approach [as in @TharmeGlobal2003; @BrummerEtAlQuantitative2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @KonradEtAlLargescale2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Mellado-DiazEtAlExploring2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring is related to flow differences between streams [e.g., @MonkEtAlMacroinvertebrate2008; @RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @BowerEtAlQuantifying2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@BrummerEtAlQuantitative2016]. **bottom up versus top down**  -->
 
 Bridging the gap between science and policy has been a persistent challenge in this field. In many cases a key research motivation is to support decision-making in a variety of contexts, including dam operation, river restoration, and regulations of water extraction and land use [@RichterEtAlCollaborative2006; @HanEtAlEcohydrological2015; @SinnathambyEtAlEcohydrological2018; @BradleyEtAlHydroecological2017; @BrummerEtAlQuantitative2016]. But historical approaches based on relationship-finding are several steps removed from the policy-making process [@WebbEtAlAdaptive2018]. For example, the Ecological Limits of Hydrologic Alteration (ELOHA) framework or similar approaches can generate flow-ecology relationships or flow standards for particular rivers, but cannot translate specific management decisions into hydrologic or ecological outcomes [@RichterEtAlCollaborative2006; @CartwrightEtAlPutting2017]. 
 
@@ -223,9 +212,6 @@ The present study is a longitudinal "bottom-up" analysis, using empirical data a
 Flow-ecology relationships have been investigated in the Scott River Watershed, but the ideal framework described above has not been quantified. Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CoordinatedResourceManagementPlanningCommitteeScottRiverWatershedCouncilFINAL2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictInitial2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River coho smolt production [SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilLimiting2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NationalMarineFisheriesServiceFinal2014]. 
 <!-- **Add Klamath run estimates after first 2 sentences? EDIT THIS PARAGRAPH TO REDUCE REDUNDANCY** -->
 
-## Persistent questions
-
-**Questions that remain in the literature that this study will address**
 
 
 # Methods: Case study setting and species of concern
@@ -345,6 +331,8 @@ Two combined metrics historically calculated and reported by regional agencies [
 
 
 ## Step 3. Align predictor and response metrics with timing of species cohorts
+
+[@NislowArmstrongLifehistorybased2012] "effects of changes in flow and flow regime on salmonids are therefore highly stagespecific."
 
 The empirical basis for this predictive modeling exercise is a table of hydrologic metrics (one per water year) and ecological observations influenced by this hydrology (*Supplemental Table 2*). However, the row-by-row basis for the table is somewhat complex due to the life history of the two species under consideration.
 
@@ -1092,50 +1080,51 @@ The predictive model of coho spf included one positive coefficient, for predicto
 
 The predictive model of Chinook jpa contains one non-zero coefficient, which is associated with predictor `log_by_tot_flow_sepdec`. This suggests that the order-of-magnitude of brood year total flow is negatively related to relative reproduction of Chinook. It's possible that this relationship is driven by high-flow events in wet years that could produce scouring flows, negatively impacting Chinook eggs laid in the mainstem of the Scott River.
 
+
 ```{r calc_hbf_values_tabs, echo = F, warning =F}
 
 if(predict_eco %in% c("juveniles per spawner", "juvenile abundance, hydro only")){
 # retrieve hydrology for all years of FJ flow
   brood_year_hydro_tab_long = tabulate_hydro_by_affected_brood_year(
     brood_years = 1942:2022, smolt_years = 1944:2024)
-  
+
   metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
     hydro_by_brood_year = brood_year_hydro_tab_long,
-    thresholds = thresh_for_corr_fig, 
-    reduce_to_eco_data_years_only = F) 
-  
-  metrics_tab_long = metrics_tab_long[,intersect(colnames(metrics_tab_screened), 
+    thresholds = thresh_for_corr_fig,
+    reduce_to_eco_data_years_only = F)
+
+  metrics_tab_long = metrics_tab_long[,intersect(colnames(metrics_tab_screened),
                                                  colnames(metrics_tab_long))]
   if(log_transform_eco_metrics == T){
     metrics_tab_long[,yvlt$y_val] = log10(metrics_tab_long[,yvlt$y_val])
   }
-  
+
   if(zscore_flow_metrics == T){
     zscore_these = !(colnames(metrics_tab_long) %in% non_preds)
     metrics_tab_long[,zscore_these] = apply(X = metrics_tab_long[,zscore_these],
                                             MARGIN = 2, FUN = zscore_column_na_rm)
   }
-  
+
   mt_co_hbf = metrics_tab_long; mt_ch_hbf = metrics_tab_long
-} else { #if spawners needed as a predictor, restrict time series plot to years 
+} else { #if spawners needed as a predictor, restrict time series plot to years
   # with spawners and obs data
-  # metrics_tab_long = metrics_tab_screened 
-  co_vals_i = which(!is.na(metrics_tab$coho_spawner_abundance) & 
+  # metrics_tab_long = metrics_tab_screened
+  co_vals_i = which(!is.na(metrics_tab$coho_spawner_abundance) &
                       !is.na(metrics_tab$coho_smolt_abun_est))
   co_i = min(co_vals_i):max(co_vals_i)
   mt_co_hbf = metrics_tab_screened[co_i,]
-  
+
   ch_vals_i = which(!is.na(metrics_tab$chinook_spawner_abundance))
   ch_i = min(ch_vals_i):max(ch_vals_i)
   mt_ch_hbf = metrics_tab_screened[ch_i,]
 }
 
 # calculate hbf for all years in which there are hydrodata
-hbf_coho = get_hbf_tab(mt = mt_co_hbf, 
-                       coefs = coefs_co$coef_non0_only, 
+hbf_coho = get_hbf_tab(mt = mt_co_hbf,
+                       coefs = coefs_co$coef_non0_only,
                        int = coefs_co$intercept)
-hbf_chinook = get_hbf_tab(mt = mt_ch_hbf, 
-                          coefs = coefs_ch$coef_non0_only, 
+hbf_chinook = get_hbf_tab(mt = mt_ch_hbf,
+                          coefs = coefs_ch$coef_non0_only,
                           int = coefs_ch$intercept)
 
 # convert to absolute ecological observation numbers
@@ -1154,11 +1143,11 @@ lowest_coho_spf_pred=10^min(hbf_coho$hbf_total)
 
 ### Predicted Hydrologic Benefit value over time
 
-The visual match between predicted and observed values for coho spf is rather poor: predicted values do not range either as low or as high as observed values (Figure \@ref(fig:hbfOverTime), top panel). This matches the expectation that the selected regression model will explain only ~50% of the deviation from the mean (Figure \@ref(fig:lassoResultsCoho), middle panel). The visual match for Chinook, however, is significantly worse (Figure \@ref(fig:hbfOverTime), lower panel), corresponding to a regression model that explains <10% of deviation (Figure \@ref(fig:lassoResultsChinook), middle panel). 
+The visual match between predicted and observed values for coho spf is rather poor: predicted values do not range either as low or as high as observed values (Figure \@ref(fig:hbfOverTime), top panel). This matches the expectation that the selected regression model will explain only ~50% of the deviation from the mean (Figure \@ref(fig:lassoResultsCoho), middle panel). The visual match for Chinook, however, is significantly worse (Figure \@ref(fig:hbfOverTime), lower panel), corresponding to a regression model that explains <10% of deviation (Figure \@ref(fig:lassoResultsChinook), middle panel).
 
 Matching the historical flow trends discussed above (and tabulated in *Supplemental Table 2*), the predicted value of coho spf-equivalent produced by a given water year has trended downward over time (Figure \@ref(fig:hbfOverTime), top panel). The lowest predicted value, `r round(lowest_coho_spf_pred,1)` coho spf in brood year 2013, corresponds to the severe drought year of 2014. Conditions were so extreme in water year 2014 that emergency measures were taken by local agencies and conservation organizations to facilitate transport of salmon around disconnected river reaches [CDFW et al. -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015].
 
-Conversely, for Chinook, because such an inflexible model was selected, no trend is visible in predicted values (Figure \@ref(fig:hbfOverTime), lower panel). 
+Conversely, for Chinook, because such an inflexible model was selected, no trend is visible in predicted values (Figure \@ref(fig:hbfOverTime), lower panel).
 
 
 ```{r hbfOverTime, echo = F, warning = F, fig.height = 8, fig.cap = "Annual observed and predicted values of coho smolt produced per female spawner (coho spf, top panel) and Chinook juveniles produced per adult spawner (Chinook jpa, lower panel). Predicted quantities (black dots) are shown as Hydrologic Benefit (HB) function values. The predicted and observed values are plotted by each cohort's Brood Year. \\label{fig:hbfOverTime}"}
@@ -1188,24 +1177,24 @@ if(save_imgs == TRUE){
   # Panel 1. Coho
   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_coho]
   hbf_over_time_fig(mt = metrics_tab_screened,
-                    hbf_tab = hbf_coho, 
+                    hbf_tab = hbf_coho,
                     y_val = y_val_coho,
                     y_val_axis = y_axis_label,
                     plot_yrs = plot_yrs)
-  
+
   # Panel 2. Chinook
   hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
-  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook] 
+  y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook]
   hbf_over_time_fig(mt = metrics_tab_screened,
-                    hbf_tab = hbf_chinook, 
+                    hbf_tab = hbf_chinook,
                     y_val = y_val_chinook,
                     y_val_axis = y_axis_label,
                     plot_yrs = plot_yrs,
-                    show_legend = F) 
-  
-  
-  
-  
+                    show_legend = F)
+
+
+
+
   dev.off()
 }
 if(include_figs==T){knitr::include_graphics(fig_path)}
@@ -1220,10 +1209,10 @@ fig_i = fig_i +1
 The predicted HB values can be broken out into the value contributed by each predictor (Figure \@ref(fig:hbfBarchart); the intercept term is excluded for ease of visualization). For coho spf, the largest contributions are from brood year fall reconnection timing (`BY_recon_200` and `BY_recon_100`); a negative value indicates that earlier reconnection timing is associated with higher relative smolt production. The next largest contribution is from spring disconnection in the rearing year: higher smolt production is predicted from later disconnection timing. Two other predictors, `RY_recon_8` and `RY_DS_Mag_90` contribute only minor amounts, although occasionally, in years with very low dry season flow and delayed fall reconnections, predictor RY_recon_8 contributes a meaningful negative value (Figure \@ref(fig:hbfBarchart), top panel). For Chinook, all variation is introduced by the predictor `log_BY_tot_flow_sepdec`, since the model includes only one non-zero coefficient.
 
 
+
 ```{r hbfBarchart, echo = F, warning = F, fig.height = 8, fig.cap = "Contributions to annual Hydrologic Benefit values (coho spf-equivalent, top panel, and Chinook jpa-equivalent, lower panel). A positive value indicates that a greater quantity contributes a positive value to the predicted ecological outcome in that cohort (e.g., a later spring disconnection produces more predicted coho spf). A negative value indicates that a larger number contributes a negative value to the predicted outcome (e.g., a later fall reconnection date produces fewer predicted coho spf in that cohort).\\label{fig:hbfBarchart}"}
 
 # arrange data - Coho
-# only plot if there are at least 1 non-0 coefficient
 
 hbf_coho$hbf_total = NULL # remove this column for this figure
 hbf_coho$hbf_total_log = NULL # remove this column for this figure
@@ -1264,58 +1253,58 @@ if(save_imgs==T){
   if(length(comp_names_co)>0){
     y_text = colnames(bd_melt_co)[3]
     if(predict_eco == "juveniles per spawner"){
-      hbf_bar_co = ggplot(data = bd_melt_co, 
-                          aes(x = `Brood Year`, 
+      hbf_bar_co = ggplot(data = bd_melt_co,
+                          aes(x = `Brood Year`,
                               # y = `Contrib. to HB value (Coho smolt per fem. spawner)`,
                               y = `Contrib. to HB value (log10 of coho spf)`,
-                              fill = variable)) + 
-        geom_bar(stat = "identity") + 
+                              fill = variable)) +
+        geom_bar(stat = "identity") +
         scale_fill_brewer(palette = "Spectral") +
         theme(legend.position = "right", legend.direction = "vertical")
-      
+
     }
     if(predict_eco %in% c("juvenile abundance, hydro and spawners",
                           "juvenile abundance, hydro only")){
-      hbf_bar_co = ggplot(data = bd_melt_co, 
-                          aes(x = `Brood Year`, 
+      hbf_bar_co = ggplot(data = bd_melt_co,
+                          aes(x = `Brood Year`,
                               # y = `Contrib. to HB value (Est. num. coho smolt)`,
                               y = `Contrib. to HB value (log10 of coho smolt abundance)`,
-                              fill = variable)) + 
-        geom_bar(stat = "identity") + 
+                              fill = variable)) +
+        geom_bar(stat = "identity") +
         scale_fill_brewer(palette = "Spectral") +
         theme(legend.position = "right", legend.direction = "vertical")
-      
+
     }
   }
-  
+
   if(length(comp_names_ch)>0){
     y_text = colnames(bd_melt_ch)[3]
     if(predict_eco == "juveniles per spawner"){
-      hbf_bar_ch = ggplot(data = bd_melt_ch, 
-                          aes(x = `Brood Year`, 
+      hbf_bar_ch = ggplot(data = bd_melt_ch,
+                          aes(x = `Brood Year`,
                               # y = `Contrib. to HB value (Chinook juv. per adult)`,
                               y = `Contrib. to HB value (log10 of Chinook jpa)`,
-                              fill = variable)) + 
-        geom_bar(stat = "identity") + 
+                              fill = variable)) +
+        geom_bar(stat = "identity") +
         scale_fill_brewer(palette = "Spectral") +
         theme(legend.position = "right", legend.direction = "vertical")
     }
     if(predict_eco %in% c("juvenile abundance, hydro and spawners",
                           "juvenile abundance, hydro only")){
-      hbf_bar_ch = ggplot(data = bd_melt_ch, 
-                          aes(x = `Brood Year`, 
+      hbf_bar_ch = ggplot(data = bd_melt_ch,
+                          aes(x = `Brood Year`,
                               # y = `Contrib. to HB value (Num. Chinook juveniles)`,
                               y = `Contrib. to HB value (log10 of Chinook juv. abundance)`,
-                              fill = variable)) + 
-        geom_bar(stat = "identity") + 
+                              fill = variable)) +
+        geom_bar(stat = "identity") +
         scale_fill_brewer(palette = "Spectral") +
         theme(legend.position = "right", legend.direction = "vertical")
-      
+
     }
   }
-  
+
   if(length(comp_names_co)>0 & length(comp_names_ch)>0){
-        hbf_bar = arrangeGrob(hbf_bar_co, hbf_bar_ch, 
+        hbf_bar = arrangeGrob(hbf_bar_co, hbf_bar_ch,
                                nrow=2, ncol=1)
                               # nrow=1,ncol=2) # for ppt slide
   } else if(length(comp_names_co)>0 & length(comp_names_ch)==0){
@@ -1323,11 +1312,11 @@ if(save_imgs==T){
   } else if(length(comp_names_co)==0 & length(comp_names_ch)>0){
         hbf_bar =  hbf_bar_ch
   }
-  
+
     ggsave(filename = fig_path, plot = hbf_bar, width = 7, height = 8, units="in")
   # ggsave(filename = fig_path, plot = hbf_bar, width = 11.5, height = 4.2, units="in")
 }
-  
+
 
 if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
@@ -1336,51 +1325,16 @@ fig_i = fig_i +1
 
 
 
-## MARSS
-
-
-```{r marss, echo = F, warning = F, fig.height = 8, fig.cap = "marss results. \\label{fig:marss}"}
-
-# Negative prediction values (considered physically impossible) are flagged but are retained to visually demonstrate the uncertainty in the exercise of predicting fish outcomes from hydrologic metrics alone, based on a small sample size.
-
-# fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
-# if(save_imgs == TRUE){
-#   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
-
-# y_obs_tab = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-#                                    # y_val_names = c("coho_smolt_abun_est", "chinook_juvenile_abundance",
-#                                    #                 "coho_smolt_per_fem", "chinook_juv_per_adult"))
-#                                    y_val_names = c(y_val_coho, y_val_chinook))
-# mod.fit = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab, method = "BFGS")
-# plot(mod.fit)
-
-# y_obs_tab_co = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-#                                    y_val_names = y_val_coho)
-# y_obs_tab_ch = get_obs_data_for_MARSS(metrics_tab = metrics_tab,
-#                                    y_val_names = y_val_chinook)
-# mod_co = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_co, method = "BFGS")
-# plot(mod_co)
-# mod_ch = get_model_fit_for_MARSS(y_obs_tab = y_obs_tab_ch, method = "BFGS")
-# plot(mod_ch)
-# 
-# # coef(mod_co)
-# 
-# ggplot2::autoplot(mod_co)
-# 
-# ggplot2::autoplot(mod_ch)
-
-# x = metrics_atb
-#   dev.off()
-# }
-# if(include_figs==T){knitr::include_graphics(fig_path)}
-# fig_i = fig_i +1
-
-
-```
-
 
 
 # Discussion
+
+**life history based mgmt**
+fall pulse (attractant) flows can have a positive or negative effect on salmonids depending on life stage or timing [@NislowArmstrongLifehistorybased2012]
+* water temperature particularly important.
+* High flows after hatching can make it difficult to avoid being swept downstream or to foraging effectively [@NislowArmstrongLifehistorybased2012]
+* Parr seem to be less vulnerable to flow events than fry, and they spend more time sheltering [@NislowArmstrongLifehistorybased2012]. Regulating flows can effect conditions for parr growth.
+* Smolts outmigrate on the descending limb of a spring hydrograph; higher spring flows may lead to more rapid outmigration (and thus less opportunity for mortality in transit) [@McCormickEtAl1998]
 
 The findings described above suggest that, in this case study, hydrology can explain about half of the variation in a key ecological outcome for coho salmon, though as a predictive tool it has some limitations. 
 
