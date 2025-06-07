@@ -61,7 +61,7 @@ if(dev_mode){
   save_imgs=T # generate the figures in the folder
   include_figs = T
   replace_setting_fig = F # setting to F can save time if no need to re-render map
-  fig_i = 100
+  fig_i = 1
   
   # pick last water year for the HB function to calculate a value for
   last_wy = 2023
@@ -169,6 +169,8 @@ if(dev_mode){
 ```
 
 
+# Supplement to "A watershed-specific formula to predict salmon reproduction using functional flow metrics" {-}
+
 # History of flow-ecology relationships
 
 
@@ -192,9 +194,23 @@ The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott 
 
 In most dry-to-average water years, sections of the Scott River become seasonally dewatered [NCRWQCB -@NorthCoastRegionalWaterQualityControlBoardStaff2005; Figure 5 in @TolleyEtAlSensitivity2019]. This occurs when the elevation of the water table drops below the bottom of the river channel, as streams and groundwater are highly interconnected in the Scott River watershed. Tributary streams, particularly along their alluvial fan apeces, and the upper Scott River are sources of recharge to the aquifer [@MackGeology1958; @HarterHinesSCOTT2008]. Groundwater discharge sustains streamflow in low-lying areas, especially during the dry season of August through October or November [@TolleyEtAlSensitivity2019]. For consistency with regulatory and management programs in this region, this document uses units of cubic feet per second (cfs) when reporting hydrologic fluxes.
 
-```{r fjFlowFigure, echo=FALSE, fig.cap="Each translucent line traces one annual hydrograph measured at the Fort Jones gauge, and the darker lines illustrate the 30-day smoothed median daily flow in Dry, Below Average, Above Average, and Wet water year types, for water years 1942-2023. The water year type is defined by quartiles of the distribution of total annual flow.", warning=F}
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+
+<!-- ```{r fig.id="faithfuld-plot", fig.cap.pre="Supplementary Figure",fig.autonum.start_at=1,fig.lp="supp-fig"} -->
+<!-- knitr::include_graphics("images/MyImage.png")  -->
+
+<!-- ``` -->
+<!-- blah blah blah -->
+
+<!-- ```{r fig.id="faithfuld-plot2", fig.cap.pre="Supplementary Figure",fig.lp="supp-fig"} -->
+<!-- knitr::include_graphics("images/MyImage2.png") -->
+
+<!-- ``` -->
+
+<!-- fig.lp="S", fig.autonum.start_at = 1, -->
+```{r fjFlowFigure, echo=FALSE, fig.cap.pre = "S", fig.cap="Each translucent line traces one annual hydrograph measured at the Fort Jones gauge, and the darker lines illustrate the 30-day smoothed median daily flow in Dry, Below Average, Above Average, and Wet water year types, for water years 1942-2023. The water year type is defined by quartiles of the distribution of total annual flow.", warning=F}
+
+fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
   
@@ -253,16 +269,17 @@ ff_tab_ft
 
 ``` 
 
+<!-- fig.id="faithfuld-plot2", fig.cap.pre="Supplementary Figure",fig.lp="supp-fig" -->
 
-```{r fig2Yarnell2020, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
+```{r fig2Yarnell2020, fig.cap.pre = "S", fig.lp = "supp-fig", echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
 
 if(save_imgs==T){
   file.copy(from = file.path(graphics_dir, "Graphics source", "Yarnell2020_Fig2.png"),
-            to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+            to = file.path(save_figs_here, paste0("Figure S",fig_i,".png")))
 }
 
 if(include_figs==T){
-  knitr::include_graphics(file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+  knitr::include_graphics(file.path(save_figs_here, paste0("Figure S",fig_i,".png")))
 }
 
 
@@ -296,7 +313,7 @@ ff_tab_ft
 ```{r reconnectExplainerHydrograph, echo = F, warning =F, fig.cap = "Reconnection and disconnection dates are highlighted for one water year. Two example thresholds, 20 and 120 cfs (0.57 and 3.4 cms, respectively) are highlighted, which correspond to distinct river connectivity (and salmon habitat access) conditions in the Scott River watershed as observed at the Fort Jones gauge (see Results for more detail on selection of flow thresholds)."}
 
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 4.5, units = "in", res = res_dpi)
   
@@ -385,7 +402,7 @@ em_tab_ft
 
 ```{r acfEcoRecords, echo = F, warning = F, fig.height = 8, fig.cap = "Autocorrelation function estimates for all available ecological outcome records.\\label{fig:acfEcoRecords}"}
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
 par(mfrow = c(3,3))
@@ -405,6 +422,28 @@ fig_i = fig_i +1
 ```
 
 # Statistical Method Details
+
+## LASSO regression
+
+LASSO (Least Absolute Shrinkage and Selection Operator) regression minimizes the following quantity:
+
+$$\sum_{i=1}^{n}{(y_i-\beta_0-\sum_{j=1}^{p}{\beta_jx_{ij}})^2}+\lambda\sum_{j=1}^{p}{|\beta_j|}$$
+
+Where:
+
+* $n$ is the number of ecological observations;
+* $i$ enumerates the brood years;
+* $p$ is the number of predictors;
+* $j$ enumerates the hydrologic predictors;
+* $x_{ij}$ is the observed value of hydrologic predictor $j$ for brood year $i$ (independent variable);
+* $y_i$ is the observed value of ecological response in the salmon cohort with brood year $i$ (dependent variable);
+* $\beta_0$ is the intercept value for the resulting linear model;
+* $\beta_j$ is the coefficient value for hydrologic predictor $j$ in the resulting linear model; and
+* $\lambda$ is a tuning parameter, referred to as a shrinkage penalty.
+
+In this formulation, sufficiently large values of lambda generally shrink the values of all coefficients to 0 (the infinite-lambda case). The infinite-lambda case produces a model consisting solely of the $\beta_0$ intercept term, which takes on a value that is the average of all the observed $y$ values. Conversely, sufficiently small values of $\lambda$ will produce linear models incorporating information from many predictors. 
+The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@JamesEtAlIntroduction2013]. In this analysis a range of $\lambda$ values was explored for each species.
+
 
 <!-- ## Ridge Regression -->
 
@@ -580,7 +619,7 @@ fig_i = fig_i +1
 <!-- ``` -->
 
 
-## Lasso Regression, juvenile abundance on hydro. and spawners
+## LASSO results, juvenile abundance on hydro. and spawners
 
 ```{r alt_lasso_analysis, echo = FALSE}
 
@@ -625,7 +664,7 @@ if(predict_eco == "juveniles per spawner"){
 
 ```{r jpsLassoCohoChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Results of lasso regression to predict log-transformed coho and Chinook outcomes with Z-scored hydrologic metrics. Models with more coefficients explain a greater fraction of deviance in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:jpsLassoCohoChinook}"}
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
 if(predict_eco == "juvenile abundance, hydro and spawners"){
@@ -920,7 +959,7 @@ yrs_with_data = which(!is.na(metrics_tab[,y_val_chinook]))
 pred_yrs_i_ch = min(yrs_with_data):max(yrs_with_data)
 
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   
@@ -1185,7 +1224,7 @@ yrs_with_data_spawn = which(!is.na(metrics_tab[,"chinook_spawners_zscored"]))
 pred_yrs_i_ch = min(yrs_with_data_spawn):max(yrs_with_data_yval)
 
 
-fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
+fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   
