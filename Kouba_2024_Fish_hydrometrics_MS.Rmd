@@ -8,11 +8,11 @@ output:
     number_sections: true
     global_numbering: true
 bibliography: draft_library.bib
-biblio-style: "apalike"
 ---
 
 ```{r setup_dirs_load_data, include = FALSE}
 
+# biblio-style: "apalike"
 
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -491,6 +491,7 @@ Consequently, we chose to include spawner abundance as a factor in this predicti
 We used the R programming environment [@TheRFoundationProject2025] and the linear modeling function `glmnet()` [@FriedmanEtAlRegularization2010] to calculate and cross-validate two LASSO models for each species (Table \@ref(tab:statsMethodsTable)). 
 
 We used k-fold cross validation to calculate test error based on different penalty values and determine the value of $\lambda$ that minimized test error. In the case of one model (LASSO prediction of coho spf), we proposed an alternative lambda value that produced an error nearly identical to the minimum error but which explained a higher degree of variance. 
+
 <!-- * cross-validation using $k$ folds, in which the data is split into to test and training data sets. default number of folds is 10; reduced number of folds to the maximum number in which the number of observations per fold was greater than 3. -->
 
 The final lambda value selection produced the linear model which can be used to predict ecological outcomes with hydrologic metrics. We referred to this model as the hydrologic benefit (HB) function. The ecological outcome in water year $wy$ is obtained for $wy = brood~year + 1$ for both salmon species.
@@ -749,8 +750,21 @@ if(predict_eco == "juveniles per spawner"){
 ```
 
 
-## Selected predictive models: LASSO regression of juveniles per spawner
+## Predictive modeling
 
+### Comparison of statistical model structures
+
+To make our model structure selection we weighed LASSO advantages (overfitting penalty, interpretable output) and disadvantages (assumes independent observations), MARSS advantages (built for working with small ecological time series records, accounts for autocorrelation) and disadvantages (less-interpretable output), and model performance against observed data. We also examined the following questions before making our selection:
+
+* Do MARSS and LASSO models predict the same hydrologic metrics are of high importance?
+* Do juvenile abundance and juveniles-per-spawner models predict the same hydrologic metrics are of high importance?
+* For models of juvenile abundance, what is the relative importance (based on coefficients) of spawners versus hydrology?
+
+MARSS models, single covariate (Tables \@ref(tab:MARSSSingleCovarTableCoho) and \@ref(tab:MARSSSingleCovarTableChinook)): hydrology order of importance is taken from the small-sample-size-corrected Akaike Information Criterion (AICc): the lower the AICc, the better the prediction based on that hydrologic metric. This also relates to coefficient value: the lower the AICc, the greater the coefficient assigned to the hydrologic metric in its single-covariate model.
+
+MARSS models of juvenile abundance, two covariates (Tables \@ref(tab:MARSSFlowAndSpawnCovarTableCoho) and \@ref(tab:MARSSFlowAndSpawnCovarTableChinook)): used to ask, what is the relative influence of spawners and any single hydrologic metric? For the top ~4 best models, hydrology coeficients are equal to or greater than coefficients for spawners. For worse, higher-AICc models, spawner influence grows to be much greater than the hydrology.
+
+MARSS single- and two-covariate models tended to perform better on coho than Chinook (Figures \@ref(fig:MARSSSingleCovars) and \@ref(fig:MARSSHydroPlusSpawn), possibly because Chinook records did not contain significant autocorrelation (Figure \@ref(fig:acfEcoRecords)). 
 
 
 ```{r findingsTab, echo = F, warning =F, results = 'asis'}
@@ -810,8 +824,8 @@ ft_ft
 ```
 
 
-### Cross-validation and selection of penalty value (lambda)
 
+## Selected predictive models: LASSO regression of juveniles per spawner
 
 
 ```{r kfold_lambda_finding, echo = FALSE}
@@ -891,7 +905,7 @@ To explain 20% of Chinook deviation, the regression model needed 5 non-0 coeffic
 
 ## Hydrologic Benefit Function
 
-For each species, the predictive model of ecological observations was based on the selected final lambda values, and refered to as the Hydrologic Benefit (HB) function. The HB function for coho is composed of an intercept and five non-zero coefficients, while for Chinook it includes only one non-zero coefficient (Tables \@ref(tab:coefTableCoho) and \@ref(tab:coefTableChinook)). 
+For each species, the predictive model of ecological observations was based on the selected final lambda values, and refered to as the Hydrologic Benefit (HB) function. The HB function for each species is composed of an intercept and three non-zero coefficients, of which the first is approximately an order of magnitude greater than the trailing two (Tables \@ref(tab:coefTableCoho) and \@ref(tab:coefTableChinook)).
 <!-- While many coefficients (as well as $R$ values in the correlation analysis) match the current understanding of local flow-ecology relationships, some do not (see Discussion). -->
 
 

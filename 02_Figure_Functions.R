@@ -1564,7 +1564,7 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
   if(zscore_flow_metrics == T){
     elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
                            "How wet was the wet season? (year 2, as rearing juv.)",
-                           "How dry was the dry season? (pre-spawning",
+                           "How dry was the dry season? (pre-spawning)",
                            "Dry to wet season transition timing (as rearing juv.)",
                            "How long was the wet season (as eggs and fry)",
                            "Fall pulse magnitude (parents' spawning)",

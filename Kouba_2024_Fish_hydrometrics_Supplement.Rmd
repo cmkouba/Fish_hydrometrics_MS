@@ -256,7 +256,7 @@ As recently as 2013, the SONCC Chinook population was stable and becoming more c
 ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Functional Flows.csv"))
 
 #Create caption and column labels
-caption_text = "TO UPDATE. Explanation of hydrologic metrics used in this analysis. Each type of metric, for each threshold value (e.g., 100 cfs or 50th flow percentile), produces one value per water year. Example metric names also include abbreviations for salmon life periods described in Table 2 below."
+caption_text = "Explanation of functional flows used in this analysis (Patterson et al. 2020; Baruch et al. 2024). Each type of metric, for each threshold value (e.g., 100 cfs or 50th flow percentile), produces one value per water year."
 column_labels = c("Abbrev.","Full Name", "Thresholds","Description")
 colnames(ff_tab) = column_labels
 
@@ -356,7 +356,7 @@ ept_tab_ft
 
 ## Groups 1 and 2
 
-These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), effectively characterized by the question, how wet was the wet season?. We selected `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during two wet seasons: `w1`, the first wet season, experienced by a cohort as eggs and newly-hatched alevin and fry, and `w2`, experienced by the cohort as overwintering parr.
+These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), effectively characterized by the question, 'how wet was the wet season?' We selected `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during two wet seasons: `w1`, the first wet season, experienced by a cohort as eggs and newly-hatched alevin and fry, and `w2`, experienced by the cohort as overwintering parr.
 
 ## Group 3
 
@@ -366,17 +366,15 @@ These metrics describe the magnitude and timing of dry-season flows before the c
 
 These metrics quantify the timing of the wet season onset and duration (year 2). We selected `w2_Wet_Tim`, the timing of the onset of the second wet season, and `w2_Wet_BFL_Dur`, the duration of wet season baseflow, to characterize the timing of the wet season experienced by a cohort of coho as overwintering juveniles.
 
-## Groups 6 and 7: 
+## Groups 6 and 7
 
-These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). Although `FA_num_diff` had a higher sample size, we selected `f1_FA_Mag` and `f2_FA_Mag` to better reflect the years in which an identifiable fall pulse occurred before the onset of the wet season.
-
+These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). We selected the fall flow increase `FA_dif_num` [from @Baruch2024] for both years, as it is the only fall flows magnitude metric occurring in every water year, with no missing values.
 
 # Ecological Data Features
 
 
-Plot spawners vs juveniles and spawners vs redds (color coded by year?)
+## Sources and methods
 
-Plot ACF for each eco record
 
 ```{r ecoMetricsMonitoringTab, echo = FALSE, results = 'asis'}
 
@@ -400,6 +398,13 @@ em_tab_ft
 ```  
 
 
+## Autocorrelation in ecological records
+
+Autocorrelation, with a lag of 3, is evident in two ecological records: the abundances of coho redds and coho smolt (Figure \@ref(fig:acfEcoRecords)). In other words, the 3-year-lagged record of coho smolt approaches, and for redds exceeds, the 95% confidence interval that it is not random noise. 
+
+Interestingly, for coho spawner abundance, although the sign of the autocorrelation is positive at 3 and 6 year lags (which we would expect, reflecting the cohort structure), autocorrelation in the coho spawner record is weaker than in the redd and smolt records. 
+
+No significant autocorrelation is evident in the three Chinook data types, and none is observed for coho smolt per female. 
 
 ```{r acfEcoRecords, echo = F, warning = F, fig.height = 8, fig.cap = "Autocorrelation function estimates for all available ecological outcome records.\\label{fig:acfEcoRecords}"}
 
@@ -414,6 +419,7 @@ for(i in 1:nrow(yvlt)){
   acf(x = y_vals_continuous$y_cont,
       main = yvlt$y_val_label[i],
       sub = paste0("Continuous record length: ",nrow(y_vals_continuous), " years"))
+  legend(x = "topright", bty = "n", legend = LETTERS[i])
 }
 
 
@@ -424,7 +430,9 @@ fig_i = fig_i +1
 
 # Statistical Method Details
 
-## LASSO regression
+## LASSO regression 
+
+### Equation
 
 LASSO (Least Absolute Shrinkage and Selection Operator) regression minimizes the following quantity:
 
@@ -443,184 +451,10 @@ Where:
 * $\lambda$ is a tuning parameter, referred to as a shrinkage penalty.
 
 In this formulation, sufficiently large values of lambda generally shrink the values of all coefficients to 0 (the infinite-lambda case). The infinite-lambda case produces a model consisting solely of the $\beta_0$ intercept term, which takes on a value that is the average of all the observed $y$ values. Conversely, sufficiently small values of $\lambda$ will produce linear models incorporating information from many predictors. 
-The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@JamesEtAlIntroduction2013]. In this analysis a range of $\lambda$ values was explored for each species.
+The selection of the appropriate $\lambda$ value is a critical step in the regression procedure, and is best done using cross-validation within the training dataset [@JamesEtAlIntroduction2013].
 
 
-<!-- ## Ridge Regression -->
-
-
-<!-- ```{r kfold_lambda_finding_ridge, echo = FALSE} -->
-
-<!-- # calculate lasso regression model and cross-validation objects -->
-<!-- # (lasso: alpha = 1; ridge: alpha = 0) -->
-<!-- mod_obj_co = kfold_cv_plus_spawn(mt = metrics_tab_screened, y_val = y_val_coho, -->
-<!--                       alpha = 0) -->
-<!-- mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv -->
-
-<!-- mod_obj_ch = kfold_cv_plus_spawn(mt = metrics_tab_screened_chinook, alpha = 0,  -->
-<!--                       y_val = y_val_chinook) -->
-<!-- mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv -->
-
-<!-- # extract coefficients from the model using the optimal lambda value found in cross-validation -->
-<!-- if(predict_eco == "juveniles per spawner"){ -->
-<!--   alt_lambda_co = .135 -->
-<!--   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3, -->
-<!--                             alt_lambda = alt_lambda_co) -->
-<!--   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3) -->
-
-<!-- } else if(predict_eco == "juvenile abundance, hydro and spawners"){ -->
-<!--   alt_lambda_co = .022 -->
-<!--   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3, -->
-<!--                             alt_lambda = alt_lambda_co) -->
-<!--   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3) -->
-
-<!-- } else { -->
-<!--   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3) -->
-<!--   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3) -->
-
-<!-- } -->
-
-
-
-
-<!-- ``` -->
-
-
-<!-- ```{r ridgeResultsCohoChinook, echo = F, warning = F, fig.height = 8, fig.cap = "Results of lasso regression to predict log-transformed coho and Chinook outcomes with Z-scored hydrologic metrics. Models with more coefficients explain a greater fraction of deviance in the dataset (middle panel), but also produce higher test errors (top panel), indicating some overfitting at lower lambda values. Higher values of lambda tend to shrink the absolute values of regression coefficients toward 0 (bottom panel).\\label{fig:lassoResultsChinook}"} -->
-
-<!-- fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png")) -->
-<!-- if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)} -->
-
-<!-- if(predict_eco == "juveniles per spawner"){ -->
-<!--   # do nothing -->
-<!--   # lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch, -->
-<!--   #               alt_lambda_co = alt_lambda_co) -->
-<!-- } else if (predict_eco == "juvenile abundance, hydro and spawners"){ -->
-<!--     lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch, -->
-<!--                 alt_lambda_co = alt_lambda_co) -->
-<!-- } else if (predict_eco == "juvenile abundance, hydro only"){ -->
-<!--   lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch) -->
-<!-- } -->
-
-<!-- if(save_imgs == TRUE){ -->
-<!--   dev.off() -->
-<!-- } -->
-<!-- if(include_figs==T){knitr::include_graphics(fig_path)} -->
-<!-- fig_i = fig_i +1 -->
-
-<!-- ``` -->
-
-
-<!-- ```{r ridgeCoefTableCoho, echo = F, warning =F, results = 'asis'} -->
-
-<!-- # Retrieve coefficients from lasso model -->
-
-<!-- coefs_interp_names = names(coefs_co$coef_non0_only) -->
-<!-- coefs_interp = as.character(coefs_co$coef_non0_only) -->
-<!-- names(coefs_interp) = coefs_interp_names -->
-<!-- # add interpretation to each non-0 coefficient -->
-<!-- # if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == F & zscore_flow_metrics == T){ -->
-<!-- #   coefs_interp$f1_recon_120 = "Earlier full-system reconnection (120 cfs, fall of parents' spawning)" -->
-<!-- #   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)" -->
-<!-- #   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)" -->
-<!-- # } -->
-<!-- # if(y_val_coho == "coho_smolt_per_fem" & log_transform_eco_metrics == T & zscore_flow_metrics == T){ -->
-<!-- #     coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)" -->
-<!-- #     coefs_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and hatchlings)" -->
-<!-- #     coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)" -->
-<!-- #     coefs_interp$s2_SP_ROC = "Faster rate of change (as outmigrating smolt)" -->
-<!-- # } -->
-<!-- # if(y_val_coho == "coho_smolt_abun_est" & log_transform_eco_metrics == F & zscore_flow_metrics == T){ -->
-<!-- #   coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)" -->
-<!-- #   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)" -->
-<!-- # } -->
-<!-- coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)" -->
-<!-- coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)" -->
-<!-- coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)" -->
-<!-- coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)" -->
-<!-- coefs_interp$w2_Wet_BFL_Mag_50 = "Lower wet season baseflows (as overwintering juveniles)" -->
-<!-- coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)" -->
-<!-- coefs_interp$w1_Wet_BFL_Mag_50 = "Higher wet season baseflows (as eggs and hatchlings)" -->
-<!-- # coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as recent hatchlings)" -->
-<!-- coefs_interp$d1_DS_Mag_50 = "Higher dry season median flows (before parents' spawning)" -->
-<!-- coefs_interp$s2_SP_Tim = "Earlier spring recession onset (as outmigrating smolt)" -->
-<!-- coefs_interp$w2_Wet_Tim = "Later wet season onset (as overwintering juveniles)" -->
-<!-- coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)" -->
-<!-- coefs_interp$f2_recon_120 = "Earlier fall reconnection (as juvenile fish)" -->
-<!-- coefs_interp$d1_DS_Mag_90 = "Higher dry season high flows (before parents' spawning)" -->
-<!-- # coefs_interp$s2_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)" -->
-
-<!-- if(predict_eco == "juvenile abundance, hydro and spawners"){ -->
-<!--   coefs_interp$coho_spawner_abundance = "More spawners (cohort's parents)" -->
-<!-- } -->
-<!-- coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 3)) -->
-<!-- coefs_co_interp = c("(Intercept)", unlist(coefs_interp[coefs_co!="0"])) -->
-<!-- coefs_co_ft = data.frame(Predictor = c(names(coefs_co_interp)), -->
-<!--                          Value = as.vector(coefs_co_vals), -->
-<!--                          Description = coefs_co_interp) -->
-
-<!-- caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated coho juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values." -->
-
-<!-- coco_tab_ft = flextable(data=coefs_co_ft) -->
-<!-- coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text) -->
-<!-- coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5) -->
-<!-- coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1) -->
-<!-- coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3) -->
-<!-- coco_tab_ft = flextable::set_header_labels(coco_tab_ft, -->
-<!--                                            values = list( -->
-<!--                                              Predictor ="Predictor",  -->
-<!--                                              Value = "Value", -->
-<!--                                              Description = "Greater Hydrologic Benefit value associated with")) -->
-<!-- coco_tab_ft -->
-
-
-<!-- ``` -->
-
-
-<!-- ```{r ridgeCoefTableChinook, echo = F, warning =F, results = 'asis'} -->
-
-<!-- # Retrieve coefficients from ridge model -->
-
-<!-- coefs_interp_names = names(coefs_ch$coef_non0_only) -->
-<!-- coefs_interp = as.character(coefs_ch$coef_non0_only) -->
-<!-- names(coefs_interp) = coefs_interp_names -->
-<!-- # add interpretation to each non-0 coefficient -->
-<!-- if(y_val_chinook == "chinook_juvenile_abundance" & log_transform_eco_metrics == T & zscore_flow_metrics == T){ -->
-<!--   coefs_interp$f1_FA_Dif_num = "Smaller fall flow increase (during parents' spawning)" -->
-<!--   coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as outmigrating smolt)" -->
-<!--   coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (as eggs and hatchlings)" -->
-<!--   coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)" -->
-<!--   coefs_interp$d1_DS_Mag_50 = "Higher dry season median flows (before parents' spawning)" -->
-<!--   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)" -->
-<!--   coefs_interp$d1_DS_Mag_90 = "Lower dry season high flows (before parents' spawning)" -->
-<!--   coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)" -->
-<!-- } -->
-
-<!-- coefs_ch_vals = c(round(coefs_ch$int_and_coefs$coef, 3)) -->
-<!-- coefs_ch_interp = c("(Intercept)", unlist(coefs_interp[coefs_ch!="0"])) -->
-<!-- coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)), -->
-<!--                          Value = as.vector(coefs_ch_vals), -->
-<!--                          Description = coefs_ch_interp) -->
-
-<!-- caption_text = "Values for the intercept and coefficient terms in the Hydrologic Benefit function for estimated Chinook juvenile abundance, including a description of which phenomena are associated with higher ecological outcome values." -->
-
-<!-- coch_tab_ft = flextable(data=coefs_ch_ft) -->
-<!-- coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text) -->
-<!-- coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5) -->
-<!-- coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1) -->
-<!-- coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3) -->
-<!-- coch_tab_ft = flextable::set_header_labels(coch_tab_ft, -->
-<!--                                            values = list( -->
-<!--                                              Predictor ="Predictor",  -->
-<!--                                              Value = "Value", -->
-<!--                                              Description = "Greater Hydrologic Benefit value associated with")) -->
-<!-- coch_tab_ft -->
-
-
-<!-- ``` -->
-
-
-## LASSO results, juvenile abundance on hydro. and spawners
+### LASSO results: juvenile abundance on hydrologic metrics and spawner abundance
 
 ```{r alt_lasso_analysis, echo = FALSE}
 
@@ -780,10 +614,13 @@ coch_tab_ft
 
 ## MARSS Models
 
+Multi-variate autoregressive state-space (MARSS) models are often used to model time series data (in which )
+
+
 
 ### MARSS models of juveniles per spawner, single hydrologic covariate
 
-Multi-variate autoregressive state-space (MARSS) models are often used to model time series data (in which )
+The single-covariate models 
 
 ```{r MARSS1RegYVal, echo = F}
 predict_eco = "juveniles per spawner"
@@ -1156,7 +993,7 @@ if(file.exists(file.path(data_dir, model_list_file))){
 ```
 
 
-```{r MARSS_flow_and_spawn_covar_table_co, echo = F}
+```{r MARSSFlowAndSpawnCovarTableCoho, echo = F}
 
 y_val = "coho_smolt_abun_est"
 # view predictors in order of AICc value (smallest first)
@@ -1184,7 +1021,7 @@ afs_co_tab_ft
 ```
 
 
-```{r MARSS_flow_and_spawn_covar_table_ch, echo = F}
+```{r MARSSFlowAndSpawnCovarTableChinook, echo = F}
 y_val = "chinook_juvenile_abundance"
 # view predictors in order of AICc value (smallest first)
 results_y_ch = data.frame(pred = aicc_tab[order(aicc_tab[,y_val]), "pred"])
