@@ -195,7 +195,6 @@ The Scott River drains a 2,109 km^2^ (814 square mile) watershed known as Scott 
 In most dry-to-average water years, sections of the Scott River become seasonally dewatered [NCRWQCB -@NorthCoastRegionalWaterQualityControlBoardStaff2005; Figure 5 in @TolleyEtAlSensitivity2019]. This occurs when the elevation of the water table drops below the bottom of the river channel, as streams and groundwater are highly interconnected in the Scott River watershed. Tributary streams, particularly along their alluvial fan apeces, and the upper Scott River are sources of recharge to the aquifer [@MackGeology1958; @HarterHinesSCOTT2008]. Groundwater discharge sustains streamflow in low-lying areas, especially during the dry season of August through October or November [@TolleyEtAlSensitivity2019]. For consistency with regulatory and management programs in this region, this document uses units of cubic feet per second (cfs) when reporting hydrologic fluxes.
 
 
-
 <!-- ```{r fig.id="faithfuld-plot", fig.cap.pre="Supplementary Figure",fig.autonum.start_at=1,fig.lp="supp-fig"} -->
 <!-- knitr::include_graphics("images/MyImage.png")  -->
 
@@ -228,6 +227,8 @@ fig_i = fig_i +1
 Water in Scott Valley is used for agricultural, domestic, and municipal supply. It also facilitates recreation and provides Native American cultural services, among other designated beneficial uses [NCRWQCB -@NorthCoastRegionalWaterQualityControlBoardACTION2006]. Because the watershed is undammed, managers and water users influence Scott River flow primarily via diversion of surface waters and pumping of groundwater. Consequently, the most powerful tool available to manage Scott River water flow is regulation of land use and thus water demand [Siskiyou County -@SiskiyouCountyScott2021]. 
 
 Historically, local regulation of land use has focused on maintaining the rural and agricultural character of Scott Valley [@ScottValleyAreaPlanCommitteeScott1980]. Regulating land use to improve ecological outcomes would entail significant economic, political and social risks, because much of the economic activity in this area is related to agriculture. The primary crops grown in Scott Valley are pasture for cattle feed and alfalfa [Siskiyou County -@SiskiyouCountyScott2021]. In addition to local economic impact, Scott River conditions influence fish population dynamics both within the watershed and in the broader Klamath system. The health of the Klamath salmon run has implications for commercial fishing, recreational activities, and cultural practices of Native American tribes in the region, including the Quartz Valley Indian Community and the Karuk and Yurok Tribes [@MansfieldEtAlKlamath2012].
+
+Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@Magranet20172018], the prioritization of stream reaches for habitat restoration [SRWC -@ScottRiverWatershedCouncilRestoring2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@YokelEtAlScott2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCountyScott2021].
 
 # Species of concern - coho and Chinook salmon
 
@@ -271,7 +272,7 @@ ff_tab_ft
 
 <!-- fig.id="faithfuld-plot2", fig.cap.pre="Supplementary Figure",fig.lp="supp-fig" -->
 
-```{r fig2Yarnell2020, fig.cap.pre = "S", fig.lp = "supp-fig", echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
+```{r fig2Yarnell2020,  echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
 
 if(save_imgs==T){
   file.copy(from = file.path(graphics_dir, "Graphics source", "Yarnell2020_Fig2.png"),

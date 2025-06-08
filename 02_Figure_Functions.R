@@ -35,6 +35,7 @@ color_watershed_fill = "dodgerblue"
 color_interstate = "red"
 color_state_road = "brown"
 color_river = "blue"
+color_tailings = "red"
 color_cities= "#d7922d"
 # color_basin = "black"
 color_tribs = "dodgerblue1"
@@ -93,6 +94,12 @@ cities_centroid_df=rbind(cities_centroid_df, cal_df)
 # convert back to spatial and 3310 projection
 cities_centroid = sf::st_as_sf(x=cities_centroid_df, coords=c("X","Y"), crs =st_crs(4326))
 cities_centroid = st_transform(cities_centroid, crs=st_crs(3310))
+
+# add tailings reach
+tailings = st_read(dsn = data_dir, layer = "TailingsReach")
+# label one segment of tailings for map
+tailings$Identifier = NA;
+tailings$Identifier[round(nrow(tailings)/2)]= "Tailings"
 
 # add label location numbers
 # cities_centroid$label_xmod = c(-1.2, 2.2, 1.5)
@@ -238,6 +245,8 @@ save_setting_figure = function(){
     # tm_shape(basin, name = "Groundwater Basin") + tm_borders(color_basin, lwd = 2) +
     # tm_shape(adj, name = "Adjudicated Area") + tm_polygons(col = color_adju, border.col = color_adju) +
     tm_shape(mapped_streams, name = "Tributaries") + tm_lines(color_tribs, lwd = 2) +
+    tm_shape(tailings) + tm_lines(color_tailings, lwd = 5) +
+    tm_text("Identifier", size = 0.8, xmod = 1.3, ymod = 0) +
     tm_shape(riv, name = "Scott River") + tm_lines(color_river, lwd = 3) +
     tm_shape(scott_klamath_confluence) +
     tm_symbols(col = color_confluence, shape = 25) +
@@ -286,81 +295,6 @@ save_setting_figure = function(){
             insets_tm = ca_or_inset,
             insets_vp = viewport(x= 0.8, y= 0.75, width= 0.4, height= 0.4),
             width=7, height = 8.3, units = "in", dpi=400)
-
-  # return(result)
-}
-
-
-
-
-save_setting_figure_old = function(){
-
-  # ADD LOCATIONS OF VIDEO COUNTING FACILITY AND ROTARY SCREW TRAP (Scott JSO 2022)
-
-  main_map =
-    tm_shape(hill_wsh) +
-    tm_raster(palette = hillshade_palette_faded(20), legend.show = F) +
-    tm_shape(watershed, name= "Watershed Boundary", is.master=T, unit=figure_units) + tm_borders (color_watershed, lwd = 2) +
-    # tm_shape(basin, name = "Groundwater Basin") + tm_borders(color_basin, lwd = 2) +
-    # tm_shape(adj, name = "Adjudicated Area") + tm_polygons(col = color_adju, border.col = color_adju) +
-    tm_shape(mapped_streams, name = "Tributaries") + tm_lines(color_tribs, lwd = 2) +
-    tm_shape(riv, name = "Scott River") + tm_lines(color_river, lwd = 3) +
-    tm_shape(scott_klamath_confluence) +
-      tm_symbols(col = color_confluence, shape = 25) +
-      tm_text("name", size = 1, xmod = -3.5, ymod = -.5, fontface = "bold") +
-    tm_shape(i5, name = "Interstate 5") + tm_lines(color_interstate, lwd = 2) +
-    tm_shape(rt3, name = "State Route 3") + tm_lines(color_state_road, lwd = 1.5) +
-    tm_shape(fj_gauge, name = "FJ Gauge") + tm_symbols(color_gauges, size = 1) +
-      tm_text("station_nm", size = 1, xmod = 1, ymod = 1, fontface = "bold") +
-    tm_shape(qvir) + tm_polygons(color_qvir , border.lwd = 1)+
-    tm_shape(cities_centroid, name = "Town or Community") +
-    tm_symbols(color_cities, border.lwd=1, size = 0.5) +
-      tm_text("NAME", size = 0.8, xmod = cities_centroid$label_xmod, ymod = cities_centroid$label_ymod) +
-    tm_scale_bar(position = c("right", "bottom"))+
-    tm_compass(type = "4star",#position = c("left", "top"), ) +
-               position = c(.82,.07))+
-    # legend for main figure
-    tm_add_legend(type = "title", title = "Watershed Features") +
-    tm_add_legend( type = "line", lwd = c(2, 3, 2), col =  c(color_watershed, color_river, color_tribs),
-                   labels = c("Watershed Boundary", "Scott River", "Major Tributaries")) +
-    tm_add_legend(type="fill", col = color_qvir, border.lwd = 1, labels = "QVIR")+
-    tm_add_legend(type="symbol", col = color_cities, border.lwd = NA, labels = "Town or Place")+ #size = 0.7,
-    tm_add_legend(type="symbol", col = color_gauges, labels = "Fort Jones Gauge")+ #size = 0.8,
-    tm_add_legend(type="symbol", col = color_confluence, shape = 25, size = 1, labels = "Scott-Klamath \n Confluence")+
-    tm_add_legend(type = "line", lwd = c(2, 1.5), col = c(color_interstate, color_state_road),
-                  labels = c("Interstate 5", "State Route 3")) +
-    # legend for inset map
-    tm_add_legend(type = "title", title = "Inset Map") +
-    tm_add_legend(type="fill", col = color_watershed_fill, border.col = "gray10", labels = "Scott River Watershed") +
-    tm_add_legend(type="fill", col = color_klamath, border.col = "gray10", labels = "Klamath Basin")+
-    tm_add_legend(type="fill", col = color_states, border.col = "gray10", labels = "Ore. and Calif.")+
-    tm_add_legend(type="line", col = color_county, labels = "Siskiyou County", lwd=2)+
-    # finish legend
-    # tm_layout(legend.bg.color = "white", legend.frame = T, legend.text.size = .7)
-    tm_layout(legend.bg.color = "white", legend.frame = T, legend.width=.28)
-
-  inset_fig = ca_or_figure( include_legend = F)
-
-  # convert to grobs
-  main_grob = tmap_grob(main_map)
-  inset_grob = tmap_grob(inset_fig)
-
-  # Arrange plots
-  result = ggdraw() +
-    draw_plot(main_grob) +
-    # draw_plot(inset_grob, width = .4, height = .6, x = .62, y = -.07)
-    draw_plot(inset_grob, width = .35, height = .6, x = .67, y = .49)
-
-  # produce map
-  graphic_filename = file.path(ms_dir,"Graphics and Supplements",
-                               "Graphics source","scott valley setting.png")
-  file.remove(graphic_filename) # remove old version to save new one
-  png(filename = graphic_filename,
-      width = 7, height = 8.3, units = "in", res = res_dpi)
-      # width = 9, height = 10, units = "in", res = 400)
-  result
-  dev.off()
-
 
   # return(result)
 }
@@ -2565,3 +2499,78 @@ hbf_over_time_fig = function(mt, hbf_tab, y_val,
   mtext(paste0("Corresponding predicted \n ",y_val_axis), side = 4, line = 3)
 }
 
+
+
+# To delete
+
+# save_setting_figure_old = function(){
+#
+#   # ADD LOCATIONS OF VIDEO COUNTING FACILITY AND ROTARY SCREW TRAP (Scott JSO 2022)
+#
+#   main_map =
+#     tm_shape(hill_wsh) +
+#     tm_raster(palette = hillshade_palette_faded(20), legend.show = F) +
+#     tm_shape(watershed, name= "Watershed Boundary", is.master=T, unit=figure_units) + tm_borders (color_watershed, lwd = 2) +
+#     # tm_shape(basin, name = "Groundwater Basin") + tm_borders(color_basin, lwd = 2) +
+#     # tm_shape(adj, name = "Adjudicated Area") + tm_polygons(col = color_adju, border.col = color_adju) +
+#     tm_shape(mapped_streams, name = "Tributaries") + tm_lines(color_tribs, lwd = 2) +
+#     tm_shape(riv, name = "Scott River") + tm_lines(color_river, lwd = 3) +
+#     tm_shape(scott_klamath_confluence) +
+#     tm_symbols(col = color_confluence, shape = 25) +
+#     tm_text("name", size = 1, xmod = -3.5, ymod = -.5, fontface = "bold") +
+#     tm_shape(i5, name = "Interstate 5") + tm_lines(color_interstate, lwd = 2) +
+#     tm_shape(rt3, name = "State Route 3") + tm_lines(color_state_road, lwd = 1.5) +
+#     tm_shape(fj_gauge, name = "FJ Gauge") + tm_symbols(color_gauges, size = 1) +
+#     tm_text("station_nm", size = 1, xmod = 1, ymod = 1, fontface = "bold") +
+#     tm_shape(qvir) + tm_polygons(color_qvir , border.lwd = 1)+
+#     tm_shape(cities_centroid, name = "Town or Community") +
+#     tm_symbols(color_cities, border.lwd=1, size = 0.5) +
+#     tm_text("NAME", size = 0.8, xmod = cities_centroid$label_xmod, ymod = cities_centroid$label_ymod) +
+#     tm_scale_bar(position = c("right", "bottom"))+
+#     tm_compass(type = "4star",#position = c("left", "top"), ) +
+#                position = c(.82,.07))+
+#     # legend for main figure
+#     tm_add_legend(type = "title", title = "Watershed Features") +
+#     tm_add_legend( type = "line", lwd = c(2, 3, 2), col =  c(color_watershed, color_river, color_tribs),
+#                    labels = c("Watershed Boundary", "Scott River", "Major Tributaries")) +
+#     tm_add_legend(type="fill", col = color_qvir, border.lwd = 1, labels = "QVIR")+
+#     tm_add_legend(type="symbol", col = color_cities, border.lwd = NA, labels = "Town or Place")+ #size = 0.7,
+#     tm_add_legend(type="symbol", col = color_gauges, labels = "Fort Jones Gauge")+ #size = 0.8,
+#     tm_add_legend(type="symbol", col = color_confluence, shape = 25, size = 1, labels = "Scott-Klamath \n Confluence")+
+#     tm_add_legend(type = "line", lwd = c(2, 1.5), col = c(color_interstate, color_state_road),
+#                   labels = c("Interstate 5", "State Route 3")) +
+#     # legend for inset map
+#     tm_add_legend(type = "title", title = "Inset Map") +
+#     tm_add_legend(type="fill", col = color_watershed_fill, border.col = "gray10", labels = "Scott River Watershed") +
+#     tm_add_legend(type="fill", col = color_klamath, border.col = "gray10", labels = "Klamath Basin")+
+#     tm_add_legend(type="fill", col = color_states, border.col = "gray10", labels = "Ore. and Calif.")+
+#     tm_add_legend(type="line", col = color_county, labels = "Siskiyou County", lwd=2)+
+#     # finish legend
+#     # tm_layout(legend.bg.color = "white", legend.frame = T, legend.text.size = .7)
+#     tm_layout(legend.bg.color = "white", legend.frame = T, legend.width=.28)
+#
+#   inset_fig = ca_or_figure( include_legend = F)
+#
+#   # convert to grobs
+#   main_grob = tmap_grob(main_map)
+#   inset_grob = tmap_grob(inset_fig)
+#
+#   # Arrange plots
+#   result = ggdraw() +
+#     draw_plot(main_grob) +
+#     # draw_plot(inset_grob, width = .4, height = .6, x = .62, y = -.07)
+#     draw_plot(inset_grob, width = .35, height = .6, x = .67, y = .49)
+#
+#   # produce map
+#   graphic_filename = file.path(ms_dir,"Graphics and Supplements",
+#                                "Graphics source","scott valley setting.png")
+#   file.remove(graphic_filename) # remove old version to save new one
+#   png(filename = graphic_filename,
+#       width = 7, height = 8.3, units = "in", res = res_dpi)
+#   # width = 9, height = 10, units = "in", res = 400)
+#   result
+#   dev.off()
+#
+#
+#   # return(result)
+# }
