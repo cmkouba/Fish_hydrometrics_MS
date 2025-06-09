@@ -1634,6 +1634,9 @@ get_pred_coefs = function(mod, cv, coef_digits = 2, alt_lambda = NA){
 
 
 lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
+  aicc_co = get_aicc_vector(fit = mod_co)
+  aicc_ch = get_aicc_vector(fit = mod_ch)
+
   par(mfrow = c(3,2))
   # Row 1: CV error and min lambda
   plot(cv_co); grid()
@@ -1648,30 +1651,48 @@ lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
   legend(x = "topright", legend = "B", bty = "n") # panel label
 
 
-  #Row 2: variance explained
+  #Row 2: variance explained and AICc
+  par(mar = c(5,4,4,5))
   plot(log(mod_co$lambda), mod_co$dev.ratio, type = "l", ylim = c(0,1),
        xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
   grid()
   abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
   abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
+  par(new=T)
+  plot(log(mod_co$lambda), aicc_co, type = "l", col = "green4",
+       lwd = 2, lty = 4, axes=F, ylab="", xlab= "",
+       # ylim = c(0,100)
+       )
+  axis(side = 4, at = pretty(aicc_co))#pretty(c(0,100)))
+  mtext(text = "AICc", side = 4, line =2.5, cex = .6)
   if(!is.na(alt_lambda_co)){
-    legend(x="bottomleft", lwd = 2, lty = c(2,3), col= c("brown", "dodgerblue"),
-           legend = c(expression(Min.~err.~lambda~from~CV), expression(Alt.~low~err.~lambda)))
+    legend(x="bottomleft", lwd = 2, lty = c(2,3,4),
+           col= c("brown", "dodgerblue","green4"),
+           legend = c(expression(Min.~err.~lambda~from~CV),
+                      expression(Alt.~low~err.~lambda),
+                      "AICc"))
   } else {
     legend(x="bottomleft", lwd = 2, lty = 2, col= c("brown"),
            legend = expression(Min.~err.~lambda~from~CV))
   }
-
   legend(x = "topright", legend = "C", bty = "n") # panel label
 
   plot(log(mod_ch$lambda), mod_ch$dev.ratio, type = "l", ylim = c(0,1),
        xlab = expression(Log(lambda)), ylab = "Fraction of null deviance explained")
   grid()
   abline(v=log(cv_ch$lambda.min), lty = 2, lwd = 2, col = "brown")
+  par(new=T)
+  plot(log(mod_ch$lambda), aicc_ch, type = "l", col = "green4",
+       lwd = 2, lty = 4, axes=F, ylab="", xlab= "",
+       # ylim = c(0,100)
+       )
+  axis(side = 4, at = pretty(aicc_ch))
+  mtext(text = "AICc", side = 4, line =2.5, cex = .6)
   legend(x = "topright", legend = "D", bty = "n") # panel label
 
 
   #Row 3: coefficients
+  par(mar = c(5,4,4,2)) #reset plot margins
   plot(mod_co, xvar = "lambda", xlab = expression(Log(lambda))); grid()
   abline(v=log(cv_co$lambda.min), lty = 2, lwd = 2, col = "brown")
   abline(v = log(alt_lambda_co), lty = 3, lwd = 3, col = "dodgerblue")
@@ -1682,6 +1703,14 @@ lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
   legend(x = "topright", legend = "F", bty = "n") # panel label
 }
 
+get_aicc_vector = function(fit){
+  # AICc calcs
+  tLL <- fit$nulldev - deviance(fit)
+  k <- fit$df
+  n <- fit$nobs
+  AICc <- -tLL+2*k+2*k*(k+1)/(n-k-1)
+  return(AICc)
+}
 
 # # Lasso Regression old -----------------------------------------------
 #
