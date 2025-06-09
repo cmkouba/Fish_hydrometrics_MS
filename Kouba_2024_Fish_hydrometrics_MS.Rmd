@@ -1213,6 +1213,8 @@ At a regional scale, this predictive tool could be used to assess simulated hydr
 
 We expect that the proposed approach could be employed in other regional studies, though in systems with shorter or minimal ecological monitoring records, opportunities to find correlations between flow and biological metrics may be sample size-limited to an even greater degree than in this study. However, this study may show the value of even a dozen years of monitoring data in a range of water year types, and could provide motivation to continue investing in data collection and the monitoring of sensitive species. 
 
+**Can we answer: at what flow can the fish access the valley? at what flow do fish become more productive? If not why?**
+
 # Conclusions
 
 This case study uses calculated functional flows and long-term biological monitoring to relate hydrologic conditions to watershed-scale anadromous fish reproduction rates. The empirical flow-biology relationships evaluated here also suggest hypotheses regarding the watershed- and species-specific mechanisms of ecological response to flow variability.
