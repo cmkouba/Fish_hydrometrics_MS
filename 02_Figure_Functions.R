@@ -592,7 +592,7 @@ recon_and_discon_explainer_hydrograph= function(water_year = 2016,
   plot(fj_wy$Date, fj_wy$Flow, type = "l", log = "y",
        lwd = 2, col = "dodgerblue", yaxt = "n", xaxt="n",
        ylim = range(fj_wy$Flow),
-       main = "Fort Jones Annual Hydrograph with Selected Functional Flow Metrics",
+       main = "Fort Jones Annual Hydrograph with Selected Flow Metrics",
        # ylab = "Average Daily Flow at FJ Gauge (cfs)",
        ylab = expression(Average~Daily~Flow~at~FJ~Gauge~(ft^3~"/"~sec)),
        xlab = paste("Date in water year", water_year))
@@ -1472,8 +1472,8 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
   # minimum_years = 10
   too_few_years = names(mt_years_count)[mt_years_count < minimum_years]
 
-  # Select high correlation threshold (0.7 after Baruch et al 2024)
-  high_corr_threshold = 0.7
+  # # Select high correlation threshold (0.7 after Baruch et al 2024)
+  # high_corr_threshold = 0.7
 
   # Make new table of corr. coeffs, excluding index years, eco responses,
   # and predictors with too-small sample size
@@ -1489,7 +1489,7 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
   corr_tab_screener = corr_tab_screener[ ,!exclude_these]
 
   # Convert remaining corr. coefs into a long-form table
-  corr_tab_long = melt(corr_tab_screener)
+  corr_tab_long = reshape2::melt(corr_tab_screener)
   ctl = corr_tab_long
   ctl = ctl[!(is.na(ctl$value)),] # remove NA values
 
@@ -1529,9 +1529,11 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
       loop
       if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
       if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
-      if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-      if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
-      if(loop==5){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the first wet season
+      # if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
+      if(loop==3){selected_pred[[loop]] = "d1_DS_Dur_WS"} # How dry the dry season (pre-spawning)
+      # if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
+      if(loop==4){selected_pred[[loop]] = "w1_Wet_Tim"} # Dry to wet transition timing (rearing juv)
+      if(loop==5){selected_pred[[loop]] = "w2_Wet_Tim"} # How long the first wet season
       if(loop==6){selected_pred[[loop]] = "f1_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
       if(loop==7){selected_pred[[loop]] = "f2_FA_Dif_num"}#"f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
       selected_pred[[loop]]
@@ -1539,7 +1541,10 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
 
     # Remove the other collinears
     keep = selected_pred[[loop]] # Keep this one
-    dont_keep = collinear_group[[loop]][collinear_group[[loop]] != keep] # exclude these ones
+    dont_keep = collinear_group[[loop]][!(collinear_group[[loop]] %in%
+                                            # c(keep,unlist(selected_pred)))] # exclude these ones
+                                            c(keep))] # exclude these ones
+
     ctl = ctl[!(ctl$Var1 %in% dont_keep |
                   ctl$Var2 %in% dont_keep),]
     # Recalculate the number of remaining collinear predictors with R > threshold
@@ -1565,8 +1570,8 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
     elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
                            "How wet was the wet season? (year 2, as rearing juv.)",
                            "How dry was the dry season? (pre-spawning)",
-                           "Dry to wet season transition timing (as rearing juv.)",
-                           "How long was the wet season (as eggs and fry)",
+                           "Dry to wet season transition timing (as eggs and fry)",
+                           "Dry to wet season transition timing (juvenile fish)",
                            "Fall pulse magnitude (parents' spawning)",
                            "Fall pulse magnitude (rearing juv.)")
   }
@@ -1672,8 +1677,8 @@ lasso_results = function(cv_co, cv_ch, mod_co, mod_ch, alt_lambda_co=NA){
                       expression(Alt.~low~err.~lambda),
                       "AICc"))
   } else {
-    legend(x="bottomleft", lwd = 2, lty = 2, col= c("brown"),
-           legend = expression(Min.~err.~lambda~from~CV))
+    legend(x="bottomleft", lwd = 2, lty = c(2,4), col= c("brown","green4"),
+           legend = c(expression(Min.~err.~lambda~from~CV),"AICc"))
   }
   legend(x = "topright", legend = "C", bty = "n") # panel label
 
@@ -2357,7 +2362,7 @@ marss_predict_plot_single_covars = function(metrics_tab, pred_yrs_i, y_val,
   plot(metrics_tab$brood_year[pred_yrs_i],
        metrics_tab[pred_yrs_i, y_val],
        main = paste0("MARSS models of ", yvlt$y_val_title[yvlt$y_val==y_val],
-                     ", single hydrologic covariates"), pch = 19, #type = "o",
+                     ", \n single hydrologic covariates"), pch = 19, #type = "o",
        xlab = "Brood Year",
        ylab = paste0("Log10 of ", yvlt$y_val_title[yvlt == y_val]))
   grid()
@@ -2392,6 +2397,7 @@ marss_predict_plot_flow_and_spawn = function(metrics_tab, pred_yrs_i, y_val,
     mod_j = top_models[[mod_name]]
     prediction = predict(mod_j, type = "ytt")
     lines(x = metrics_tab$brood_year[pred_yrs_i],
+      # x = metrics_tab$brood_year,
           y = prediction$pred$estimate, col = j+1,
           lty = 2, pch = 18)
   }
