@@ -1648,6 +1648,3 @@ fig_i = fig_i +1
 ```
 
 
-
-
-# References
