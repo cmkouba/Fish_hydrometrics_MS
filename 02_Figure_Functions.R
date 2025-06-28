@@ -996,8 +996,8 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
                       paste0("f2_recon_",thresholds),
                       paste0("s2_discon_",thresholds),
                       # hoping total flow can get captured by dry season metrics?
-                      ff_names_cflp,
-                      "w1_num_days_gt_90_pctile","w2_num_days_gt_90_pctile"
+                      ff_names_cflp#,
+                      # "w1_num_days_gt_90_pctile","w2_num_days_gt_90_pctile"
   )
 
 
@@ -1226,9 +1226,9 @@ calc_metrics_hydro_by_affected_brood_year = function(hydro_by_brood_year,
     output_tab[i, "wy2_WY_Cat"] = fflows$WY_Cat[fflows$Water_Year == brood_yr + 2]
 
     # 6. Storm days
-    cfs_90th_pctile = quantile(fj_flow$Flow, 0.9)
-    output_tab[i, "w1_num_days_gt_90_pctile"] = sum(w1_flow > cfs_90th_pctile)
-    output_tab[i, "w2_num_days_gt_90_pctile"] = sum(w2_flow > cfs_90th_pctile)
+    # cfs_90th_pctile = quantile(fj_flow$Flow, 0.9)
+    # output_tab[i, "w1_num_days_gt_90_pctile"] = sum(w1_flow > cfs_90th_pctile)
+    # output_tab[i, "w2_num_days_gt_90_pctile"] = sum(w2_flow > cfs_90th_pctile)
 
   }
 
@@ -1345,15 +1345,44 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
                # "% Co. Smolt Survival"
   ))
 
+  rowname_matching_df =
+    data.frame(rows = c("coho_spawners_zscored", "chinook_spawners_zscored",
+                        "f1_recon_120", "f2_recon_120",
+                        "d1_DS_Mag_50", "d1_DS_Mag_90",
+                        "f1_FA_Dur", "f1_FA_Dif_num",
+                        "w1_Wet_BFL_Mag_50", "w1_Wet_Tim",
+                        "s1_SP_ROC", "s1_SP_ROC_Max",
+                        "f2_FA_Dur", "f2_FA_Dif_num",
+                        "w2_Wet_BFL_Mag_50", "w2_Wet_Tim",
+                        "s2_SP_ROC", "s2_SP_ROC_Max",
+                        "s2_SP_Tim"),
+               prefix = c("","",
+                          rep("Fall river reconnection timing",2),
+                          "Dry season med. flow", "Early dry season flow",
+                          "Fall pulse dur.", "Fall pulse mag.",
+                          "Wet season med. flow", "Wet season onset timing",
+                          "Spring recession rate", "Max. spring recession rate",
+                          "Fall pulse dur.", "Fall pulse mag.",
+                          "Wet season med. flow", "Wet season onset timing",
+                          "Spring recession rate", "Max. spring recession rate",
+                          "Spring recession timing"))
+  rowname_matching_df$full_rowname = paste0(rowname_matching_df$prefix, " (",
+                                            rowname_matching_df$rows, ")")
+  rowname_matching_df$full_rowname[grepl(pattern = "spawners_zscored",
+                                         x=rowname_matching_df$rows)] =
+    c("Coho spawners Z-score","Chinook spawners Z-score")
+
   # corr_matrix1 = corr_matrix[row.names(corr_matrix) %in% pred_subset_in_order, ]
   corr_matrix1 = corr_matrix[match(pred_subset_in_order, rownames(corr_matrix)),]
   colnames(corr_matrix1) = colname_matching_df$fig_name[match(colnames(corr_matrix1),
                                                              colname_matching_df$data_name)]
 
-    rownames(corr_matrix1)[rownames(corr_matrix1) %in% colname_matching_df$data_name] =
-      colname_matching_df$fig_name[match(rownames(corr_matrix1),
-                                         colname_matching_df$data_name)]
-
+    # rownames(corr_matrix1)[rownames(corr_matrix1) %in% colname_matching_df$data_name] =
+    #   colname_matching_df$fig_name[match(rownames(corr_matrix1),
+    #                                      colname_matching_df$data_name)]
+  rownames(corr_matrix1) =
+    rowname_matching_df$full_rowname[match(rownames(corr_matrix1),
+                                       rowname_matching_df$rows)]
 
   if(length(pred_subset)>10){
     corrplot(as.matrix(corr_matrix1), addCoef.col = "black",
@@ -1392,6 +1421,9 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
     x1_preds = ncol(corr_matrix1) + .5
     arrows(x0 = 0.5, x1 = x1_preds, y0 = h_y, y1 = h_y, length = 0, lwd = 2)
     # }
+
+
+
 
 }
 
@@ -1511,33 +1543,21 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
                                        abs(ctl$value) > high_corr_threshold])
 
     # Record the groups of collinear predictors and the ultimate selected one
-    if(zscore_flow_metrics == F){
-      collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
-      if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
-      if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
-      if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-      if(loop==4){selected_pred[[loop]] = "w1_Wet_BFL_Dur"} # How long the wet season (rearing juv)
-      if(loop==5){selected_pred[[loop]] = "w2_Wet_BFL_Dur"} # Dry to wet transition timing (rearing juv)
-      if(loop==6){selected_pred[[loop]] = "d1_DS_Dur_WS"} # Fall pulse magnitude during spawning (diff has higher sample size)
-      if(loop==7){selected_pred[[loop]] = "f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-      if(loop==8){selected_pred[[loop]] = "f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-    }
 
-    if( zscore_flow_metrics == T){
-      collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
-      collinear_group[[loop]]
-      loop
-      if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
-      if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
-      # if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
-      if(loop==3){selected_pred[[loop]] = "d1_DS_Dur_WS"} # How dry the dry season (pre-spawning)
-      # if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
-      if(loop==4){selected_pred[[loop]] = "w1_Wet_Tim"} # Dry to wet transition timing (rearing juv)
-      if(loop==5){selected_pred[[loop]] = "w2_Wet_Tim"} # How long the first wet season
-      if(loop==6){selected_pred[[loop]] = "f1_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-      if(loop==7){selected_pred[[loop]] = "f2_FA_Dif_num"}#"f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
-      selected_pred[[loop]]
-    }
+    collinear_group[[loop]] = c(most_collin_pred, as.character(collinear_with))
+    collinear_group[[loop]]
+    loop
+    if(loop==1){selected_pred[[loop]] = "w1_Wet_BFL_Mag_50"} # How wet the wet season (year 1)
+    if(loop==2){selected_pred[[loop]] = "w2_Wet_BFL_Mag_50"} # How wet the wet season (year 2)
+    if(loop==3){selected_pred[[loop]] = "d1_DS_Mag_50"} # How dry the dry season (pre-spawning)
+    # if(loop==3){selected_pred[[loop]] = "d1_DS_Dur_WS"} # How dry the dry season (pre-spawning)
+    # if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # Dry to wet transition timing (rearing juv)
+    if(loop==4){selected_pred[[loop]] = "w2_Wet_Tim"} # How long the first wet season
+    if(loop==5){selected_pred[[loop]] = "w1_Wet_Tim"} # Dry to wet transition timing (rearing juv)
+    if(loop==6){selected_pred[[loop]] = "f1_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    if(loop==7){selected_pred[[loop]] = "w1_Wet_Tim"}#"f2_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    if(loop==8){selected_pred[[loop]] = "f2_FA_Dif_num"}#"f1_FA_Mag"} # Fall pulse magnitude (rearing juv) (diff has higher sample size)
+    selected_pred[[loop]]
 
     # Remove the other collinears
     keep = selected_pred[[loop]] # Keep this one
@@ -1556,25 +1576,14 @@ collinear_screening_exercise = function(metrics_tab, corr_tab_all_metrics,
 
   # Restructure the groups and eliminated predictors in a table
   elim_pred_tab_col1 = unlist(lapply(X=collinear_group, FUN = function(x){paste(x, collapse = ", ")}))
-  if(zscore_flow_metrics == F){
-    elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
-                           "How wet was the wet season? (year 2, as rearing juv.)",
-                           "How dry was the dry season? (pre-spawning)",
-                           "How long was the wet season? (year 1, as eggs and fry)",
-                           "How long was the wet season? (year 2, as rearing juv.)",
-                           "How long was the dry season? (pre-spawning)",
-                           "Fall pulse magnitude (year 1, during parents' spawning)",
-                           "Fall pulse magnitude (year 2, as rearing juv.)")
-  }
-  if(zscore_flow_metrics == T){
-    elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
-                           "How wet was the wet season? (year 2, as rearing juv.)",
-                           "How dry was the dry season? (pre-spawning)",
-                           "Dry to wet season transition timing (as eggs and fry)",
-                           "Dry to wet season transition timing (juvenile fish)",
-                           "Fall pulse magnitude (parents' spawning)",
-                           "Fall pulse magnitude (rearing juv.)")
-  }
+  elim_pred_tab_col2 = c("How wet was the wet season? (year 1, as eggs and fry)",
+                         "How wet was the wet season? (year 2, as rearing juv.)",
+                         "How dry was the dry season? (pre-spawning)",
+                         "Dry to wet season transition timing (juvenile fish)",
+                         "Dry to wet season transition timing (as eggs and fry)",
+                         "Fall pulse magnitude (parents' spawning)",
+                         "Dry to wet season transition timing (parents' spawning or as eggs)",
+                         "Fall pulse magnitude (rearing juv.)")
 
 
   elim_pred_tab_col3 = unlist(selected_pred)
@@ -2470,7 +2479,7 @@ hbf_over_time_fig = function(mt, hbf_tab, y_val,
        col = NA,
        ylim = y_lims_for_plot, #yaxt = "n",
        xlab = "Brood Year",
-       ylab = paste0("Hydrologic Benefit value (predicted \n log10 of ",y_val_axis, ")"))
+       ylab = paste0("Predicted \n log10 of ",y_val_axis))
   # axis(side = 2, at = seq(from = -100, to = 200, by = 20))
   abline(v = seq(from = 1940, to = 2140, by = 10),
          h = pretty(range(c(hbf_tab$hbf_total,mt[,y_val]),na.rm=T)),

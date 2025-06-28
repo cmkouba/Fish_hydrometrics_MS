@@ -1,10 +1,10 @@
 pred,coef
 (Intercept),5.45
 w1_Wet_BFL_Mag_50,-0.309
+d1_DS_Mag_50,0
 d1_DS_Mag_90,0
 f1_FA_Dif_num,0
 w1_Wet_Tim,0
 s1_SP_ROC,0
 s1_SP_ROC_Max,0
-s1_SP_Tim,0
 f1_recon_120,0

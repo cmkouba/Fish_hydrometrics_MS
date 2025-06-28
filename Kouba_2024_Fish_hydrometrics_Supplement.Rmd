@@ -96,6 +96,8 @@ if(dev_mode){
   metrics_tab = calc_metrics_hydro_by_affected_brood_year(
     hydro_by_brood_year = brood_year_hydro_tab,
     thresholds = thresh_for_corr_fig) 
+
+    metrics_tab_untransformed = metrics_tab # save a copy for supplemental tables
   
   # Clean metrics tab:
   # 1) factorize water year category
@@ -266,7 +268,10 @@ As recently as 2013, the SONCC Chinook population was stable and becoming more c
 
 # Hydrologic Metrics
 
-## Functional Flows Background
+## Functional Flows Background 
+
+The annual functional flow metrics calculated from Fort Jones average daily flow (USGS Gauge `r fj_num`) [@PattersonEtAlHydrologic2020; @CarpenterAccurately2024] are shown in Tables \@ref(tab:funcFlowsAnnualValuesTab1) through \@ref(tab:funcFlowsAnnualValuesTab6) below. These are then aligned with a salmon cohort for the statistical modeling exercise.
+
 ```{r funcFlowTermsTab, echo = FALSE, results = 'asis'}
 
 ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Functional Flows.csv"))
@@ -304,15 +309,120 @@ fig_i = fig_i +1
 
 ```
 
+\newpage
+
+
+## Data tables: annual values for Fort Jones Gauge functional flows
+
+```{r funcFlowsAnnualValuesTab1, echo = FALSE, results = 'asis'}
+
+flash_tab = read.csv(file.path(data_dir,"ScottR_FJ_wy1942_2025.01.21_annual_Flashy_Calc.csv"))
+#Create caption and column labels
+flash_tab$Year=as.character(flash_tab$Year)
+col_1 = 1; col_2 = col_1+6
+
+caption_text = paste0("Functional Flows calculated for Scott River Gauge ",fj_num,", columns ",col_1," through ",col_2, " of ", ncol(flash_tab), ", using the Flashy Calculator (Carpenter 2024).")
+
+ft_ft = flextable(data=flash_tab[,col_1:col_2])
+ft_ft = set_caption(ft_ft, caption = caption_text)
+ft_ft = colformat_double(ft_ft, j = 4:5, digits = 1)
+ft_ft = flextable::width(ft_ft,j=c(2,4,5),  width = 1)
+ft_ft
+
+```  
+\newpage
+
+
+```{r funcFlowsAnnualValuesTab2, echo = FALSE, results = 'asis'}
+col_1 = col_2; col_2 = col_1+5
+
+caption_text = paste0("Functional Flows calculated for Scott River Gauge ",fj_num,", columns ",col_1," through ",col_2, " of ", ncol(flash_tab), ", using the Flashy Calculator (Carpenter 2024).")
+
+ft_ft = flextable(data=flash_tab[,c(1,col_1:col_2)])
+ft_ft = set_caption(ft_ft, caption = caption_text)
+ft_ft = colformat_double(ft_ft, j = 4, digits = 1)
+ft_ft = colformat_double(ft_ft, j = 5:6, digits = 3)
+ft_ft = flextable::width(ft_ft,j=c(4:6),  width = 1)
+ft_ft
+
+```  
+
+\newpage
+
+```{r funcFlowsAnnualValuesTab3, echo = FALSE, results = 'asis'}
+col_1 = col_2; col_2 = col_1+6
+
+caption_text = paste0("Functional Flows calculated for Scott River Gauge ",fj_num,", columns ",col_1," through ",col_2, " of ", ncol(flash_tab), ", using the Flashy Calculator (Carpenter 2024).")
+
+ft_ft = flextable(data=flash_tab[,c(1,col_1:col_2)])
+ft_ft = set_caption(ft_ft, caption = caption_text)
+ft_ft = colformat_double(ft_ft, j = 6, digits = 1)
+# ft_ft = colformat_double(ft_ft, j = 4:5, digits = 3)
+ft_ft = flextable::width(ft_ft,j=c(5:7),  width = 1)
+ft_ft
+
+```
+
+\newpage
+
+```{r funcFlowsAnnualValuesTab4, echo = FALSE, results = 'asis'}
+col_1 = col_2; col_2 = col_1+5
+
+caption_text = paste0("Functional Flows calculated for Scott River Gauge ",fj_num,", columns ",col_1," through ",col_2, " of ", ncol(flash_tab), ", using the Flashy Calculator (Carpenter 2024).")
+
+ft_ft = flextable(data=flash_tab[,c(1,col_1:col_2)])
+ft_ft = set_caption(ft_ft, caption = caption_text)
+# ft_ft = colformat_double(ft_ft, j = 5, digits = 1)
+# ft_ft = colformat_double(ft_ft, j = 4:5, digits = 3)
+ft_ft = flextable::width(ft_ft,j=c(3:7),  width = 1)
+ft_ft
+
+```
+
+\newpage
+
+```{r funcFlowsAnnualValuesTab5, echo = FALSE, results = 'asis'}
+col_1 = col_2; col_2 = col_1+5
+
+caption_text = paste0("Functional Flows calculated for Scott River Gauge ",fj_num,", columns ",col_1," through ",col_2, " of ", ncol(flash_tab), ", using the Flashy Calculator (Carpenter 2024).")
+
+ft_ft = flextable(data=flash_tab[,c(1,col_1:col_2)])
+ft_ft = set_caption(ft_ft, caption = caption_text)
+# ft_ft = colformat_double(ft_ft, j = 5, digits = 1)
+# ft_ft = colformat_double(ft_ft, j = 4:5, digits = 3)
+ft_ft = flextable::width(ft_ft,j=c(2:3,7),  width = 1)
+ft_ft
+
+```
+
+\newpage
+
+```{r funcFlowsAnnualValuesTab6, echo = FALSE, results = 'asis'}
+col_1 = col_2; col_2 = ncol(flash_tab)
+
+caption_text = paste0("Functional Flows calculated for Scott River Gauge ",fj_num,", columns ",col_1," through ",col_2, " of ", ncol(flash_tab), ", using the Flashy Calculator (Carpenter 2024).")
+
+ft_ft = flextable(data=flash_tab[,c(1,col_1:col_2)])
+ft_ft = set_caption(ft_ft, caption = caption_text)
+ft_ft = colformat_double(ft_ft, j = 5, digits = 1)
+# ft_ft = colformat_double(ft_ft, j = 4:5, digits = 3)
+ft_ft = flextable::width(ft_ft,j=c(2:5),  width = 1)
+ft_ft
+
+```
+
+
+\newpage
+
 
 ## Hydrologic Metrics Designed for This Study
 
 ```{r customHydroMetricsTab, echo = FALSE, results = 'asis'}
 
 ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Custom metrics.csv"))
-
+ff_tab = ff_tab[1:2,]
 #Create caption and column labels
-caption_text = "Explanation of custom hydrologic metrics designed for this study, which are less complex than functional flows in that they do not rely on signal processing techniques. Each type of metric, for each threshold value (e.g., 120 cfs), produces one value per water year. Metric names used in predictive modeling also include abbreviations for salmon life periods (Table 3 below); e.g., f1_recon_120, referring to the timing of flow exceeding 120 cfs in a ohort's first fall season."
+caption_text = "Explanation of custom hydrologic metrics designed for this study, which are less complex than functional flows in that they do not rely on signal processing techniques. Each type of metric, for each threshold value (e.g., 120 cfs), produces one value per water year. Metric names used in predictive modeling also include abbreviations for salmon life periods (Table 3 below); e.g., f1_recon_120, referring to the timing of flow exceeding 120 cfs in a cohort's first fall season."
 column_labels = c("Abbrev.","Full Name", "Thresholds","Description")
 colnames(ff_tab) = column_labels
 
@@ -355,36 +465,40 @@ corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs",
 
 elim_pred_tab = collinear_screening_exercise(metrics_tab = metrics_tab,
                                              corr_tab_all_metrics = corr_tab_all_metrics)
+elim_pred_tab$ID = 1:nrow(elim_pred_tab)
+elim_pred_tab = elim_pred_tab[ ,
+                  c("ID", colnames(elim_pred_tab)[colnames(elim_pred_tab) != "ID"])]
 
 caption_text = "Groups of collinear predictors (absolute value of R greater than 0.7), interpretation of their hydrologic significance, and the predictor selected from each group to reduce collinearity."
 
-column_labels = c("Group of Collinear Predictors","Hydrologic Significance (Coho Life Stage)",
+column_labels = c("ID","Group of Collinear Predictors","Hydrologic Significance (Coho Life Stage)",
                   "Predictor Selected from Group")
 colnames(elim_pred_tab) = column_labels
 
 ept_tab_ft = flextable(data=elim_pred_tab)
 ept_tab_ft = set_caption(ept_tab_ft, caption = caption_text)
-ept_tab_ft = flextable::width(ept_tab_ft,j=1,  width = 2.8)
-ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2)
-ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 1.8)
+ept_tab_ft = flextable::width(ept_tab_ft,j=2,  width = 2.8)
+ept_tab_ft = flextable::width(ept_tab_ft,j=3,  width = 2)
+ept_tab_ft = flextable::width(ept_tab_ft,j=4,  width = 1.5)
 ept_tab_ft
 ```
 
 ### Groups 1 and 2
 
-These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), effectively characterized by the question, 'how wet was the wet season?' We selected `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during two wet seasons: `w1`, the first wet season, experienced by a cohort as eggs and newly-hatched alevin and fry, and `w2`, experienced by the cohort as overwintering parr.
+These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), as well as (for `w1`) conditions during the following dry season, which can be summarized by the question, 'how wet was the wet season?' We selected median wet season flows `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed. Seasons `w1` and `w2` are experienced by a cohort as eggs and newly-hatched alevin and fry, and as overwintering parr, respectively.
 
 ### Group 3
 
-These metrics describe the magnitude and timing of dry-season flows before the cohort's spawning. We selected `d1_DS_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed during the dry season before a cohort's parents' spawning.
+These metrics describe the magnitude and timing of dry-season flows before the cohort's spawning. We selected the dry season median flow, `d1_DS_Mag_50`, as the most conceptually central metric to represent the amount of water passing through the watershed during the dry season before a cohort's parents' spawning.
 
-### Groups 4 and 5
+### Groups 4, 5 and 7
 
-These metrics quantify the timing of the wet season onset and duration (year 2). We selected `w2_Wet_Tim`, the timing of the onset of the second wet season, and `w2_Wet_BFL_Dur`, the duration of wet season baseflow, to characterize the timing of the wet season experienced by a cohort of coho as overwintering juveniles.
+These metrics relate to the timing of the transition from dry to wet season in year 2 and year 1. We selected `w2_Wet_Tim` and `w1_Wet_Tim`, the timing of the wet season onset, for both years. In `w1` and `w2`, hydrology is experienced by a cohort of coho as eggs/new hatchlings and overwintering juveniles, respectively.
 
-### Groups 6 and 7
+### Groups 6 and 8
 
 These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). We selected the fall flow increase `FA_dif_num` [from @BaruchEtAlMimicking2024] for both years, as it is the only fall flows magnitude metric occurring in every water year, with no missing values.
+
 
 # Ecological Data Features
 
@@ -444,6 +558,137 @@ if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
 ```
 
+# Data tables: Alignment of predictor and response data
+
+The aligned hydrologic predictor and ecological response data are shown in Tables \@ref(tab:hydroAndEcoTab1) through \@ref(tab:hydroAndEcoTab12) below. The first eight columns (Table \@ref(tab:hydroAndEcoTab1)) are composed of ecological responses observed for each brood year. The remaining 72 columns tabulate the functional flow and other hydrologic metrics, covering two years of coho salmon freshwater life stages, associated with each brood year. As discussed in methods, the seasonal abbreviations d1, f1, w1, s1, d2, f2, w2 and s2 indicate the season (first or second dry, fall, wet, or spring) in which or coho salmon cohort would experience the hydrology quantified in a given metric. (Juvenile Chinook salmon experience only one year of freshwater conditions before outmigrating.)
+
+\newpage 
+```{r hydroAndEcoTab1, echo = FALSE, results = 'asis'}
+mt_for_ft = metrics_tab_untransformed
+mt_for_ft[,"smolt_year"] = NULL
+mt_for_ft$brood_year = as.character(mt_for_ft$brood_year)
+colnames(mt_for_ft) = gsub(pattern = "_", replacement = " ", x = colnames(mt_for_ft))
+
+col_1 = 1; col_2 = 8
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+
+met_ft = flextable(data=mt_for_ft[,col_1:col_2])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = flextable::colformat_double(met_ft,j=2,digits = 1)
+met_ft = flextable::width(met_ft,j=c(4,7,8),  width = 1)
+met_ft
+
+``` 
+
+\newpage  
+```{r hydroAndEcoTab2, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft
+``` 
+\newpage
+
+```{r hydroAndEcoTab3, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = 7:8, digits = 1)
+met_ft
+``` 
+
+\newpage 
+```{r hydroAndEcoTab4, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = c(5,7), digits = 1)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab5, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab6, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = 8, digits = 3)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab7, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = 2, digits = 3)
+met_ft = colformat_double(met_ft, j = 6, digits = 0)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab8, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = c(3,4,8), digits = 1)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab9, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = 3, digits = 1)
+met_ft
+``` 
+
+\newpage
+```{r hydroAndEcoTab10, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab11, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = col_1+6
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = 4:5, digits = 3)
+met_ft
+``` 
+ 
+\newpage
+```{r hydroAndEcoTab12, echo = FALSE, results = 'asis'}
+col_1 = col_2+1; col_2 = ncol(mt_for_ft)
+caption_text = paste0("Hydrologic metrics and ecological observations aligned by brood year of each salmon cohort, columns ", col_1, " through ", col_2, " of 80.")
+met_ft = flextable(data=mt_for_ft[,c(1,col_1:col_2)])
+met_ft = set_caption(met_ft, caption = caption_text)
+met_ft = colformat_double(met_ft, j = 2, digits = 0)
+met_ft = flextable::width(met_ft, j = 3, width = 1.5)
+met_ft
+``` 
+
 # Six statistical modeling structures - method details
 
 **LASSO model of juveniles-per-spawner:** Cross-validation produced a clear minimum-error $\lambda$ value for Chinook (Figure \@ref(fig:jpsLassoCohoChinook)). For coho, we proposed an alternate lambda value that explained more percent deviance (Figure \@ref(fig:jpsLassoCohoChinook), middle left panel) while retaining a near-minimum test error (Figure \@ref(fig:jpsLassoCohoChinook), top left panel). This produced a model with three non-zero coefficients for both species (Figure \@ref(fig:jpsLassoCohoChinook), lower two panels; Tables \@ref(tab:jpsCoefTableCoho) and \@ref(tab:jpsCoefTableChinook))
@@ -492,20 +737,6 @@ For purposes of statistical model comparison, we predicted the ratio of juvenile
 predict_eco = "juveniles per spawner"
 y_val_coho = "coho_smolt_per_fem"; y_val_chinook = "chinook_juv_per_adult"
 
-# if(predict_eco == "juvenile abundance, hydro and spawners"){
-#   mod_obj_co = kfold_cv_plus_spawn(mt = metrics_tab_screened, 
-#                                    y_val = y_val_coho, alpha = 1)
-#   mod_co = mod_obj_co$mod; cv_co = mod_obj_co$cv
-#   mod_obj_ch = kfold_cv_plus_spawn(mt = metrics_tab_screened_chinook, alpha =1, 
-#                                    y_val = y_val_chinook)
-#   mod_ch = mod_obj_ch$mod; cv_ch = mod_obj_ch$cv
-#   # extract coefficients from the model using the optimal lambda value found in cross-validation
-#   alt_lambda_co = .135
-#   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3
-#                             # , alt_lambda = alt_lambda_co
-#   )
-#   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
-# }
 if(predict_eco %in% c("juvenile abundance, hydro only", 
                       "juveniles per spawner")){
   mts_jho = metrics_tab_screened
@@ -540,9 +771,6 @@ if(predict_eco %in% c("juvenile abundance, hydro only",
 fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)}
 
-# if(predict_eco %in% c("juvenile abundance, hydro and spawners")){
-#   lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch)
-# } 
 if(predict_eco %in% c("juveniles per spawner",
                       "juvenile abundance, hydro only")){
   lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, mod_ch = mod_ch
@@ -568,27 +796,17 @@ coefs_interp_names = names(coefs_co$coef_non0_only)
 coefs_interp = as.character(coefs_co$coef_non0_only)
 names(coefs_interp) = coefs_interp_names
 
-# if(predict_eco == "juvenile abundance, hydro and spawners"){
-#   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
-#   coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
-#   coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"
-# } 
-# if(predict_eco == "juvenile abundance, hydro only"){
-#   coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
-#   coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
-#   # coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"
-#   # coefs_interp$w2_Wet_BFL_Mag_50 = "Higher wet season baseflow (as juvenile fish)"
-#   coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)"
-# } 
+
 if(predict_eco == "juveniles per spawner"){
   # coefs_interp$d1_DS_Dur_WS = "Shorter dry season (preceding parents' spawning)"
-    coefs_interp$w1_Wet_Tim = "Earlier wet season onset (as eggs and fry)"
-coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
-  coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)"
+  if("w1_Wet_Tim" %in% names(coefs_interp)){ coefs_interp$w1_Wet_Tim = "Earlier wet season onset (as eggs and fry)"  }
+  if("f1_recon_120" %in% names(coefs_interp)){ coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"}
+  if("f1_FA_Dif_num" %in% names(coefs_interp)){ coefs_interp$f1_FA_Dif_num = "Larger fall pulse (during parents' spawning)"}
+  if("f2_FA_Dif_num" %in% names(coefs_interp)){coefs_interp$f2_FA_Dif_num = "Smaller fall pulse (as juvenile fish)"}
   # coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolts)"
-  # coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"
+  if("s1_SP_ROC" %in% names(coefs_interp)){coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"}
   # coefs_interp$w2_Wet_BFL_Mag_50 = "Lower wet season baseflow (as juvenile fish)"
-
+  
 }
 
 coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 3))
@@ -602,7 +820,7 @@ caption_text = paste0("Values for the intercept and coefficient terms in the Hyd
 
 coco_tab_ft = flextable(data=coefs_co_ft)
 coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
-coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 2)
 coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
 coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
 coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
@@ -633,7 +851,7 @@ names(coefs_interp) = coefs_interp_names
 # }
 if(predict_eco == "juveniles per spawner"){
   coefs_interp$w1_Wet_BFL_Mag_50 = "Smaller wet season baseflows (as eggs and hatchlings)"
-  coefs_interp$s1_SP_Tim = "Later spring recession onset (as outmigrating smolt)"
+  if("s1_SP_Tim" %in% coefs_interp){coefs_interp$s1_SP_Tim = "Later spring recession onset (as outmigrating smolt)"}
   coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
   # coefs_interp$w1_Wet_BFL_Dur = "Longer wet season duration (as eggs and hatchlings)"
 }
@@ -649,7 +867,7 @@ caption_text = paste0("Values for the intercept and coefficient terms in the Hyd
 
 coch_tab_ft = flextable(data=coefs_ch_ft)
 coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
-coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 2)
 coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
 coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
 coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
@@ -795,7 +1013,7 @@ caption_text = paste0("Values for the intercept and coefficient terms in the Hyd
 
 coco_tab_ft = flextable(data=coefs_co_ft)
 coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
-coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.8)
 coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
 coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
 coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
@@ -841,7 +1059,7 @@ caption_text = paste0("Values for the intercept and coefficient terms in the Hyd
 
 coch_tab_ft = flextable(data=coefs_ch_ft)
 coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
-coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.8)
 coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
 coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
 coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
@@ -937,6 +1155,7 @@ fig_i = fig_i +1
 ```{r juvAbunCoefTableCoho, echo = F, warning =F, results = 'asis'}
 
 # Retrieve coefficients from lasso model
+predict_eco 
 
 coefs_interp_names = names(coefs_co$coef_non0_only)
 coefs_interp = as.character(coefs_co$coef_non0_only)
@@ -945,10 +1164,10 @@ names(coefs_interp) = coefs_interp_names
 if(predict_eco == "juvenile abundance, hydro and spawners"){
   # coefs_interp$coho_spawner_abundance = "Number of spawners (cohort's parents)"
   # coefs_interp$f1_recon_120 = "Earlier fall reconnection (during parents' spawning)"
-  coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
-  coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
   # coefs_interp$s2_SP_ROC = "Faster rate of change, spring recession (as outmigrating smolt)"
   # coefs_interp$w2_Wet_BFL_Mag_50 = "Higher wet season baseflows (as overwintering juveniles)"
+  coefs_interp$f2_FA_Dif_num = "Smaller fall flow increase (as juvenile fish)"
+  coefs_interp$f1_FA_Dif_num = "Larger fall flow increase (during parents' spawning)"
   coefs_interp$s1_SP_ROC = "Slower rate of change, spring recession (as recent hatchlings)"
 }
 # if(predict_eco == "juveniles per spawner"){
@@ -970,7 +1189,7 @@ caption_text = paste0("Values for the intercept and coefficient terms in the Hyd
 
 coco_tab_ft = flextable(data=coefs_co_ft)
 coco_tab_ft = set_caption(coco_tab_ft, caption = caption_text)
-coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.5)
+coco_tab_ft = flextable::width(coco_tab_ft,j=1,  width = 1.8)
 coco_tab_ft = flextable::width(coco_tab_ft,j=2,  width = 1)
 coco_tab_ft = flextable::width(coco_tab_ft,j=3,  width = 3)
 coco_tab_ft = flextable::set_header_labels(coco_tab_ft,
@@ -994,13 +1213,9 @@ if(predict_eco == "juvenile abundance, hydro and spawners"){
   coefs_interp$chinook_spawners_zscored = "Abundance of spawners (parents of designated cohort)"
   coefs_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (as eggs and hatchlings)"
   coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
-  # coefs_interp$w1_Wet_BFL_Dur = "Longer wet season baseflow duration (as eggs and hatchlings)"
+  coefs_interp$w1_Wet_Tim = "Earlier wet season onset (as eggs and hatchlings)"
 }
-# if(predict_eco == "juveniles per spawner"){
-#   coefs_interp$w1_Wet_BFL_Mag_50 = "Smaller wet season baseflows (as eggs and hatchlings)"
-#   coefs_interp$s1_SP_ROC_Max = "Slower max. rate of change, spring recession (as outmigrating smolt)"
-#   coefs_interp$w1_Wet_BFL_Dur = "Longer wet season duration (as eggs and hatchlings)"
-# }
+
 coefs_ch_vals = c(round(coefs_ch$int_and_coefs$coef, 3))
 coefs_ch_interp = c("(Intercept)", unlist(coefs_interp[coefs_ch!="0"]))
 coefs_ch_ft = data.frame(Predictor = c(names(coefs_ch_interp)),
@@ -1013,7 +1228,7 @@ caption_text = paste0("Values for the intercept and coefficient terms in the Hyd
 
 coch_tab_ft = flextable(data=coefs_ch_ft)
 coch_tab_ft = set_caption(coch_tab_ft, caption = caption_text)
-coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 1.5)
+coch_tab_ft = flextable::width(coch_tab_ft,j=1,  width = 2)
 coch_tab_ft = flextable::width(coch_tab_ft,j=2,  width = 1)
 coch_tab_ft = flextable::width(coch_tab_ft,j=3,  width = 3)
 coch_tab_ft = flextable::set_header_labels(coch_tab_ft,
@@ -1646,5 +1861,8 @@ fig_i = fig_i +1
 
 
 ```
+
+
+<!-- # LASSO and MARSS coefficient comparison summary -->
 
 
