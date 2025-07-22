@@ -1,0 +1,6 @@
+Species,Metric,Coefficient Sign,Correlated with higher ecological outcomes,Hydroclimate influences,Potentially relevant management choices
+Coho,f1_recon_120,-,Earlier full-system river reconnection during parents' spawning,Timing and magnitude of first rains after the dry season; the amount of empty soil and aquifer storage to be filled up before the groundwater system can provide baseflow,Aquifer and soil water storage influenced by water use during the growing and dry season
+Coho,f1_FA_Dif_num,+,Larger first fall flow increase,(same as above),(same as above)
+Coho,f2_FA_Dif_num,-,Smaller second fall flow increase,(same as above),(same as above)
+Chinook,w1_Wet_BFL_Mag_50,-,Lower wet season medain flows,Storm magnitude and total precipitation overall,Stream diversions during the wet season
+Chinook,s1_SP_ROC_Max,-,Slower maximum spring recession rate,"Snowpack accumulation, air temperature and rate of melting","Diversions from streams (and, to a lesser extent, groundwater extractions) during the spring flow recession"
