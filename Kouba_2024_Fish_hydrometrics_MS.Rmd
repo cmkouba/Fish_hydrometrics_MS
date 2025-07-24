@@ -7,7 +7,7 @@ output:
     fig_caption: true
     number_sections: true
     global_numbering: true
-bibliography: draft_library.bib
+bibliography: library.bib
 ---
 
 ```{r setup_dirs_load_data, include = FALSE}
