@@ -1043,6 +1043,8 @@ With continuing trends of a narrowing wet season in the Scott River watershed (e
 
 \newpage
 
+# Acknowledgments {-}
+The authors are grateful for feedback from two reviewers and financial support from the California State Water Resources Control Board Agreement, #19-12-110 and #21-066-300; and the Nora S. Gustavsson Endowed Professorship for Groundwater Resources in Agriculture, University of California Davis.
 
 # References
 
