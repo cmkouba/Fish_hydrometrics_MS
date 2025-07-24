@@ -2,10 +2,10 @@ Abbreviation,Full Name,Threshold(s),Description
 DS_Dur_WS,Dry Season Duration,--,Dry-season baseflow duration (# of days from start of dry season to start of wet season)
 DS_Tim,Dry Season Onset Timing,--,Dry-season baseflow start timing (water year day of dry season)
 DS_Mag,Dry Season Flow Magnitude,50th and 90th flow percentile,"Percentile of daily flow within dry season (with 90th and 50th %ile flows representing early summer flows and median summer baseflow, respectively)."
-FA_Dur,Fall Pulse Duration,--,Duration (# of days) of the fall pulse event
-FA_Tim,Fall Pulse Timing,--,Start date of fall pulse event in water year days
-FA_Mag,Fall Pulse Magnitude,--,Peak magnitude of fall pulse event (maximum daily peak flow during event) (cfs) in relevant lifestage.
-FA_Dif_num,Fall Pulse Magnitude (modified),,Difference between peak fall pulse discharge and dry season median discharge (Baruch et al. 2024).
+FA_Dur,Fall Pulse Duration,--,Duration (# of days) of the fall pulse event (does not occur every year).
+FA_Tim,Fall Pulse Timing,--,Start date of fall pulse event in water year days (does not occur every year).
+FA_Mag,Fall Pulse Magnitude,--,Peak magnitude of fall pulse event (maximum daily peak flow during event) (cfs) in relevant lifestage (does not occur every year).
+FA_Dif_num,Fall Pulse Magnitude (modified),,Difference between peak fall pulse discharge and dry season median discharge (Baruch et al. 2024) (occurs every year).
 Wet_BFL_Dur,Wet Season Baseflow Duration,--,Wet-season baseflow duration (# of days from start of wet-season to start of spring season)
 Wet_BFL_Mag,Wet Season Baseflow Magnitude,50th and 10th percentile,"The magnitude of flow during the wet season, with the 10th %ile corresponding to baseflow levels and 50th %ile corresponding to the median flow including winter storms."
 Wet_Tim,Wet Season Onset Timing,--,Start date of wet-season in water year days

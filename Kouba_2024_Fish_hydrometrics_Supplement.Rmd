@@ -177,7 +177,7 @@ if(dev_mode){
 
 Work on this topic of quantifying ecological responses to changes in flow spans multiple categories of ecological response, hydrologic predictor, and ultimate cause of hydrologic alteration. Two widely studied ecological response metric categories are, firstly, the stream health index, based on density and species richness of macroinvertebrates observed at designated sampling sites [e.g., @MonkEtAlFlow2006; @GuareschiEtAlHow2014; @KevicEtAlEffects2018; @MazorEtAlTools2018; @LarsenEtAlCombining2021; @PeekEtAlIdentifying2022], and secondly, fish diversity and community assemblage [e.g., @McManamayEtAlApplication2013; @PetersonFreemanIntegrating2016; @CartwrightEtAlPutting2017; @SinnathambyEtAlEcohydrological2018; @HainEtAlUsing2018; @GuedesEtAlArtificial2020; @YaoEtAlIdentifying2021]. Ecological responses can also be based on the abundance of a single or a few species, often of fish [@Stewart-KosterEtAlFish2011; @BoothEtAlDetermining2014; @DeWeberPetersonComparing2020; @HaleEtAlMy2023], as well as the extent of habitat types [@ChowdhuryDriverEcohydrological2007; @ArrianaBrandEtAlProjecting2011] and the presence of organisms including vegetation and plankton [@RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @QianEtAlEffects2016; @TesfayeEtAlClimatic2017; @SabyEtAlSensitivity2022]. Hydrologic predictors range widely, with a heavy emphasis on extreme (low or high) flow events and the duration of components of the flow regime [e.g., @AyllonEtAlSpatiotemporal2014; @LamourouxOlivierTesting2015; @McManamayFrimpongHydrologic2015; @BowerEtAlQuantifying2022]. Alteration from a natural flow regime is a widely-used framework for calculating hydrologic predictors [@RichterEtAlMethod1996; @PoffEtAlEcological2010]. Causes of the change in hydrology include the operation of dams, changes in human water use, climate change, and natural flow variability [e.g., @AlomiaHerreraCarreraBurneoEnvironmental2017; @GaoEtAlHydrological2020; @WhiteEtAlMacroinvertebrate2018; @DaneshvarEtAlResponse2017; @HerbstEtAlDrought2019]. 
 
-Investigations of flow-ecology relationships can also be grouped by approach [as in @TharmeGlobal2003 and @BrummerEtAlQuantitative2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @KonradEtAlLargescale2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Mellado-DiazEtAlExploring2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring is related to flow differences between streams [e.g., @MonkEtAlMacroinvertebrate2008; @RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @BowerEtAlQuantifying2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@BrummerEtAlQuantitative2016]. 
+Investigations of flow-ecology relationships can also be grouped by approach [as in @TharmeGlobal2003; @BrummerEtAlQuantitative2016]. In experimental flow studies the flow is directly manipulated with dam releases and biological responses are monitored [e.g., @KonradEtAlLargescale2011]. In longitudinal studies, long-term ecological and hydrological records can be used to infer local or regional correlations [e.g., @Mellado-DiazEtAlExploring2019]. Finally, in space-for-time approaches, the hydrology of multiple river systems in a region is used to populate the distribution of different hydrologic behavior, and ecological monitoring is related to flow differences between streams [e.g., @MonkEtAlMacroinvertebrate2008; @RiisEtAlVegetation2008; @CatfordEtAlSpecies2014; @BowerEtAlQuantifying2022]. Space-for-time analyses require considerably fewer resources than experimental flows and longitudinal studies, and thus are more numerous [@BrummerEtAlQuantitative2016]. 
 
 
 <!-- ## Previous work and limitations of a hydrologic predictor approach -->
@@ -197,7 +197,7 @@ Historically, local regulation of land use has focused on maintaining the rural 
 
 Recent management activity has included the leasing of surface water rights from landowners to enhance summer flows [e.g., SRWT -@Magranet20172018], the prioritization of stream reaches for habitat restoration [SRWC -@ScottRiverWatershedCouncilRestoring2018], several pilot projects to construct and assess the impact of beaver dam analogs (BDAs) on aquatic habitat and fish populations [Yokel -@YokelEtAlScott2018], a coordinated rescue effort to relocate juvenile salmon that were cut off from outmigrating by disconnected river reaches [CDFW -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015], and the development of long-term groundwater management plan by Siskiyou County and local stakeholders [Siskiyou County -@SiskiyouCountyScott2021].
 
-Flow-ecology relationships have been investigated before in the Scott River Watershed, but the empirical "flow-to-ecology" link described above has not been quantified. Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CoordinatedResourceManagementPlanningCommitteeScottRiverWatershedCouncilFINAL2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictInitial2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River coho smolt production [SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilLimiting2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NationalMarineFisheriesServiceFinal2014]. 
+Although the empirical "flow-to-ecology" link described above has not been quantified, flow-ecology relationships have been investigated by multiple entities in the Scott River Watershed. Over the past three decades, several organizations and agencies have conducted extensive monitoring and published a series of reports and plans regarding the salmon fisheries in the Scott River watershed. In the 1990s, fall flows in the Scott River were reported to be too low in some years to allow for Chinook spawning in September-November [CRMP and SRWC -@CoordinatedResourceManagementPlanningCommitteeScottRiverWatershedCouncilFINAL2000], but in the mid-2000s it was reported that low fall flows rarely affected the later (November-January) spawning runs of steelhead and coho salmon [SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilSiskiyouResourceConservationDistrictInitial2005]. More recently, fall flows have affected coho salmon as well as Chinook, as the late onset of winter storms has delayed coho spawning in some water years [e.g., CDFW -@CaliforniaDepartmentofFishandWildlifeEtAlCooperative2015]. In the mid-2000s, a local conservation organization identified the lack of suitable summer and winter rearing habitat as a probable limitation on Scott River coho smolt production [SRWC and Siskiyou RCD -@ScottRiverWatershedCouncilLimiting2005]. Several years later, in a NOAA Fisheries Coho Recovery Plan, NMFS identified the juvenile life stage as the most limited in the population [NMFS -@NationalMarineFisheriesServiceFinal2014]. 
 
 
 # Species of concern - coho and Chinook salmon
@@ -231,7 +231,7 @@ The annual functional flow metrics calculated from Fort Jones average daily flow
 ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Functional Flows.csv"))
 
 #Create caption and column labels
-caption_text = "Explanation of functional flows used in this analysis (Patterson et al. 2020; Baruch et al. 2024). Each type of metric, for each threshold value (e.g., 100 cfs or 50th flow percentile), produces one value per water year."
+caption_text = "Explanation of functional flows used in this analysis (Patterson et al. 2020; Carpenter 2024; Baruch et al. 2024). Each type of metric, for each threshold value (e.g., 100 cfs or 50th flow percentile), produces one value per water year."
 column_labels = c("Abbrev.","Full Name", "Thresholds","Description")
 colnames(ff_tab) = column_labels
 
@@ -247,7 +247,7 @@ ff_tab_ft
 
 <!-- fig.id="faithfuld-plot2", fig.cap.pre="Supplementary Figure",fig.lp="supp-fig" -->
 
-```{r fig2Yarnell2020,  echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
+```{r fig2Yarnell2020,  echo = F, warning =F, message = F, fig.height = 8.5, fig.cap = "Figure 2 from Yarnell et al., 2020. Illustration of five functional flow categories identified for a mixed rain-snowmelt runoff river in California."}
 
 if(save_imgs==T){
   file.copy(from = file.path(graphics_dir, "Graphics source", "Yarnell2020_Fig2.png"),
@@ -376,7 +376,7 @@ ft_ft
 ff_tab = read.csv(file.path(data_dir,"Hydro Metrics Table_Custom metrics.csv"))
 ff_tab = ff_tab[1:2,]
 #Create caption and column labels
-caption_text = "Explanation of custom hydrologic metrics designed for this study, which are less complex than functional flows in that they do not rely on signal processing techniques. Each type of metric, for each threshold value (e.g., 120 cfs), produces one value per water year. Metric names used in predictive modeling also include abbreviations for salmon life periods (Table 3 below); e.g., f1_recon_120, referring to the timing of flow exceeding 120 cfs in a cohort's first fall season."
+caption_text = "Explanation of custom hydrologic metrics designed for this study, which are less complex than functional flows in that they do not rely on signal processing techniques. Each type of metric, for each threshold value (e.g., 120 cfs), produces one value per water year. Metric names used in predictive modeling also include abbreviations for salmon life periods (defined in Methods section); e.g., f1_recon_120, referring to the timing of flow exceeding 120 cfs in a cohort's first fall season (f1)."
 column_labels = c("Abbrev.","Full Name", "Thresholds","Description")
 colnames(ff_tab) = column_labels
 
@@ -391,7 +391,7 @@ ff_tab_ft
 ```  
 
 
-```{r reconnectExplainerHydrograph, echo = F, warning =F, fig.cap = "Reconnection and disconnection dates are highlighted for one water year. Two example thresholds, 20 and 120 cfs (0.57 and 3.4 cms, respectively) are highlighted, which correspond to distinct river connectivity (and salmon habitat access) conditions in the Scott River watershed as observed at the Fort Jones gauge (see Results for more detail on selection of flow thresholds)."}
+```{r reconnectExplainerHydrograph, echo = F, warning =F, message = F, fig.cap = "Reconnection and disconnection dates are highlighted for one water year. Two example thresholds, 20 and 120 cfs (0.57 and 3.4 cms, respectively) are highlighted, which correspond to distinct river connectivity (and salmon habitat access) conditions in the Scott River watershed as observed at the Fort Jones gauge (see Results for more detail on selection of flow thresholds)."}
 
 
 fig_path = file.path(save_figs_here, paste0("Figure S",fig_i,".png"))
@@ -411,7 +411,7 @@ fig_i = fig_i +1
 
 ## Screening Predictors for Collinearity
 
-```{r predCorrScreeningTable, echo = F, warning =F, comment = F}
+```{r predCorrScreeningTable, echo = F, warning =F, message = F, comment = F}
 
 # Calculate correlation matrix
 corr_tab_all_metrics = cor(metrics_tab, use = "pairwise.complete.obs",
@@ -439,19 +439,19 @@ ept_tab_ft
 
 ### Groups 1 and 2
 
-These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), as well as (for `w1`) conditions during the following dry season, which can be summarized by the question, 'how wet was the wet season?' We selected median wet season flows `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed. Seasons `w1` and `w2` are experienced by a cohort as eggs and newly-hatched alevin and fry, and as overwintering parr, respectively.
+These metrics describe the magnitude and timing of wet-season flows (years 1 and 2), as well as (for `w1`) conditions during the following dry season, which can be summarized by the question, 'how wet was the wet season?' We selected median wet season flows `w1_Wet_BFL_Mag_50` and `w2_Wet_BFL_Mag_50` as the most conceptually central metric to represent the amount of water passing through the watershed. Seasons `w1` and `w2` are experienced by a coho cohort as eggs and newly-hatched alevin and fry, and as overwintering parr, respectively.
 
 ### Group 3
 
-These metrics describe the magnitude and timing of dry-season flows before the cohort's spawning. We selected the dry season median flow, `d1_DS_Mag_50`, as the most conceptually central metric to represent the amount of water passing through the watershed during the dry season before a cohort's parents' spawning.
+These metrics describe the magnitude and timing of dry-season and end-of-dry-season flows before the cohort's spawning. We selected the dry season median flow, `d1_DS_Mag_50`, as the most conceptually central metric to represent the amount of water passing through the watershed during the dry season before a cohort's parents' spawning.
 
 ### Groups 4, 5 and 7
 
-These metrics relate to the timing of the transition from dry to wet season in year 2 and year 1. We selected `w2_Wet_Tim` and `w1_Wet_Tim`, the timing of the wet season onset, for both years. In `w1` and `w2`, hydrology is experienced by a cohort of coho as eggs/new hatchlings and overwintering juveniles, respectively.
+These metrics relate to the timing of the transition from dry to wet season in year 2 (Group 4) and year 1 (Groups 5 and 7). We selected `w2_Wet_Tim` and `w1_Wet_Tim`, the timing of the wet season onset. In `w1` and `w2`, hydrology is experienced by a cohort of coho as eggs or new hatchlings and overwintering juveniles, respectively.
 
 ### Groups 6 and 8
 
-These metrics quantify the magnitude of the fall pulse flow (years 1 and 2). We selected the fall flow increase `FA_dif_num` [from @BaruchEtAlMimicking2024] for both years, as it is the only fall flows magnitude metric occurring in every water year, with no missing values.
+These metrics quantify the magnitude of the fall pulse flow (years 1 and 2), with two similar metrics: `FA_Mag`, with a tighter definition of a fall pulse flow (and missing values for years in which these fall pulse criteria are not met), and `FA_Dif_num`, with a looser definition (and no missing values). We selected the fall flow increase `FA_dif_num` [from @BaruchEtAlMimicking2024] for both `f1` and `f2`.
 
 
 # Ecological Data Features
@@ -742,7 +742,7 @@ fig_i = fig_i +1
 ```
 
 
-```{r jpsCoefTableCoho, echo = F, warning =F, results = 'asis'}
+```{r jpsCoefTableCoho, echo = F, warning =F, message = F, results = 'asis'}
 
 # Retrieve coefficients from lasso model
 
@@ -788,7 +788,7 @@ coco_tab_ft
 ```
 
 
-```{r jpsCoefTableChinook, echo = F, warning =F, results = 'asis'}
+```{r jpsCoefTableChinook, echo = F, warning =F, message = F, results = 'asis'}
 
 coefs_interp_names = names(coefs_ch$coef_non0_only)
 coefs_interp = as.character(coefs_ch$coef_non0_only)
@@ -929,7 +929,7 @@ fig_i = fig_i +1
 ```
 
 
-```{r juvAbunHydOnlyCoefTableCoho, echo = F, warning =F, results = 'asis'}
+```{r juvAbunHydOnlyCoefTableCoho, echo = F, warning =F, message = F, results = 'asis'}
 
 # Retrieve coefficients from lasso model
 
@@ -981,7 +981,7 @@ coco_tab_ft
 ```
 
 
-```{r juvAbunHydOnlyCoefTableChinook, echo = F, warning =F, results = 'asis'}
+```{r juvAbunHydOnlyCoefTableChinook, echo = F, warning =F, message = F, results = 'asis'}
 
 coefs_interp_names = names(coefs_ch$coef_non0_only)
 coefs_interp = as.character(coefs_ch$coef_non0_only)
@@ -1106,10 +1106,10 @@ fig_i = fig_i +1
 ```
 
 
-```{r juvAbunCoefTableCoho, echo = F, warning =F, results = 'asis'}
+```{r juvAbunCoefTableCoho, echo = F, warning =F, message = F, results = 'asis'}
 
 # Retrieve coefficients from lasso model
-predict_eco 
+# predict_eco 
 
 coefs_interp_names = names(coefs_co$coef_non0_only)
 coefs_interp = as.character(coefs_co$coef_non0_only)
@@ -1157,7 +1157,7 @@ coco_tab_ft
 ```
 
 
-```{r juvAbunCoefTableChinook, echo = F, warning =F, results = 'asis'}
+```{r juvAbunCoefTableChinook, echo = F, warning =F, message = F, results = 'asis'}
 
 coefs_interp_names = names(coefs_ch$coef_non0_only)
 coefs_interp = as.character(coefs_ch$coef_non0_only)
@@ -1291,7 +1291,7 @@ if(file.exists(file.path(data_dir, model_list_file))){
 
 ```
 
-```{r MARSSSingleCovarTableCoho, echo = F, warning =F, results = 'asis'}
+```{r MARSSSingleCovarTableCoho, echo = F, warning =F, message = F, results = 'asis'}
 
 aicc_order_co = order(aicc_tab[,y_val_coho])
 # view predictors in order of AICc value (smallest first)
@@ -1480,7 +1480,7 @@ if(file.exists(file.path(data_dir, model_list_file))){
 
 ```
 
-```{r MARSSJuvAbunSingleCovarTableCoho, echo = F, warning =F, results = 'asis'}
+```{r MARSSJuvAbunSingleCovarTableCoho, echo = F, warning =F, message = F, results = 'asis'}
 
 aicc_order_co = order(aicc_tab[,y_val_coho])
 # view predictors in order of AICc value (smallest first)
