@@ -1359,10 +1359,10 @@ corr_matrix_fig_2 = function(corr_matrix, pred_subset, preds_in_order){
                prefix = c("","",
                           rep("Fall river reconnection timing",2),
                           "Dry season med. flow", "Early dry season flow",
-                          "Fall pulse dur.", "Fall pulse mag.",
+                          "Fall pulse dur.", "Fall flow diff. mag.",
                           "Wet season med. flow", "Wet season onset timing",
                           "Spring recession rate", "Max. spring recession rate",
-                          "Fall pulse dur.", "Fall pulse mag.",
+                          "Fall pulse dur.", "Fall flow diff mag.",
                           "Wet season med. flow", "Wet season onset timing",
                           "Spring recession rate", "Max. spring recession rate",
                           "Spring recession timing"))

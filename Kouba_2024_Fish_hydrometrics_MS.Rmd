@@ -96,7 +96,7 @@ if(predict_eco == "juvenile abundance, hydro only"){
 if(predict_eco == "juvenile abundance, hydro and spawners"){
   y_val_chinook = "chinook_juvenile_abundance"
   y_val_coho = "coho_smolt_abun_est"
-  }
+}
 
 
 #table of ecological record identifiers
@@ -229,11 +229,11 @@ Chinook and coho salmon are distinct in several ways relevant to this study and 
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".jpg"))
 if(save_imgs==T){
   file.copy(from = file.path(graphics_dir, "Graphics source", 
-                                  "Salmon life cycle and seasons graphic.jpg"),
+                             "Salmon life cycle and seasons graphic.jpg"),
             to = fig_path)
 }
 if(include_figs==T){
-knitr::include_graphics(fig_path)
+  knitr::include_graphics(fig_path)
 }
 
 fig_i = fig_i+1
@@ -317,14 +317,14 @@ metrics_tab = calc_metrics_hydro_by_affected_brood_year(
 # Clean metrics tab:
 # 1) factorize water year category
 metrics_tab$wy1_WY_Cat = as.numeric(factor(metrics_tab$wy1_WY_Cat,
-                                   levels = c("dry year", "mod year", "wet year")))
+                                           levels = c("dry year", "mod year", "wet year")))
 metrics_tab$wy2_WY_Cat = as.numeric(factor(metrics_tab$wy2_WY_Cat,
-                                   levels = c("dry year", "mod year", "wet year")))
+                                           levels = c("dry year", "mod year", "wet year")))
 # 2) remove outlier FA_Diff?
 
 write.csv(x = metrics_tab, quote = F, row.names = F,
-  file = file.path(graphics_dir,
-                   "Supplemental Table B. Flow Metrics by Brood Year.csv"))
+          file = file.path(graphics_dir,
+                           "Supplemental Table B. Flow Metrics by Brood Year.csv"))
 metrics_tab_untransformed = metrics_tab
 
 # calculate number of predictors for text below
@@ -351,7 +351,7 @@ if(zscore_flow_metrics == T){
   metrics_tab$chinook_spawners_zscored = 
     zscore_column_na_rm(x = metrics_tab$chinook_spawner_abundance)
   non_preds = c(non_preds, "coho_spawners_zscored", "chinook_spawners_zscored")
-
+  
 }
 
 if(log_transform_eco_metrics == T){
@@ -386,10 +386,10 @@ st_ft = flextable::width(st_ft,j=1,  width = .5)
 st_ft = flextable::width(st_ft,j=2,  width = 2)
 st_ft = flextable::width(st_ft,j=4,  width = 2)
 st_ft = flextable::set_header_labels(st_ft,
-                                           values = list(
-                                             Predicts ="Predicts (log-transformed obs.)",
-                                             Method = "Method",
-                                             Predictors = "Predictors (Z-scored)"))
+                                     values = list(
+                                       Predicts ="Predicts (log-transformed obs.)",
+                                       Method = "Method",
+                                       Predictors = "Predictors (Z-scored)"))
 st_ft
 
 ```
@@ -447,7 +447,7 @@ fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 9, units = "in", res = res_dpi)
   
-func_flow_timeseries_fig(fj_flow = fj_flow, fflows = fflows_hist_obs)
+  func_flow_timeseries_fig(fj_flow = fj_flow, fflows = fflows_hist_obs)
   
   dev.off()
 }
@@ -465,7 +465,7 @@ fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){
   png(filename = fig_path, width = 7, height = 6, units = "in", res = res_dpi)
   
-re_and_discon_timeseries_figure()
+  re_and_discon_timeseries_figure()
   
   dev.off()
 }
@@ -492,7 +492,7 @@ if(resave_eco_hydro_scatter_plots == T){
     eco_vs_time_figs(y_val_id = id)
   }
   dev.off()
-
+  
 }
 
 
@@ -539,17 +539,17 @@ metrics_tab_column_colors = c(rep("black", 2),  # brood and smolt years
 
 if(save_imgs==T){
   pdf(file = file.path(graphics_dir, "Supplemental Figure A. Correlation Matrix.pdf"), width = 40, height = 40)
-par(mar=c(5,4,6,2))
-corrplot(corr_tab_all_metrics,
-         addCoef.col = "black", number.cex = .7, number.font = .8,
-         tl.col = metrics_tab_column_colors, tl.cex = 1.1, 
-         col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
-                 # rep("white",2), 
-                 rep("lightcyan",2), 
-                 rep("lightskyblue",2),rep("deepskyblue4")),
-         na.label = "--", main = NA) 
-
-
+  par(mar=c(5,4,6,2))
+  corrplot(corr_tab_all_metrics,
+           addCoef.col = "black", number.cex = .7, number.font = .8,
+           tl.col = metrics_tab_column_colors, tl.cex = 1.1, 
+           col = c(rep("orangered3"), rep("lightpink",2),rep("mistyrose",2),
+                   # rep("white",2), 
+                   rep("lightcyan",2), 
+                   rep("lightskyblue",2),rep("deepskyblue4")),
+           na.label = "--", main = NA) 
+  
+  
 }
 
 ```
@@ -559,7 +559,7 @@ corrplot(corr_tab_all_metrics,
 
 # identify which columns we should keep in our correlation analysis
 ctl = collinear_screening_exercise(metrics_tab = metrics_tab,
-                                              corr_tab_all_metrics = corr_tab_all_metrics,
+                                   corr_tab_all_metrics = corr_tab_all_metrics,
                                    return_tab = "corr_tab_long_screened")
 
 keepers_co = c(non_preds, as.character(unique(ctl$Var1)))
@@ -579,18 +579,18 @@ metrics_tab_screened_chinook = metrics_tab_screened[,keepers_ch]
 
 # Run correlations for all metrics in coho table (which includes all metrics in chinook table)
 
-  corr_matrix_pearson = calc_corr_matrix(metrics_tab = metrics_tab_screened, 
+corr_matrix_pearson = calc_corr_matrix(metrics_tab = metrics_tab_screened, 
                                        preds_all = c(spawner_z_records, preds_all), 
                                        corr_method = "pearson", min_pairs = 10)
-  # For results description, find features of max abs R value
-  max_loc = which.max(abs(as.matrix(corr_matrix_pearson)))
-  x_i = max_loc %% nrow(corr_matrix_pearson)
-  y_i = ceiling(max_loc/nrow(corr_matrix_pearson))
-  max_corr = round(corr_matrix_pearson[x_i, y_i],2)
-  max_corr_x = rownames(corr_matrix_pearson)[x_i]
-  max_corr_y = colnames(corr_matrix_pearson[y_i])
-  
-  gt_0.5 = sum(abs(corr_matrix_pearson) > 0.5, na.rm = T)
+# For results description, find features of max abs R value
+max_loc = which.max(abs(as.matrix(corr_matrix_pearson)))
+x_i = max_loc %% nrow(corr_matrix_pearson)
+y_i = ceiling(max_loc/nrow(corr_matrix_pearson))
+max_corr = round(corr_matrix_pearson[x_i, y_i],2)
+max_corr_x = rownames(corr_matrix_pearson)[x_i]
+max_corr_y = colnames(corr_matrix_pearson[y_i])
+
+gt_0.5 = sum(abs(corr_matrix_pearson) > 0.5, na.rm = T)
 ```
 
 Seventeen hydrologic predictors remained after screening the initial set of 79 metrics for collinearity greater than $|R|>0.7$ (Table \@ref(tab:predCorrScreeningTable); Figure \@ref(fig:corrMatrixFig)). Notably, the screened set of metrics retained no metrics from the second dry season `d2`. This is because metrics in this season are highly collinear with metrics from the preceding and following seasons. This high degree of collinearity between `d2` metrics and those calculated from other seasons suggests that conditions during the dry season may be set during the surrounding rainfall and snowmelt events (assuming relatively consistent water use patterns year-to-year). This is exploited in recent work to predict Scott River dry season minimum flows about five months in advance [@KoubaHarterSeasonal2024].  
@@ -602,7 +602,7 @@ The correlation coefficients do not show uniform effects of hydrology on both sp
 Though it is outside the scope of this study to capture all biological influences on fish production, it would be remiss to overlook some of the obvious relationships between the ecological data series used in this study. A full set of $R$ values among ecological observations is shown in *Supplemental Figure A*, but only spawner abundances (Z-scored for consistency with hydrologic metrics) were highlighted as predictors in Figure \@ref(fig:corrMatrixFig). As we might expect, spawner abundance is positively correlated with smolt abundance (and observed redds, for coho). However, hydrology seems to have an equivalent or slightly higher influence on juvenile production as spawner abundance: for both species, the spawner-juvenile $|R|$ is lower than at least one hydrologic-juvenile $|R|$ value (Figure \@ref(fig:corrMatrixFig)).
 
 ```{r corrMatrixFig, echo = F, warning =F, fig.height = 8.5, fig.width = 7, fig.cap = "Correlations between 19 Z-scored predictors (2 spawner observation records and 17 hydrologic metrics, prescreened for collinearity) and 7 log-transformed ecological monitoring records for Chinook (left three columns) and coho (right four columns). Large blue circles indicate that the quantity (such as the first wet season median baseflow, or w1_Wet_BFL_Mag_50) is positively correlated with observed fish metrics. For dates, a blue dot indicates that a later date is correlated with higher fish values, while a red dot indicates that an earlier date is correlated with higher fish values. The full suite of calculated R values is shown in Supplemental Figure A.\\label{fig:corrMatrixFig}"}
-  
+
 # find prediction subset for figure.
 # inclusion_threshold = 0.45
 # greater_than_thresh_finder = apply(X= corr_matrix_pearson, MARGIN = 1,
@@ -618,9 +618,10 @@ if(save_imgs == TRUE){
   corr_matrix_fig_2(corr_matrix = corr_matrix_pearson,
                     pred_subset = pred_subset,
                     preds_in_order = c(spawner_z_records, preds_all))
+  
+  dev.off()
 }
 
-dev.off()
 
 if(include_figs==T){knitr::include_graphics(fig_path)}
 fig_i = fig_i +1
@@ -673,16 +674,16 @@ ft_ft <- hline(ft_ft, part = "all")#, border =  fp_border(color = "gray"))
 # add complex header
 
 ft_ft = flextable::set_header_labels(ft_ft,
-                                           values = list(
-                                             Predicts ="",
-                                             Using = "",
-                                             Method = "",
-                                             MostImportantHydroCoho = "Coho",
-                                             MostImportantHydroChinook = "Chinook",
-                                             H2SRatioCo = "Coho", 
-                                             H2SRatioCh= "Chinook",
-                                             CohoMinAICc = "Co.", 
-                                             ChinookMinAICc = "Ch."))
+                                     values = list(
+                                       Predicts ="",
+                                       Using = "",
+                                       Method = "",
+                                       MostImportantHydroCoho = "Coho",
+                                       MostImportantHydroChinook = "Chinook",
+                                       H2SRatioCo = "Coho", 
+                                       H2SRatioCh= "Chinook",
+                                       CohoMinAICc = "Co.", 
+                                       ChinookMinAICc = "Ch."))
 
 ft_ft = add_header_row(ft_ft, values = c("Predicts","Using","Method","Most Important Hydrologic Metrics","Hydrologic vs. Spawner Influence (Coef. Ratios)", "Min. AICc"), colwidths = c(1,1,1,2,2,2), top = T)
 ft_ft
@@ -723,7 +724,7 @@ if(predict_eco %in% c("final eco prediction selection")){
   alt_lambda_co = 0.15
   coefs_co = get_pred_coefs(mod = mod_co, cv = cv_co, coef_digits = 3
                             , alt_lambda = alt_lambda_co
-                            )
+  )
   coefs_ch = get_pred_coefs(mod = mod_ch, cv = cv_ch, coef_digits = 3)
 }
 
@@ -736,14 +737,13 @@ if(predict_eco %in% c("final eco prediction selection")){
 fig_path = file.path(save_figs_here, paste0("Figure ",fig_i,".png"))
 if(save_imgs == TRUE){png(filename = fig_path, width = 7, height = 8, units = "in", res = res_dpi)
   
-
+  
   if(predict_eco %in% c("final eco prediction selection")){
     lasso_results(cv_co = cv_co, cv_ch = cv_ch, mod_co = mod_co, 
                   mod_ch = mod_ch
                   , alt_lambda_co = alt_lambda_co
     )
   }
-  
   dev.off()
   # save predictor appearance tab
   pred_tab_filename = "Supplemental Table C. Coho Salmon LASSO Coefficients.csv"
@@ -780,7 +780,7 @@ if(predict_eco == "final eco prediction selection"){
   if("w1_Wet_Tim" %in% coefs_interp){
     coefs_interp$w1_Wet_Tim = "Earlier wet season onset (during parents' spawning or as eggs)"
   }
-
+  
 }
 
 coefs_co_vals = c(round(coefs_co$int_and_coefs$coef, 3))
@@ -829,8 +829,8 @@ if(predict_eco == "juvenile abundance, hydro and spawners"){
   coefs_ch_interp$w1_Wet_BFL_Dur = "Longer wet season (as eggs and fry)"
   coefs_ch_interp$w1_Wet_BFL_Mag_50 = "Lower wet season baseflows (first wet season, as eggs and fry)"
   # coefs_ch_interp$w2_Wet_BFL_Dur = "Longer wet season (wet season 2, they're not here)"
-    coefs_ch_interp$s1_SP_ROC_Max = "Slower max. spring recession rate (as outmigrating smolt)"
-
+  coefs_ch_interp$s1_SP_ROC_Max = "Slower max. spring recession rate (as outmigrating smolt)"
+  
 }
 
 if(predict_eco == "juvenile abundance, hydro only"){
@@ -872,27 +872,27 @@ coch_tab_ft
 
 if(predict_eco %in% c("juveniles per spawner", "juvenile abundance, hydro only",
                       "final eco prediction selection")){
-# retrieve hydrology for all years of FJ flow
+  # retrieve hydrology for all years of FJ flow
   brood_year_hydro_tab_long = tabulate_hydro_by_affected_brood_year(
     brood_years = 1942:2022, smolt_years = 1944:2024)
-
+  
   metrics_tab_long = calc_metrics_hydro_by_affected_brood_year(
     hydro_by_brood_year = brood_year_hydro_tab_long,
     thresholds = thresh_for_corr_fig,
     reduce_to_eco_data_years_only = F)
-
+  
   metrics_tab_long = metrics_tab_long[,intersect(colnames(metrics_tab_screened),
                                                  colnames(metrics_tab_long))]
   if(log_transform_eco_metrics == T){
     metrics_tab_long[,yvlt$y_val] = log10(metrics_tab_long[,yvlt$y_val])
   }
-
+  
   if(zscore_flow_metrics == T){
     zscore_these = !(colnames(metrics_tab_long) %in% non_preds)
     metrics_tab_long[,zscore_these] = apply(X = metrics_tab_long[,zscore_these],
                                             MARGIN = 2, FUN = zscore_column_na_rm)
   }
-
+  
   mt_co_hbf = metrics_tab_long; mt_ch_hbf = metrics_tab_long
 } else { #if spawners needed as a predictor, restrict time series plot to years
   # with spawners and obs data
@@ -901,7 +901,7 @@ if(predict_eco %in% c("juveniles per spawner", "juvenile abundance, hydro only",
                       !is.na(metrics_tab$coho_smolt_abun_est))
   co_i = min(co_vals_i):max(co_vals_i)
   mt_co_hbf = metrics_tab_screened[co_i,]
-
+  
   ch_vals_i = which(!is.na(metrics_tab$chinook_spawner_abundance))
   ch_i = min(ch_vals_i):max(ch_vals_i)
   mt_ch_hbf = metrics_tab_screened[ch_i,]
@@ -944,7 +944,7 @@ if(save_imgs == TRUE){
                     y_val = y_val_coho,
                     y_val_axis = y_axis_label,
                     plot_yrs = plot_yrs)
-
+  
   # Panel 2. Chinook
   hbf_chinook$hbf_total[!is.finite(hbf_chinook$hbf_total)]=NA
   y_axis_label =  yvlt$y_val_label[yvlt$y_val==y_val_chinook]
@@ -954,10 +954,10 @@ if(save_imgs == TRUE){
                     y_val_axis = y_axis_label,
                     plot_yrs = plot_yrs,
                     show_legend = F)
-
-
-
-
+  
+  
+  
+  
   dev.off()
 }
 if(include_figs==T){knitr::include_graphics(fig_path)}
