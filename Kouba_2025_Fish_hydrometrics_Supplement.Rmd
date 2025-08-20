@@ -1,13 +1,13 @@
 ---
 title: Supplement to "A watershed-specific formula to predict salmon reproduction using functional flow metrics"
-author: "Claire Kouba, Jason Wiener, Leland Scantlebury and Thomas Harter"
-date: "Feb. 2025"
+author: "Claire Kouba, Jason Wiener, Leland Scantlebury, Sarah Yarnell and Thomas Harter"
+date: "Aug. 2025"
 output: 
   bookdown::word_document2: 
     fig_caption: true
     number_sections: true
     global_numbering: true
-bibliography: draft_library.bib
+bibliography: library.bib
 ---
 
 ```{r supp_setup_dirs_load_data, include = FALSE}
