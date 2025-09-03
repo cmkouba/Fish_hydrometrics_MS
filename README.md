@@ -1,6 +1,8 @@
 # Repository for Kouba et al. 2025 in Ecohydrology
 ## "A watershed-specific approach to identify key functional flow metrics supporting salmon reproduction"
 
+This repository includes the codebase and data sources used in [this *Ecohydrology* article](https://onlinelibrary.wiley.com/doi/10.1002/eco.70098).
+
 To start working with this repository, it is recommended to start from the top of the RMarkdown script `Kouba_2025_Fish_hydrometrics_MS.Rmd`, which calls the two other main scripts, `01_DataRetrieval_Cleaning_SaveLocal.R` and `02_Figure_Functions.R`, as well as another RMarkdown script containing supplementary material. 
 
 ## Data
