@@ -1,0 +1,226 @@
+---
+title: The search for flow metrics that support fish success - case study in Scott River, Siskiyou County, California
+author: "Claire Kouba, Sarah Yarnell, Leland Scantlebury and Thomas Harter"
+date: "September 2025"
+output: 
+  bookdown::word_document2: 
+    fig_caption: true
+    number_sections: false
+    global_numbering: true
+bibliography: library.bib
+---
+
+```{r setup_dirs_load_data, include = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(lubridate)
+library(httr)
+library(ggplot2) # for barplots 
+library(gridExtra)
+library(corrplot)  # for data exploration/correlation plots
+library(dataRetrieval) # for usgs data
+library(data.table) #month function
+library(zoo) # rolling means
+library(sf)
+library(terra)
+library(tmap)
+library(grid) # for inset maps
+library(cowplot) # for inset maps
+library(ggthemes) # for colorblind palette
+library(flextable)
+library(glmnet) # LASSO regression
+library(MARSS)
+library(here)
+
+# Directories
+ms_dir = here::here()
+scratch_dir = file.path(ms_dir, "scratch_work")
+data_dir = file.path(ms_dir, "Data")
+graphics_dir = file.path(ms_dir, "Graphics and Supplements")
+
+# Load spatial and tabular data
+
+# If the data files don't exist locally,
+# pull data from internet and local files
+if(!file.exists(file.path(ms_dir,"manuscript_data.RData"))){
+  source(file.path(ms_dir,"01_DataRetrieval_Cleaning_SaveLocal.R")) 
+}
+load(file.path(ms_dir, "manuscript_data.RData")) # Load data layers/tables
+source(file.path(ms_dir,"02_Figure_Functions.R"))   # Load figure and table functions
+
+#Append supplement?
+INCLUDE_SUPP = T
+# Save figures as images, yes or no?
+save_figs_here = graphics_dir
+save_imgs=F# generate the figures in the folder
+include_figs = T
+replace_setting_fig = F# setting to F can save time if no need to re-render map
+fig_i = 1
+
+# pick last water year for the HB function to calculate a value for
+last_wy = 2023
+```
+
+```{r load_FF_metrics, include = FALSE}
+fflows = read_fflows_FJ(calculator = "Flashy")
+# data transformations
+log_transform_eco_metrics = T
+zscore_flow_metrics = T
+
+```
+
+
+```{r select_eco_metric_3, echo = F, warning =F, comment = F}
+
+# predict_eco = "juvenile abundance, hydro and spawners" #"juveniles per spawner" # "juveniles per spawner"
+# predict_eco = "juveniles per spawner"
+# predict_eco = "juvenile abundance, hydro only"
+
+# predict_eco = "final eco prediction selection"
+# 
+# # Hydro-only predictors
+# if(predict_eco == "juveniles per spawner"){
+#   y_val_chinook = "chinook_juvenile_abundance"
+#   y_val_coho = "coho_smolt_per_fem"
+# }
+# if(predict_eco == "juveniles per spawner"){
+#   y_val_chinook = "chinook_juv_per_adult"
+#   y_val_coho = "coho_smolt_per_fem"
+# }
+# if(predict_eco == "juvenile abundance, hydro only"){
+#   y_val_chinook = "chinook_juvenile_abundance"
+#   y_val_coho = "coho_smolt_abun_est"
+# }
+# if(predict_eco == "juvenile abundance, hydro and spawners"){
+#   y_val_chinook = "chinook_juvenile_abundance"
+#   y_val_coho = "coho_smolt_abun_est"
+# }
+# 
+# 
+# #table of ecological record identifiers
+# yvlt = y_val_label_tab()
+# spawner_z_records = c("coho_spawners_zscored", "chinook_spawners_zscored")
+
+```
+
+
+How much water do fish really need, and is it possible to ask the fish? One approach to answering this question is to monitor the abundance of a local fish population over many years, and determine the degree to which observed streamflow correlates with fishery persistence, increase, or decline.
+
+We applied this approach in a recent [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5) in the journal *Ecohydrology*, focusing our study on reproductive success of coho (*Oncorhynchus kisutch*) and Chinook (*Oncorhynchus tshawytscha*) salmon in the Scott River Valley (Figure \@ref(fig:ScottWatershedMap)). While many uncertainties still remain, in this analysis, the data suggests these top hydrological priorities for fishery health:
+
+* For coho, promote early and higher fall flows. 
+* For Chinook, promote slower spring recessions and, potentially, enhance habitat quality or refugia abundance along the main stem of the Scott River to facilitate sheltering during winter storms.
+
+# We need actionable science to better manage competing water needs
+
+In rural, water-limited areas, communities often face a trade-off: more water for farms means less water for fish, and vice-versa. To balance these competing water needs, resource managers need good information about how much water is needed, when, and where. In many places, agricultural or municipal water uses are more-easily quantified than ecological water needs, and likewise, the costs of not meeting those demands are more easily quantified for human uses than for fish. This creates an inherently difficult challenge when assessing water-use trade-offs that decades of investigation on this subject by academic researchers, governmental agencies, and non-governmental organizations have struggled to meet. <!-- ([Robertson and Swinton 2005](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1890/1540-9295%282005%29003%5B0038%3ARAPAEI%5D2.0.CO%3B2)) -->
+ 
+Ecological flow needs can be examined at a holistic, ecosystem level, or at the level of individual species; here we focus on two species in particular, coho and Chinook salmon. Additionally, to reflect the local nature of resource management, we asked our research question in a specific location: is flow in the Scott River (Figure \@ref(fig:ScottWatershedMap)) correlated with the success of coho and Chinook salmon that spawn and rear their young in that watershed?
+
+
+```{r ScottWatershedMap, echo = F, message = F, warning =F, fig.height = 8.5, fig.cap = "The Scott River watershed, with regional geographic context (see inset) and local features, including the Scott River Fish Counting Facility (FCF) and Scott River Rotary Screw Trap (RST).\\label{fig:ScottWatershedMap}"}
+
+if(replace_setting_fig == TRUE){save_setting_figure()}
+
+if(save_imgs==T){
+  file.copy(from = file.path(graphics_dir, "Graphics source","scott valley setting.png"),
+            to = file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
+if(include_figs==T){
+  knitr::include_graphics(file.path(save_figs_here, paste0("Figure ",fig_i,".png")))
+}
+
+fig_i = fig_i +1
+
+```
+
+The Scott River is a major tributary of the Klamath, and the Scott-Klamath confluence is 142 miles upstream from the Pacific Ocean  (Figure \@ref(fig:ScottWatershedMap)). Major influences on streamflow include wet season precipitation and mountain snowmelt ([Kouba and Harter 2024](https://hess.copernicus.org/articles/28/691/2024/)). On the flat portions of the valley floor, Scott River and its tributaries overlie an alluvial aquifer highly interconnected to the stream system, especially along the main stem of the river. Gaining and losing reaches expand and contract seasonally due to fluctuating groundwater levels ([Tolley et al. 2019](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2018WR024209)). Scott River coho are of high regional interest because "the Scott River Coho Salmon population is currently believed to be the largest sub population of wild Coho Salmon within the Klamath watershed" [@KnechtleGiudice20222023]. For more Scott River background, see the [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5) and associated Supplemental Information.
+
+To contribute to the large and actively growing body of work on Scott River water and salmon management, we first pulled together a dataset of annual fish observations and the quantified flows influencing each cohort of fish.
+
+# Building a flow-fish dataset
+
+To identify the most important flows for Scott River coho and Chinook, we investigated: which flows are most correlated with fish observations? And specifically, with two multiple regression methods ([LASSO](https://www.ibm.com/think/topics/lasso-regression) and [MARSS](https://atsa-es.github.io/MARSS/) regression), which single hydrologic metric or combinations of metrics could reproduce fish observations with the greatest accuracy?
+
+To quantify the hydrology, we used [functional flow metrics](ceff.ucdavis.edu) to calculate, for example, the timing and magnitude of flow events that provide potential ecological services. These metrics can be calculated for any location with daily river data using signal-processing algorithms [@YarnellEtAlFunctional2020; @PattersonEtAlHydrologic2020; @CarpenterAccurately2024]. We also designed a few additional hydrologic metrics specific to this study, and so collectively, we refer to these values as "hydrologic metrics".
+
+To assess fishery success, after considering several types of ecological monitoring data, we focused on the number of outmigrating juveniles, or smolt. Outmigrating smolt are counted at the Scott River Rotary Screw Trap facility (Figure \@ref(fig:ScottWatershedMap)) [e.g., @MassieMorrow20202021; @RomeroRobinson20232024]. We also included spawner abundance in our analysis, or the number of adult salmon (coho and Chinook counted separately) migrating from the ocean to freshwater natal streams to spawn. This quantity, the 'escapement', is measured at the Scott River Fish Counting Facility, using a resistance board weir and video counting flume in the Scott River [e.g., @KnechtleGiudice20222023] (Figure \@ref(fig:ScottWatershedMap)). 
+
+We then aligned the hydrologic metrics by brood year of each salmon cohort for which smolt observation data was available (Figure \@ref(fig:cohoLifeCycleFigure)). For example, coho salmon whose parents spawned in December 2012 would be influenced by flow conditions starting with summer and fall 2012 (during parents' spawning), as well as the 2012-2013 wet season (as eggs and hatchlings), the 2013 spring flow recession and snow melt period (as rearing juveniles), through to the 2014 spring flow recession (as outmigrating smolt).
+
+```{r cohoLifeCycleFigure, echo = F, message = F, warning =F, out.height= "8.5in", fig.cap = "Seasons (as defined in the California Environmental Flows Framework; Yarnell et al. 2020) and life stages experienced by a coho and a Chinook salmon cohort in the Scott River watershed."}
+  knitr::include_graphics(file.path(graphics_dir, "Graphics source", 
+                             "Salmon life cycle and seasons graphic.jpg"))
+```
+
+# Key findings
+
+We framed our findings with the question, which flows are important to coho and Chinook? And secondarily, in our catalog of quantified flows, what flow conditions or trends are evident in the Scott River watershed? Furthermore, does flow seem to influence juvenile production more or less than the simple number of spawning adults? 
+
+1. In our statistical prediction exercise, **different flows** were of highest importance to Chinook versus coho salmon. 
+
+The most important hydrologic metrics for a given cohort of Chinook (influenced by one year of freshwater hydrology; Figure \@ref(fig:cohoLifeCycleFigure)) were: 
+
+* lower wet season median (50th percentile) flow, and 
+* slower maximum spring recession rate. 
+
+The most important hydrologic metrics for a given cohort of outmigrating coho (influenced by two years of freshwater hydrology; Figure \@ref(fig:cohoLifeCycleFigure)) were:
+
+* earlier river reconnection during parents' spawning (presumably, a proxy for earlier spawner access to preferred tributary habitat), and 
+* larger fall flow difference from dry season during parents' spawning.
+
+Additionally, larger fall flow increase during their time as yearling juveniles is associated with *less* juvenile coho production - a smaller but opposite effect - suggesting that the same flow can affect a cohort differently depending on the life stage in which it is experienced.
+
+2. Over the past 80 years, we see a **consistent trend of less favorable hydrologic conditions for salmonids** in the Scott River watershed, where the wet season is getting shorter, and the dry season is getting dryer (see [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5), Section 4.1, for more details). The primary drivers are a changing climate (especially a reduced snowpack and earlier snowmelt) and long-term changes in local consumptive water use and use patterns [@DrakeEtAlAnalysis2000; @VanKirkNamanRelative2008; @FogliaEtAlScott2013].
+
+3. Correlation coefficients, the statistical measures quantifying how strong a relationship is, indicate that in this watershed, production of juvenile outmigrant fish is not dominantly controlled by hydrologic factors or by spawner abundance but is **influenced by both** (see [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5), Section 4.2, for more details) . 
+
+Also, consistent with the understanding that hydrology is only one factor influencing salmonid reproductive outcomes, our correlation coefficients were not particularly strong: only 6 absolute $R$ values were greater than 0.5. It is likely that other non-hydrologic influences play a role in fishery success, such as channel geomorphology, water quality, food resources, and internal population dynamics, but assessment these factors were beyond the scope of this study.
+
+# Potential mechanisms linking flow and fish success
+
+These statistics suggest that the hydrology during coho parents' spawning, or during Chinook's time spent as eggs and outmigrating smolt, may have an outsized impact on the mortality rates of juvenile salmon in Scott Valley. 
+
+For spawning coho, more fall flow and earlier stream reconnection could provide more spatial habitat and/or more time to find a better nesting site in their preferred tributary spawning reaches. However, for yearling coho rearing in tributaries, a large fall flow may be disruptive - perhaps associated with an increase in turbidity or energetic costs of foraging, or other stressors. One implication is that year-to-year variability in hydrologic metrics may benefit some cohorts at the expense of others. Other flow metrics identified as having some importance to coho outmigrant production in our statistical modeling exercise, in order of decreasing importance, are earlier first wet season onset, greater first wet season flow, greater first early summer flow, faster second spring recession (when outmigrating), and slower first spring recession. 
+
+For Chinook, higher median winter flowrates, associated with larger winter storms,  may cause egg burial or nest scouring, or may increase energetic costs of foraging and holding station for new hatchlings. Years with a faster spring recession might be less favorable for outmigrating smolt, as a more abrupt spring flow recession could mean smolts are outmigrating through slower flow velocities, which could increase transit time and vulnerability to predation [@McCormickEtAlMovement1998]. Other flow metrics identified as having some importance to Chinook outmigrant production in our statistical modeling exercise, in order of decreasing importance, were greater early summer flows, earlier fall reconnection, greater dry season flow, earlier wet season onset, and, in the single relevant model structure, parental spawner abundance (see [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5), Sections 4.1, 5.2 and 5.3, for more details).
+
+These interpretations of our results regarding possible mechanisms are speculative, informed by our experience and professional judgment; future work could investigate these potential mechanisms further.
+
+# Caveats
+
+The size of the response dataset (less than 20 years of ecological observations) is small. In this type of data analysis, overfitting is possible because the number of possible predictors (here, hydrologic metrics) approaches or exceeds the number of observations being predicted (here, annual ecological records) [@ReinekingSchroderConstrain2006]. Because of this, the predictive power, and/or which metrics are identified as important, could change if this analysis were redone in the future with additional years of data.
+
+Additionally, the results are sensitive to decisions made during the prescreening step to eliminate collinear predictors (see [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5) and associated Supplemental Information for more details).
+
+The Scott River salmonid population is relatively well-studied, with two decades of ecological observations, but like all ecological observations these data are subject to some limitations. In general, the process of counting migrating fish is made more difficult at high flowrates, making counts more uncertain during high-flow periods [as described in state agency monitoring reports like @MassieMorrow20202021; @RomeroRobinson20232024; @KnechtleGiudice20192020; @KnechtleGiudice20222023]. 
+
+# Implications for water management
+
+In our research we asked broadly about flows that support fishery success in the Scott River, but we can also use this dataset to explore more specific local management concerns. 
+
+Firstly, how do flows affect spawners? In this dataset, we find no strong relationships between the flows we examined and the number of observed spawners. Specifically, for both species, the number of spawners in a cohort is not highly correlated with hydrologic metrics in the dry season preceding, or the fall season during, their spawning window (see [article](https://onlinelibrary.wiley.com/toc/19360592/2025/18/5), Figure 4). This means the number of juveniles produced is more correlated with freshwater flow metrics than the number of spawners.
+
+And secondly, are there any clear flow thresholds, below which flows are insufficient to support salmon reproduction? In this analysis, we did not find a clear "minimum" threshold value in the data. If a clear threshold existed, we would expect to find that above $X$ flow threshold (in any metric), juvenile outmigrant production is strong, and below it, it is weak. However, in scatterplots of hydrologic metrics versus juvenile production values, we did not see obvious threshold behavior. 
+
+This is not to say that minimum thresholds in key hydrologic metrics do not exist. The extreme drought conditions in water year 2014 [demonstrated](https://www.siskiyourcd.com/_files/ugd/87211c_6a0bce0f29634f43bf2519e0ccd50fbc.pdf) that below a certain degree of river connectivity, juvenile outmigrants become stranded and cannot complete their life cycle. But in this analysis, we find more evidence for a gradient of benefit provided by flow: more, earlier fall flows are generally better for coho, and less-extreme winters and longer, slower spring recessions/snow melt periods are better for Chinook. 
+
+# Concluding thoughts
+
+How much water do fish really need? This analysis highlights flow metrics and seasons that are especially correlated with observed fish outcomes, which could help agencies and stakeholders prioritize management options. 
+
+For coho, earlier and higher-magnitude fall flows during a cohort's parents' spawning are associated with higher reproductive outcomes. Fall flow magnitude is associated with both positive and (smaller) negative effects for coho, depending on the life stage in which they occur; this suggest year-to-year variability in hydrologic metrics benefits some cohorts at the expense of others in any given year, which could result in greater population stability over the longer term. For Chinook, higher outmigrant production is predicted by lower median winter flows (less large floods), as well as slower spring recession rates during their outmigration. 
+
+With continuing trends of a shorter wet season in the Scott River watershed, entities and water users aiming to sustain local fisheries may find themselves working with ever-thinner margins for error. Globally, in communities living and working with local natural resources, climate change may transform biodiversity-preservation activities into long-term engineering of novel ecosystems. If this occurs, long-term monitoring and frequently re-evaluated flow-ecology relationships will be necessary to support such efforts.
+
+
+\newpage
+
+# About the Author
+
+Claire Kouba, P.E., PhD, has been interested in Scott Valley water resources since 2018. As a graduate and then postdoctoral researcher at UC Davis in Hydrologic Sciences, she provided technical support for local planning efforts under the Sustainable Groundwater Management Act from 2018-2021. Now a postdoctoral associate in the Yale School of Environment, her research is focused on data-driven resource management and applied surface- and groundwater modeling.
+
+# Further Reading

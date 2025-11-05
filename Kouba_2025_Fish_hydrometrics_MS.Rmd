@@ -1051,6 +1051,6 @@ The authors are grateful for feedback from two reviewers and financial support f
 
 \newpage
 
-```{r call_supplement, child=if (INCLUDE_SUPP) 'Kouba_2024_Fish_hydrometrics_Supplement.Rmd'}
+```{r call_supplement, child=if (INCLUDE_SUPP) 'Kouba_2025_Fish_hydrometrics_Supplement.Rmd'}
 ```
 
