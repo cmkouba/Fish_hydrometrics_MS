@@ -1249,7 +1249,7 @@ if(file.exists(file.path(data_dir, model_list_file))){
   
   list_of_mods = list()
   
-  is = which(yvlt$y_val %in% c(y_val_coho, y_val_chinook))
+  is = 1:nrow(yvlt)#which(yvlt$y_val %in% c(y_val_coho, y_val_chinook))
   for(i in is){ #for coho and chinook juv abundance
     y_val_i = yvlt$y_val[i]
     # only run models for seasons that effect the selected ecological (y) value

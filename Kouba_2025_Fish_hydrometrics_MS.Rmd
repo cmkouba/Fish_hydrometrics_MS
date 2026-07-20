@@ -341,7 +341,9 @@ preds_all = colnames(metrics_tab[,!colnames(metrics_tab) %in% non_preds])
 if(zscore_flow_metrics == T){
   zscore_these = !(colnames(metrics_tab) %in% non_preds)
   metrics_mean = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = mean, na.rm=T)
+  write.csv(metrics_mean, file.path(data_dir,"flow_metrics_mean_for_zscore.csv"))
   metrics_sd = apply(X = metrics_tab[,zscore_these], MARGIN = 2, FUN = sd, na.rm=T)
+  write.csv(metrics_sd, file.path(data_dir,"flow_metrics_sd_for_zscore.csv"))
   metrics_tab[,zscore_these] = apply(X = metrics_tab[,zscore_these],
                                      MARGIN = 2, FUN = zscore_column_na_rm)
   
